@@ -31,7 +31,7 @@ export async function signAndSubmitTransaction(
         jsonrpc: "2.0",
         id: 1,
         method: "sendTransaction",
-        params: [signed.signedTxEnvelope],
+        params: [signed.signedTxXdr],
       }),
     });
 
