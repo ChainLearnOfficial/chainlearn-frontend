@@ -29,14 +29,15 @@ export const useCourseStore = create<CourseState>()((set, get) => ({
   updateProgress: (courseId, moduleId) =>
     set((state) => {
       const existing = state.progress[courseId];
-      const completedModules = existing
-        ? [...new Set([...(existing.completedModules || []), moduleId])]
-        : [moduleId];
+      const prevCount = existing?.completedModules ?? 0;
+      // Only increment if this module wasn't already the current one
+      const completedCount =
+        existing?.currentModuleId === moduleId ? prevCount : prevCount + 1;
       const course = state.currentCourse;
       const totalModules = course?.totalModules ?? existing?.totalModules ?? 0;
       const progressPercent =
         totalModules > 0
-          ? Math.round((completedModules.length / totalModules) * 100)
+          ? Math.round((completedCount / totalModules) * 100)
           : 0;
 
       return {
@@ -45,7 +46,7 @@ export const useCourseStore = create<CourseState>()((set, get) => ({
           [courseId]: {
             courseId,
             totalModules,
-            completedModules: completedModules.length,
+            completedModules: completedCount,
             progressPercent,
             currentModuleId: moduleId,
           },

@@ -7,7 +7,8 @@ export type NetworkType = "testnet" | "public";
  */
 export async function isFreighterInstalled(): Promise<boolean> {
   try {
-    return await freighterApi.isConnected();
+    const result = await freighterApi.isConnected();
+    return result.isConnected;
   } catch {
     return false;
   }
@@ -18,15 +19,15 @@ export async function isFreighterInstalled(): Promise<boolean> {
  * Returns the public key if granted.
  */
 export async function connectFreighter(): Promise<string> {
-  const isAllowed = await freighterApi.isAllowed();
-  if (!isAllowed) {
+  const allowed = await freighterApi.isAllowed();
+  if (!allowed.isAllowed) {
     await freighterApi.requestAccess();
   }
-  const address = await freighterApi.getAddress();
-  if (address.error) {
-    throw new Error(address.error);
+  const result = await freighterApi.getAddress();
+  if (result.error) {
+    throw new Error(result.error.message);
   }
-  return address.address;
+  return result.address;
 }
 
 /**
@@ -52,9 +53,12 @@ export async function signChallenge(
     networkPassphrase,
   });
   if (result.error) {
-    throw new Error(result.error);
+    throw new Error(result.error.message);
   }
-  return result.signedMessage;
+  if (!result.signedMessage) {
+    throw new Error("Failed to sign message");
+  }
+  return result.signedMessage.toString();
 }
 
 /**
