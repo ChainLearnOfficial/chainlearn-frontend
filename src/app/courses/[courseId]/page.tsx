@@ -10,6 +10,7 @@ import { ProgressBar } from "@/components/course/progress-bar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { LoadingSkeleton } from "@/components/shared/loading-skeleton";
+import { useToast } from "@/components/shared/toast";
 import {
   Clock,
   Users,
@@ -38,6 +39,7 @@ export default function CourseDetailPage({
   const { jwt, isAuthenticated } = useAuth();
   const enrollments = useCourseStore((s) => s.enrollments);
   const progress = useCourseStore((s) => s.progress);
+  const { addToast, ToastContainer } = useToast();
   const [enrolling, setEnrolling] = useState(false);
 
   const isEnrolled = enrollments.some((e) => e.courseId === courseId);
@@ -57,8 +59,10 @@ export default function CourseDetailPage({
         completedModules: [],
         lastAccessedAt: new Date().toISOString(),
       });
+      addToast("Successfully enrolled in the course!", "success");
     } catch (err) {
       console.error("Enrollment failed:", err);
+      addToast("Enrollment failed. Please try again.", "error");
     } finally {
       setEnrolling(false);
     }
@@ -174,6 +178,7 @@ export default function CourseDetailPage({
           />
         </CardContent>
       </Card>
+      <ToastContainer />
     </div>
   );
 }

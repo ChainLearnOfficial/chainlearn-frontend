@@ -7,10 +7,12 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Wallet, Shield, ArrowRight, Loader2, AlertCircle } from "lucide-react";
 import { isFreighterInstalled } from "@/lib/stellar/wallet";
 import { useEffect, useState } from "react";
+import { useToast } from "@/components/shared/toast";
 
 export default function ConnectPage() {
   const router = useRouter();
   const { isAuthenticated, isConnecting, connectWallet, error } = useAuth();
+  const { addToast, ToastContainer } = useToast();
   const [freighterInstalled, setFreighterInstalled] = useState<boolean | null>(
     null
   );
@@ -28,9 +30,10 @@ export default function ConnectPage() {
   const handleConnect = async () => {
     try {
       await connectWallet();
+      addToast("Wallet connected successfully!", "success");
       router.push("/onboarding");
     } catch {
-      // Error is handled by useAuth hook
+      addToast("Failed to connect wallet. Please try again.", "error");
     }
   };
 
@@ -105,6 +108,7 @@ export default function ConnectPage() {
           </div>
         </CardContent>
       </Card>
+      <ToastContainer />
     </div>
   );
 }

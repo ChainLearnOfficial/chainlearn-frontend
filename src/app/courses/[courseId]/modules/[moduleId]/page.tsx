@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { LoadingSkeleton } from "@/components/shared/loading-skeleton";
 import { ProgressBar } from "@/components/course/progress-bar";
 import { useCourseStore } from "@/store/course-store";
+import { useToast } from "@/components/shared/toast";
 import {
   ArrowLeft,
   ArrowRight,
@@ -24,6 +25,7 @@ export default function ModulePage({
   const { courseId, moduleId } = use(params);
   const { module, loading, error, complete } = useModule(courseId, moduleId);
   const courseProgress = useCourseStore((s) => s.progress[courseId]);
+  const { addToast, ToastContainer } = useToast();
   const [completing, setCompleting] = useState(false);
   const [completed, setCompleted] = useState(false);
 
@@ -32,8 +34,10 @@ export default function ModulePage({
     try {
       await complete();
       setCompleted(true);
+      addToast("Module marked as complete!", "success");
     } catch (err) {
       console.error("Failed to mark complete:", err);
+      addToast("Failed to mark module as complete.", "error");
     } finally {
       setCompleting(false);
     }
@@ -123,6 +127,7 @@ export default function ModulePage({
           </Button>
         )}
       </div>
+      <ToastContainer />
     </div>
   );
 }
