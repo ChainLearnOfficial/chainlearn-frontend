@@ -9,6 +9,7 @@ import { TokenBalance } from "@/components/rewards/token-balance";
 import { ClaimButton } from "@/components/rewards/claim-button";
 import { RewardHistory } from "@/components/rewards/reward-history";
 import { LoadingSkeleton } from "@/components/shared/loading-skeleton";
+import { useToast } from "@/components/shared/toast";
 import { Gift, Coins, TrendingUp } from "lucide-react";
 
 export default function RewardsPage() {
@@ -16,6 +17,17 @@ export default function RewardsPage() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const { balances, history, claimables, loading, claim, claiming } =
     useRewards();
+  const { addToast, ToastContainer } = useToast();
+
+  const handleClaim = async (claimableId: string) => {
+    try {
+      await claim(claimableId);
+      addToast("Reward claimed successfully!", "success");
+    } catch (err) {
+      addToast("Failed to claim reward. Please try again.", "error");
+      throw err;
+    }
+  };
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -84,7 +96,7 @@ export default function RewardsPage() {
                     claimableId={item.id}
                     amount={item.amount}
                     sourceTitle={item.sourceTitle}
-                    onClaim={claim}
+                    onClaim={handleClaim}
                   />
                 </CardContent>
               </Card>
@@ -105,6 +117,7 @@ export default function RewardsPage() {
           </CardContent>
         </Card>
       </section>
+      <ToastContainer />
     </div>
   );
 }
