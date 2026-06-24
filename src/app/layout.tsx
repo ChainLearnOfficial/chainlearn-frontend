@@ -3,6 +3,7 @@ import { Inter, JetBrains_Mono } from "next/font/google";
 import { WalletProvider } from "@/components/wallet/wallet-provider";
 import { Header } from "@/components/layout/header";
 import { MobileNav } from "@/components/layout/mobile-nav";
+import { Sidebar } from "@/components/layout/sidebar";
 import { ErrorBoundary } from "@/components/shared/error-boundary";
 import "./globals.css";
 
@@ -53,9 +54,12 @@ export default function RootLayout({
           <WalletProvider>
             <div className="flex min-h-screen flex-col">
               <Header />
-              <main className="flex-1">
-                <div id="page-content">{children}</div>
-              </main>
+              <div className="flex flex-1">
+                <Sidebar />
+                <main className="flex-1">
+                  <div id="page-content">{children}</div>
+                </main>
+              </div>
               <MobileNav />
             </div>
           </WalletProvider>
