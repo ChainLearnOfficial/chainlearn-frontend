@@ -10,7 +10,7 @@ import { ProgressBar } from "@/components/course/progress-bar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { LoadingSkeleton } from "@/components/shared/loading-skeleton";
-import { useToast } from "@/components/shared/toast";
+import { useToastContext } from "@/components/shared/toast";
 import {
   Clock,
   Users,
@@ -39,10 +39,11 @@ export default function CourseDetailPage({
   const { jwt, isAuthenticated } = useAuth();
   const enrollments = useCourseStore((s) => s.enrollments);
   const progress = useCourseStore((s) => s.progress);
-  const { addToast, ToastContainer } = useToast();
+  const { addToast } = useToastContext();
   const [enrolling, setEnrolling] = useState(false);
 
-  const isEnrolled = enrollments.some((e) => e.courseId === courseId);
+  const enrollment = enrollments.find((e) => e.courseId === courseId);
+  const isEnrolled = !!enrollment;
   const courseProgress = progress[courseId];
 
   const handleEnroll = async () => {
@@ -173,12 +174,11 @@ export default function CourseDetailPage({
           <ModuleList
             courseId={courseId}
             modules={course.modules}
-            completedModuleIds={[]}
+            completedModuleIds={enrollment?.completedModules ?? []}
             currentModuleId={courseProgress?.currentModuleId}
           />
         </CardContent>
       </Card>
-      <ToastContainer />
     </div>
   );
 }

@@ -2,7 +2,14 @@
 
 import { cn } from "@/lib/utils/cn";
 import { X, CheckCircle, AlertCircle, Info } from "lucide-react";
-import { useEffect, useState, type ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useCallback,
+  type ReactNode,
+} from "react";
 
 type ToastVariant = "success" | "error" | "info";
 
@@ -99,4 +106,50 @@ export function useToast() {
   );
 
   return { addToast, ToastContainer };
+}
+
+interface ToastContextValue {
+  addToast: (message: string, variant?: ToastVariant) => void;
+}
+
+const ToastContext = createContext<ToastContextValue | null>(null);
+
+export function ToastContextProvider({ children }: { children: ReactNode }) {
+  const [toasts, setToasts] = useState<
+    { id: string; message: string; variant: ToastVariant }[]
+  >([]);
+
+  const addToast = useCallback(
+    (message: string, variant: ToastVariant = "info") => {
+      const id = Math.random().toString(36).slice(2);
+      setToasts((prev) => [...prev, { id, message, variant }]);
+    },
+    []
+  );
+
+  const removeToast = useCallback((id: string) => {
+    setToasts((prev) => prev.filter((t) => t.id !== id));
+  }, []);
+
+  return (
+    <ToastContext.Provider value={{ addToast }}>
+      {children}
+      {toasts.map((toast) => (
+        <Toast
+          key={toast.id}
+          message={toast.message}
+          variant={toast.variant}
+          onClose={() => removeToast(toast.id)}
+        />
+      ))}
+    </ToastContext.Provider>
+  );
+}
+
+export function useToastContext() {
+  const ctx = useContext(ToastContext);
+  if (!ctx) {
+    throw new Error("useToastContext must be used within ToastContextProvider");
+  }
+  return ctx;
 }
