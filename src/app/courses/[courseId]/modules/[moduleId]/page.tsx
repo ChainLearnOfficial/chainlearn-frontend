@@ -7,7 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { LoadingSkeleton } from "@/components/shared/loading-skeleton";
 import { ProgressBar } from "@/components/course/progress-bar";
 import { useCourseStore } from "@/store/course-store";
-import { useToast } from "@/components/shared/toast";
+import { useToastContext } from "@/components/shared/toast";
 import {
   ArrowLeft,
   ArrowRight,
@@ -25,7 +25,7 @@ export default function ModulePage({
   const { courseId, moduleId } = use(params);
   const { module, loading, error, complete } = useModule(courseId, moduleId);
   const courseProgress = useCourseStore((s) => s.progress[courseId]);
-  const { addToast, ToastContainer } = useToast();
+  const { addToast } = useToastContext();
   const [completing, setCompleting] = useState(false);
   const [completed, setCompleted] = useState(false);
 
@@ -127,7 +127,6 @@ export default function ModulePage({
           </Button>
         )}
       </div>
-      <ToastContainer />
     </div>
   );
 }

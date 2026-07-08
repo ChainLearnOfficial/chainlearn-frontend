@@ -5,6 +5,7 @@ import { Header } from "@/components/layout/header";
 import { MobileNav } from "@/components/layout/mobile-nav";
 import { Sidebar } from "@/components/layout/sidebar";
 import { ErrorBoundary } from "@/components/shared/error-boundary";
+import { ToastProvider } from "@/components/shared/toast-provider";
 import "./globals.css";
 
 const inter = Inter({
@@ -52,16 +53,18 @@ export default function RootLayout({
       <body className="min-h-screen bg-gray-50 font-sans">
         <ErrorBoundary>
           <WalletProvider>
-            <div className="flex min-h-screen flex-col">
-              <Header />
-              <div className="flex flex-1">
-                <Sidebar />
-                <main className="flex-1">
-                  <div id="page-content">{children}</div>
-                </main>
+            <ToastProvider>
+              <div className="flex min-h-screen flex-col">
+                <Header />
+                <div className="flex flex-1">
+                  <Sidebar />
+                  <main className="flex-1">
+                    <div id="page-content">{children}</div>
+                  </main>
+                </div>
+                <MobileNav />
               </div>
-              <MobileNav />
-            </div>
+            </ToastProvider>
           </WalletProvider>
         </ErrorBoundary>
       </body>
