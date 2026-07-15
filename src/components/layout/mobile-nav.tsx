@@ -3,14 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils/cn";
-import { LayoutDashboard, BookOpen, Trophy, Award } from "lucide-react";
-
-const mobileNavLinks = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/courses", label: "Courses", icon: BookOpen },
-  { href: "/rewards", label: "Rewards", icon: Trophy },
-  { href: "/credentials", label: "Credentials", icon: Award },
-];
+import { navLinks } from "./nav-links";
 
 export function MobileNav() {
   const pathname = usePathname();
@@ -18,7 +11,7 @@ export function MobileNav() {
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-gray-200 bg-white lg:hidden">
       <div className="flex items-center justify-around px-2 py-1">
-        {mobileNavLinks.map((link) => {
+        {navLinks.map((link) => {
           const isActive =
             pathname === link.href || pathname.startsWith(link.href + "/");
           return (
