@@ -4,23 +4,10 @@ import Link from "next/link";
 import { useAuthStore } from "@/store/auth-store";
 import { ConnectButton } from "@/components/wallet/connect-button";
 import { truncateAddress } from "@/lib/utils/format";
-import {
-  BookOpen,
-  Trophy,
-  Award,
-  LayoutDashboard,
-  Menu,
-  X,
-} from "lucide-react";
+import { BookOpen, Menu, X } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils/cn";
-
-const navLinks = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/courses", label: "Courses", icon: BookOpen },
-  { href: "/rewards", label: "Rewards", icon: Trophy },
-  { href: "/credentials", label: "Credentials", icon: Award },
-];
+import { navLinks } from "./nav-links";
 
 export function Header() {
   const { isAuthenticated, walletAddress } = useAuthStore();
