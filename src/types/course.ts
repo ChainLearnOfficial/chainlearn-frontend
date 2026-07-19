@@ -39,6 +39,7 @@ export interface CourseProgress {
   courseId: string;
   totalModules: number;
   completedModules: number;
+  completedModuleIds: string[];
   progressPercent: number;
   currentModuleId?: string;
 }
