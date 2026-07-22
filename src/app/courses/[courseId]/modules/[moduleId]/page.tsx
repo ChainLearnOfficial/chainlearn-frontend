@@ -1,6 +1,7 @@
 "use client";
 
 import { use } from "react";
+import DOMPurify from "dompurify";
 import { useModule } from "@/lib/hooks/use-courses";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -89,7 +90,7 @@ export default function ModulePage({
 
           <div className="prose prose-gray max-w-none">
             {/* Render module content. In production, use a proper MD renderer. */}
-            <div dangerouslySetInnerHTML={{ __html: module.content }} />
+            <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(module.content) }} />
           </div>
         </CardContent>
       </Card>
