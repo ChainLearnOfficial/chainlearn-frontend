@@ -96,6 +96,8 @@ export function useCourseDetail(courseId: string) {
 export function useModule(courseId: string, moduleId: string) {
   const jwt = useAuthStore((s) => s.jwt);
   const updateProgress = useCourseStore((s) => s.updateProgress);
+  const currentCourse = useCourseStore((s) => s.currentCourse);
+  const setCurrentCourse = useCourseStore((s) => s.setCurrentCourse);
   const [module, setModule] = useState<Module | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -114,8 +116,12 @@ export function useModule(courseId: string, moduleId: string) {
   const complete = useCallback(async () => {
     if (!jwt) throw new Error("Not authenticated");
     await markModuleComplete(courseId, moduleId, jwt);
+    if (!currentCourse || currentCourse.id !== courseId) {
+      const course = await getCourse(courseId, jwt);
+      setCurrentCourse(course);
+    }
     updateProgress(courseId, moduleId);
-  }, [courseId, moduleId, jwt, updateProgress]);
+  }, [courseId, moduleId, jwt, updateProgress, currentCourse, setCurrentCourse]);
 
   return { module, loading, error, complete };
 }
