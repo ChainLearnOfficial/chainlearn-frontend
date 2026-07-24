@@ -22,11 +22,11 @@ class ApiClient {
   private async handleResponse<T>(response: Response): Promise<T> {
     if (!response.ok) {
       const errorBody = await response.json().catch(() => ({}));
-      throw {
-        status: response.status,
-        message: errorBody.message || response.statusText,
-        code: errorBody.code,
-      } as ApiError;
+      throw new ApiError(
+        response.status,
+        errorBody.message || response.statusText,
+        errorBody.code
+      );
     }
     return response.json();
   }
