@@ -6,6 +6,7 @@ import {
   createContext,
   useContext,
   useEffect,
+  useRef,
   useState,
   useCallback,
   type ReactNode,
@@ -43,15 +44,22 @@ export function Toast({
   const [visible, setVisible] = useState(true);
   const Icon = variantIcons[variant];
 
+  // Keep the latest onClose in a ref so the timer effect below doesn't
+  // restart just because the parent re-rendered with a new onClose identity.
+  const onCloseRef = useRef(onClose);
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
+
   useEffect(() => {
     if (autoClose > 0) {
       const timer = setTimeout(() => {
         setVisible(false);
-        setTimeout(onClose, 300);
+        setTimeout(() => onCloseRef.current(), 300);
       }, autoClose);
       return () => clearTimeout(timer);
     }
-  }, [autoClose, onClose]);
+  }, [autoClose]);
 
   return (
     <div

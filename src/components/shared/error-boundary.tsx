@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { AlertTriangle, RefreshCw } from "lucide-react";
 
@@ -14,7 +15,7 @@ interface ErrorBoundaryState {
   error: Error | null;
 }
 
-export class ErrorBoundary extends React.Component<
+class ErrorBoundaryInner extends React.Component<
   ErrorBoundaryProps,
   ErrorBoundaryState
 > {
@@ -62,4 +63,11 @@ export class ErrorBoundary extends React.Component<
 
     return this.props.children;
   }
+}
+
+// Wraps ErrorBoundaryInner and remounts it (via `key`) on route change,
+// so an error caught on one route doesn't persist after navigating away.
+export function ErrorBoundary(props: ErrorBoundaryProps) {
+  const pathname = usePathname();
+  return <ErrorBoundaryInner key={pathname} {...props} />;
 }
