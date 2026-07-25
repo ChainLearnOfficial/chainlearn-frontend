@@ -35,7 +35,7 @@ export const useCourseStore = create<CourseState>()((set, get) => ({
         : [...prevModuleIds, moduleId];
       const completedCount = completedModuleIds.length;
       const course = state.currentCourse;
-      const totalModules = course?.totalModules ?? existing?.totalModules ?? 0;
+      const totalModules = existing?.totalModules ?? course?.totalModules ?? 0;
       const progressPercent =
         totalModules > 0
           ? Math.round((completedCount / totalModules) * 100)
