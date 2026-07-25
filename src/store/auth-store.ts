@@ -18,6 +18,7 @@ interface AuthState {
   hasHydrated: boolean;
   network: "testnet" | "public";
   tokenExpiresAt: number | null;
+  error: string | null;
   connect: (address: string, token: string, expiresIn?: number) => void;
   disconnect: () => void;
   setJwt: (token: string, expiresIn?: number) => void;
@@ -25,6 +26,8 @@ interface AuthState {
   setNetwork: (network: "testnet" | "public") => void;
   isTokenExpired: () => boolean;
   setHasHydrated: (value: boolean) => void;
+  setError: (error: string | null) => void;
+  clearError: () => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -37,6 +40,7 @@ export const useAuthStore = create<AuthState>()(
       hasHydrated: false,
       network: "testnet",
       tokenExpiresAt: null,
+      error: null,
 
       connect: (address: string, token: string, expiresIn?: number) => {
         setSessionCookie(token);
@@ -48,6 +52,7 @@ export const useAuthStore = create<AuthState>()(
           tokenExpiresAt: expiresIn
             ? Date.now() + expiresIn * 1000
             : null,
+          error: null,
         });
       },
 
@@ -58,6 +63,7 @@ export const useAuthStore = create<AuthState>()(
           jwt: null,
           isAuthenticated: false,
           tokenExpiresAt: null,
+          error: null,
         });
       },
 
@@ -80,6 +86,10 @@ export const useAuthStore = create<AuthState>()(
       },
 
       setHasHydrated: (value: boolean) => set({ hasHydrated: value }),
+
+      setError: (error: string | null) => set({ error }),
+
+      clearError: () => set({ error: null }),
     }),
     {
       name: "chainlearn-auth",

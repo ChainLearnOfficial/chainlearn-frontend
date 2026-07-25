@@ -19,6 +19,7 @@ export function useRewards() {
   >([]);
   const [loading, setLoading] = useState(true);
   const [claiming, setClaiming] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchAll = useCallback(async () => {
     if (!jwt) {
@@ -53,6 +54,7 @@ export function useRewards() {
     async (claimableId: string) => {
       if (!jwt) throw new Error("Not authenticated");
       setClaiming(true);
+      setError(null);
       try {
         const result = await claimReward(claimableId, jwt);
         setHistory((prev) => [result, ...prev]);
@@ -70,6 +72,10 @@ export function useRewards() {
         if (bal) setBalances(bal);
         if (claim) setClaimables(claim);
         return result;
+      } catch (err) {
+        const message = err instanceof Error ? err.message : "Failed to claim reward";
+        setError(message);
+        throw err;
       } finally {
         setClaiming(false);
       }
@@ -87,6 +93,7 @@ export function useRewards() {
     claimables,
     loading,
     claiming,
+    error,
     claim,
     refetch: fetchAll,
   };
