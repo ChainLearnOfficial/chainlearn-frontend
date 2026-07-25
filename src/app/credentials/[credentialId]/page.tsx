@@ -1,6 +1,7 @@
 "use client";
 
 import { use } from "react";
+import Link from "next/link";
 import { useCredentialDetail } from "@/lib/hooks/use-credentials";
 import { CredentialBadge } from "@/components/credentials/credential-badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -128,14 +129,13 @@ export default function CredentialDetailPage({
 
           {/* Verification Link */}
           <div className="pt-4 border-t border-gray-200">
-            <a
+            <Link
               href={`/verify/${credentialId}`}
-              target="_blank"
               className="flex items-center justify-center gap-2 rounded-lg bg-gray-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-gray-800 transition-colors"
             >
               <ExternalLink className="h-4 w-4" />
               Share Verification Link
-            </a>
+            </Link>
           </div>
         </CardContent>
       </Card>
