@@ -4,6 +4,10 @@ import type { NetworkType } from "./wallet";
 import { getNetworkPassphrase, getRpcUrl } from "./wallet";
 import type { TransactionResult } from "@/types/stellar";
 
+function generateJsonRpcId(): number {
+  return Math.floor(Math.random() * 1000000) + 1;
+}
+
 /**
  * Build and sign a transaction using Freighter.
  * This is a simplified helper; real implementations would use
@@ -30,7 +34,7 @@ export async function signAndSubmitTransaction(
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         jsonrpc: "2.0",
-        id: 1,
+        id: generateJsonRpcId(),
         method: "sendTransaction",
         params: [signed.signedTxXdr],
       }),
@@ -106,7 +110,7 @@ export async function simulateContractCall(
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       jsonrpc: "2.0",
-      id: 1,
+      id: generateJsonRpcId(),
       method: "simulateTransaction",
       params: [txXdr],
     }),
@@ -115,5 +119,11 @@ export async function simulateContractCall(
   if (result.error) {
     throw new Error(result.error.message);
   }
-  return result.result;
+
+  const resultArray = result.result;
+  if (!resultArray || !Array.isArray(resultArray) || resultArray.length === 0) {
+    throw new Error("Invalid simulation result: no results returned");
+  }
+
+  return resultArray[0];
 }
