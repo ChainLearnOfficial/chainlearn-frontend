@@ -56,9 +56,11 @@ export default function DashboardPage() {
     return { enrollment: e, course };
   });
 
-  const totalBalance =
-    balances.reduce((sum, b) => sum + parseFloat(b.balance || "0"), 0) /
-    Math.pow(10, balances[0]?.decimals ?? 7);
+  const totalBalance = balances.reduce((sum, b) => {
+    const raw = parseFloat(b.balance || "0");
+    const divisor = Math.pow(10, b.decimals ?? 7);
+    return sum + raw / divisor;
+  }, 0);
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
