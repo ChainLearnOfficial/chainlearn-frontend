@@ -2,11 +2,16 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useAuthStore } from "@/store/auth-store";
 import { cn } from "@/lib/utils/cn";
 import { isNavLinkActive, navLinks } from "./nav-links";
 
 export function MobileNav() {
   const pathname = usePathname();
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const hasHydrated = useAuthStore((s) => s.hasHydrated);
+
+  if (!hasHydrated || !isAuthenticated) return null;
 
   return (
     <nav aria-label="Bottom navigation" className="fixed bottom-0 left-0 right-0 z-50 border-t border-gray-200 bg-white lg:hidden">
