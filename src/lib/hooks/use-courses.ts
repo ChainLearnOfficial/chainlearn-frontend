@@ -59,8 +59,11 @@ export function useCourses() {
 
   useEffect(() => {
     fetchCourses();
+  }, [fetchCourses]);
+
+  useEffect(() => {
     fetchEnrollments();
-  }, [fetchCourses, fetchEnrollments]);
+  }, [fetchEnrollments]);
 
   return {
     courses,
