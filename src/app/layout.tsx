@@ -21,7 +21,11 @@ const jetbrainsMono = JetBrains_Mono({
   display: "swap",
 });
 
+const SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL ?? "https://chainlearn.netlify.app";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: {
     default: "ChainLearn - AI-Powered Learning, Rewarded on Stellar",
     template: "%s | ChainLearn",
@@ -41,6 +45,7 @@ export const metadata: Metadata = {
     description:
       "Earn tokens and verifiable credentials while learning blockchain development on Stellar.",
     type: "website",
+    siteName: "ChainLearn",
   },
 };
 
