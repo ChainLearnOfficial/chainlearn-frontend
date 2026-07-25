@@ -50,7 +50,7 @@ export function useAuth() {
       const tokens = await verifySignature(address, signedChallenge);
 
       // Store in Zustand
-      connect(address, tokens.accessToken);
+      connect(address, tokens.accessToken, tokens.expiresIn);
 
       return address;
     } catch (err) {
