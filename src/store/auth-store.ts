@@ -21,6 +21,7 @@ interface AuthState {
   connect: (address: string, token: string, expiresIn?: number) => void;
   disconnect: () => void;
   setJwt: (token: string, expiresIn?: number) => void;
+  setIsConnecting: (value: boolean) => void;
   setNetwork: (network: "testnet" | "public") => void;
   isTokenExpired: () => boolean;
   setHasHydrated: (value: boolean) => void;
@@ -69,6 +70,8 @@ export const useAuthStore = create<AuthState>()(
         }),
 
       setNetwork: (network) => set({ network }),
+
+      setIsConnecting: (value: boolean) => set({ isConnecting: value }),
 
       isTokenExpired: () => {
         const { tokenExpiresAt, jwt } = get();
