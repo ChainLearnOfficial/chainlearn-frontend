@@ -26,6 +26,7 @@ import { Button } from "@/components/ui/button";
 export default function DashboardPage() {
   const router = useRouter();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const hasHydrated = useAuthStore((s) => s.hasHydrated);
   const { courses, enrollments, loading: coursesLoading } = useCourses();
   const { recommended, loading: recommendedLoading } = useRecommendedCourses();
   const { balances, loading: rewardsLoading } = useRewards();
@@ -33,12 +34,12 @@ export default function DashboardPage() {
   const progress = useCourseStore((s) => s.progress);
 
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (hasHydrated && !isAuthenticated) {
       router.push("/connect");
     }
-  }, [isAuthenticated, router]);
+  }, [hasHydrated, isAuthenticated, router]);
 
-  if (!isAuthenticated) return null;
+  if (!hasHydrated || !isAuthenticated) return null;
 
   const isLoading =
     coursesLoading || rewardsLoading || credentialsLoading || recommendedLoading;
