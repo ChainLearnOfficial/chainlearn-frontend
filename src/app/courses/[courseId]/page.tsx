@@ -1,10 +1,9 @@
 "use client";
 
 import { use } from "react";
-import { useCourseDetail } from "@/lib/hooks/use-courses";
+import { useCourseDetail, useCourses } from "@/lib/hooks/use-courses";
 import { useAuth } from "@/lib/hooks/use-auth";
 import { useCourseStore } from "@/store/course-store";
-import { enrollInCourse } from "@/lib/api/courses";
 import { ModuleList } from "@/components/course/module-list";
 import { ProgressBar } from "@/components/course/progress-bar";
 import { Button } from "@/components/ui/button";
@@ -36,7 +35,8 @@ export default function CourseDetailPage({
 }) {
   const { courseId } = use(params);
   const { course, loading, error } = useCourseDetail(courseId);
-  const { jwt, isAuthenticated } = useAuth();
+  const { isAuthenticated } = useAuth();
+  const { enroll } = useCourses();
   const enrollments = useCourseStore((s) => s.enrollments);
   const progress = useCourseStore((s) => s.progress);
   const { addToast } = useToastContext();
@@ -47,19 +47,9 @@ export default function CourseDetailPage({
   const courseProgress = progress[courseId];
 
   const handleEnroll = async () => {
-    if (!jwt) return;
     setEnrolling(true);
     try {
-      await enrollInCourse(courseId, jwt);
-      useCourseStore.getState().enroll({
-        id: "",
-        courseId,
-        userId: "",
-        enrolledAt: new Date().toISOString(),
-        progress: 0,
-        completedModules: [],
-        lastAccessedAt: new Date().toISOString(),
-      });
+      await enroll(courseId);
       addToast("Successfully enrolled in the course!", "success");
     } catch (err) {
       console.error("Enrollment failed:", err);

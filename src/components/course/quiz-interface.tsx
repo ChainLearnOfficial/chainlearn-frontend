@@ -23,6 +23,16 @@ export function QuizInterface({ quiz, onSubmit, className }: QuizInterfaceProps)
   const isLastQuestion = currentIndex === quiz.questions.length - 1;
   const allAnswered = quiz.questions.every((q) => answers[q.id]);
 
+  if (!question) {
+    return (
+      <Card className={cn("max-w-2xl mx-auto", className)}>
+        <CardContent className="py-16 text-center">
+          <p className="text-gray-500">This quiz has no questions yet.</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
   const selectOption = (questionId: string, optionId: string) => {
     setAnswers((prev) => ({ ...prev, [questionId]: optionId }));
   };
