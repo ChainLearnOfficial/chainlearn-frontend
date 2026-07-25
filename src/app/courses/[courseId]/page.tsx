@@ -18,7 +18,7 @@ import {
   Star,
   Loader2,
 } from "lucide-react";
-import { formatDuration } from "@/lib/utils/format";
+import { formatDuration, capitalize } from "@/lib/utils/format";
 import { useState } from "react";
 import Link from "next/link";
 
@@ -85,7 +85,7 @@ export default function CourseDetailPage({
               difficultyColors[course.difficulty]
             }`}
           >
-            {course.difficulty}
+            {capitalize(course.difficulty)}
           </span>
           <span className="text-xs text-gray-500">{course.category}</span>
         </div>
