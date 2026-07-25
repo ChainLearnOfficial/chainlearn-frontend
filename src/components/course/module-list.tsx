@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import Link from "next/link";
 import { cn } from "@/lib/utils/cn";
 import { CheckCircle, Circle, PlayCircle, Lock } from "lucide-react";
@@ -14,7 +15,7 @@ interface ModuleListProps {
   className?: string;
 }
 
-export function ModuleList({
+export const ModuleList = memo(function ModuleList({
   courseId,
   modules,
   completedModuleIds = [],
@@ -95,4 +96,4 @@ export function ModuleList({
       })}
     </div>
   );
-}
+});
