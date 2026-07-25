@@ -16,7 +16,7 @@ import type { Course, CourseEnrollment, Module } from "@/types/course";
 
 export function useCourses() {
   const jwt = useAuthStore((s) => s.jwt);
-  const { enrollments, setEnrollments } = useCourseStore();
+  const { enrollments, setEnrollments, enroll: addEnrollment } = useCourseStore();
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -51,10 +51,10 @@ export function useCourses() {
     async (courseId: string) => {
       if (!jwt) throw new Error("Not authenticated");
       const enrollment = await enrollInCourse(courseId, jwt);
-      setEnrollments([...enrollments, enrollment]);
+      addEnrollment(enrollment);
       return enrollment;
     },
-    [jwt, enrollments, setEnrollments]
+    [jwt, addEnrollment]
   );
 
   useEffect(() => {
