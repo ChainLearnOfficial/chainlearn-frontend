@@ -2,17 +2,36 @@ import type { NetworkType } from "./wallet";
 import { simulateContractCall, signAndSubmitTransaction } from "./transactions";
 import type { TransactionResult } from "@/types/stellar";
 
+// Validate required environment variables at startup
+function validateEnvironmentVariables() {
+  const requiredVars = [
+    "NEXT_PUBLIC_REWARDS_CONTRACT_TESTNET",
+    "NEXT_PUBLIC_CREDENTIALS_CONTRACT_TESTNET",
+    "NEXT_PUBLIC_REWARDS_CONTRACT_MAINNET",
+    "NEXT_PUBLIC_CREDENTIALS_CONTRACT_MAINNET",
+  ];
+
+  const missing = requiredVars.filter((varName) => !process.env[varName]);
+  if (missing.length > 0) {
+    throw new Error(
+      `Missing required environment variables: ${missing.join(", ")}`
+    );
+  }
+}
+
 // Contract addresses (configurable per network)
 const CONTRACT_ADDRESSES: Record<NetworkType, Record<string, string>> = {
   testnet: {
-    rewards: process.env.NEXT_PUBLIC_REWARDS_CONTRACT_TESTNET || "",
-    credentials: process.env.NEXT_PUBLIC_CREDENTIALS_CONTRACT_TESTNET || "",
+    rewards: process.env.NEXT_PUBLIC_REWARDS_CONTRACT_TESTNET!,
+    credentials: process.env.NEXT_PUBLIC_CREDENTIALS_CONTRACT_TESTNET!,
   },
   public: {
-    rewards: process.env.NEXT_PUBLIC_REWARDS_CONTRACT_MAINNET || "",
-    credentials: process.env.NEXT_PUBLIC_CREDENTIALS_CONTRACT_MAINNET || "",
+    rewards: process.env.NEXT_PUBLIC_REWARDS_CONTRACT_MAINNET!,
+    credentials: process.env.NEXT_PUBLIC_CREDENTIALS_CONTRACT_MAINNET!,
   },
 };
+
+validateEnvironmentVariables();
 
 /**
  * Get a contract address for the current network.
