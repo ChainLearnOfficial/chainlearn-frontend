@@ -12,7 +12,7 @@ import {
   getEnrollments,
   getRecommendedCourses,
 } from "@/lib/api/courses";
-import type { Course, CourseEnrollment, Module } from "@/types/course";
+import type { Course, CourseEnrollment, Module, RecommendedCourse } from "@/types/course";
 
 const CACHE_TTL_MS = 60_000;
 
@@ -257,7 +257,7 @@ export function useModule(courseId: string, moduleId: string) {
 
 export function useRecommendedCourses() {
   const jwt = useAuthStore((s) => s.jwt);
-  const [recommended, setRecommended] = useState<Course[]>([]);
+  const [recommended, setRecommended] = useState<RecommendedCourse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 

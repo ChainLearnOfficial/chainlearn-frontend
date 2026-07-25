@@ -6,7 +6,7 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { ProgressBar } from "@/components/course/progress-bar";
 import { Clock, Users, Star } from "lucide-react";
 import type { Course } from "@/types/course";
-import { formatDuration, capitalize } from "@/lib/utils/format";
+import { formatDuration, capitalize, formatNumber } from "@/lib/utils/format";
 
 interface CourseCardProps {
   course: Course;
@@ -70,11 +70,11 @@ export function CourseCard({
               </span>
               <span className="flex items-center gap-1">
                 <Users className="h-3.5 w-3.5" />
-                {course.enrolledCount}
+                {formatNumber(course.enrolledCount)}
               </span>
             </div>
             <span className="font-medium text-stellar-purple">
-              +{course.rewardTokenAmount} LEARN
+              +{formatNumber(course.rewardTokenAmount)} LEARN
             </span>
           </div>
 
