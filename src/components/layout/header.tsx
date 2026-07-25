@@ -53,6 +53,7 @@ export function Header() {
             className="md:hidden p-2 text-gray-600 hover:text-gray-900"
             onClick={() => setMobileOpen(!mobileOpen)}
             aria-label="Toggle navigation"
+            aria-expanded={mobileOpen}
           >
             {mobileOpen ? (
               <X className="h-5 w-5" />

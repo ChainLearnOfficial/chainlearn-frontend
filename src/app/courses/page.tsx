@@ -73,6 +73,7 @@ export default function CoursesPage() {
                 <button
                   key={cat}
                   onClick={() => setCategory(cat)}
+                  aria-pressed={category === cat}
                   className={cn(
                     "rounded-full px-3 py-1 text-xs font-medium transition-colors",
                     category === cat
@@ -93,6 +94,7 @@ export default function CoursesPage() {
                 <button
                   key={diff}
                   onClick={() => setDifficulty(diff)}
+                  aria-pressed={difficulty === diff}
                   className={cn(
                     "rounded-full px-3 py-1 text-xs font-medium transition-colors",
                     difficulty === diff
