@@ -1,6 +1,6 @@
 import { apiClient } from "./client";
 import type { PaginatedResponse } from "@/types/api";
-import type { Course, CourseEnrollment, Module } from "@/types/course";
+import type { Course, CourseEnrollment, Module, RecommendedCourse } from "@/types/course";
 
 /**
  * Fetch the course catalog with optional filters.
@@ -99,8 +99,8 @@ export async function getEnrollments(
  */
 export async function getRecommendedCourses(
   jwt: string
-): Promise<Course[]> {
-  const response = await apiClient.get<Course[]>(
+): Promise<RecommendedCourse[]> {
+  const response = await apiClient.get<RecommendedCourse[]>(
     "/courses/recommended",
     jwt
   );
