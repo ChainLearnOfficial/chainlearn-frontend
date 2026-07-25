@@ -53,7 +53,9 @@ export default function QuizPage({
   if (error || !quiz) {
     return (
       <div className="mx-auto max-w-2xl px-4 py-16 text-center">
-        <p className="text-gray-500">{error || "Quiz not found."}</p>
+        <p role="alert" aria-live="polite" className="text-gray-500">
+          {error || "Quiz not found."}
+        </p>
         <Link href={`/courses/${courseId}`}>
           <Button variant="outline" className="mt-4">
             Back to Course

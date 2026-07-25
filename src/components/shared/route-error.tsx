@@ -15,7 +15,12 @@ export function RouteError({ error, reset }: RouteErrorProps) {
   }, [error]);
 
   return (
-    <div className="mx-auto flex max-w-2xl flex-col items-center justify-center px-4 py-16 text-center">
+    <div
+      className="mx-auto flex max-w-2xl flex-col items-center justify-center px-4 py-16 text-center"
+      role="alert"
+      aria-live="polite"
+      aria-atomic="true"
+    >
       <div className="flex h-16 w-16 items-center justify-center rounded-full bg-red-100 mb-4">
         <AlertTriangle className="h-8 w-8 text-red-500" />
       </div>
