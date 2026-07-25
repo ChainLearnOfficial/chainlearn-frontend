@@ -69,6 +69,7 @@ export function ModuleList({
               key={mod.id}
               role="listitem"
               aria-disabled="true"
+              tabIndex={-1}
               className={cn(
                 "flex items-center gap-3 rounded-lg px-3 py-3",
                 "opacity-50 cursor-not-allowed"
