@@ -52,8 +52,6 @@ export async function readRewardBalance(
  * Returns a signed + submitted tx result.
  */
 export async function claimRewardOnChain(
-  userAddress: string,
-  amount: string,
   xdr: string,
   network: NetworkType
 ): Promise<TransactionResult> {
