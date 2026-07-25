@@ -5,8 +5,7 @@ import { cn } from "@/lib/utils/cn";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Clock, Users, Star } from "lucide-react";
 import type { Course } from "@/types/course";
-import { formatDuration } from "@/lib/utils/format";
-import { ProgressBar } from "@/components/course/progress-bar";
+import { formatDuration, capitalize } from "@/lib/utils/format";
 
 interface CourseCardProps {
   course: Course;
@@ -48,7 +47,7 @@ export function CourseCard({
                 difficultyColors[course.difficulty]
               )}
             >
-              {course.difficulty}
+              {capitalize(course.difficulty)}
             </span>
             <span className="text-xs text-gray-500">{course.category}</span>
           </div>
