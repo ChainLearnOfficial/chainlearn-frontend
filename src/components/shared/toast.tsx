@@ -46,18 +46,21 @@ export function Toast({
   const [visible, setVisible] = useState(true);
   const Icon = variantIcons[variant];
 
-  // Keep the latest onClose in a ref so the timer effect below doesn't
-  // restart just because the parent re-rendered with a new onClose identity.
   const onCloseRef = useRef(onClose);
   useEffect(() => {
     onCloseRef.current = onClose;
   }, [onClose]);
 
+  const closeTimerRef = useRef<ReturnType<typeof setTimeout>>();
+  useEffect(() => {
+    return () => clearTimeout(closeTimerRef.current);
+  }, []);
+
   useEffect(() => {
     if (autoClose > 0) {
       const timer = setTimeout(() => {
         setVisible(false);
-        setTimeout(() => onCloseRef.current(), 300);
+        closeTimerRef.current = setTimeout(() => onCloseRef.current(), 300);
       }, autoClose);
       return () => clearTimeout(timer);
     }
@@ -78,7 +81,7 @@ export function Toast({
       <button
         onClick={() => {
           setVisible(false);
-          setTimeout(onClose, 300);
+          closeTimerRef.current = setTimeout(onClose, 300);
         }}
         className="ml-2 flex-shrink-0 hover:opacity-70"
       >

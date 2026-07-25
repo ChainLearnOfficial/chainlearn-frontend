@@ -29,18 +29,22 @@ export function useRewards() {
     setLoading(true);
     try {
       const [bal, hist, claim] = await Promise.all([
-        getTokenBalances(jwt),
-        getRewardHistory(jwt),
-        getClaimables(jwt),
+        getTokenBalances(jwt).catch((e) => {
+          console.error("Failed to fetch balances:", e);
+          return null;
+        }),
+        getRewardHistory(jwt).catch((e) => {
+          console.error("Failed to fetch reward history:", e);
+          return null;
+        }),
+        getClaimables(jwt).catch((e) => {
+          console.error("Failed to fetch claimables:", e);
+          return null;
+        }),
       ]);
-      setBalances(bal);
-      setHistory(hist);
-      setClaimables(claim);
-      setError(null);
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to fetch rewards";
-      setError(message);
-      console.error("Failed to fetch rewards:", err);
+      if (bal) setBalances(bal);
+      if (hist) setHistory(hist);
+      if (claim) setClaimables(claim);
     } finally {
       setLoading(false);
     }
@@ -56,11 +60,17 @@ export function useRewards() {
         setHistory((prev) => [result, ...prev]);
         // Refresh balances and claimables
         const [bal, claim] = await Promise.all([
-          getTokenBalances(jwt),
-          getClaimables(jwt),
+          getTokenBalances(jwt).catch((e) => {
+            console.error("Failed to refresh balances:", e);
+            return null;
+          }),
+          getClaimables(jwt).catch((e) => {
+            console.error("Failed to refresh claimables:", e);
+            return null;
+          }),
         ]);
-        setBalances(bal);
-        setClaimables(claim);
+        if (bal) setBalances(bal);
+        if (claim) setClaimables(claim);
         return result;
       } catch (err) {
         const message = err instanceof Error ? err.message : "Failed to claim reward";
