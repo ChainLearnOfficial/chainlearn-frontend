@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { cn } from "@/lib/utils/cn";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { ProgressBar } from "@/components/course/progress-bar";
 import { Clock, Users, Star } from "lucide-react";
 import type { Course } from "@/types/course";
 import { formatDuration, capitalize } from "@/lib/utils/format";

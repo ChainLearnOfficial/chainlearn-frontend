@@ -60,8 +60,6 @@ export function Header() {
           <button
             className="md:hidden p-2 text-gray-600 hover:text-gray-900"
             onClick={() => setMobileOpen((open) => !open)}
-            aria-label="Toggle navigation"
-            onClick={() => setMobileOpen(!mobileOpen)}
             aria-label="Toggle navigation menu"
             aria-expanded={mobileOpen}
             aria-controls="mobile-nav"
@@ -77,8 +75,11 @@ export function Header() {
 
       {/* Mobile nav */}
       {mobileOpen && isAuthenticated && (
-        <nav aria-label="Mobile navigation" className="md:hidden border-t border-gray-200 bg-white">
-        <nav className="md:hidden border-t border-gray-200 bg-white" id="mobile-nav">
+        <nav
+          aria-label="Mobile navigation"
+          className="md:hidden border-t border-gray-200 bg-white"
+          id="mobile-nav"
+        >
           <div className="px-4 py-3 space-y-1">
             {navLinks.map((link) => {
               const isActive = isNavLinkActive(pathname, link.href);

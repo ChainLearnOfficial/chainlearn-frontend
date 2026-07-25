@@ -68,7 +68,6 @@ export function ModuleList({
             <div
               key={mod.id}
               role="listitem"
-              aria-disabled="true"
               aria-label={`${mod.title} (locked - complete previous modules to unlock)`}
               tabIndex={-1}
               className={cn(
