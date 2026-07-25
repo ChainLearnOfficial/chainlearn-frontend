@@ -36,8 +36,9 @@ export function WalletProvider({ children }: WalletProviderProps) {
         if (!address) {
           disconnect();
         }
-      } catch {
-        // Freighter not available or user denied access
+      } catch (err) {
+        console.error("Freighter connection check failed:", err);
+        disconnect();
       }
     }
 
