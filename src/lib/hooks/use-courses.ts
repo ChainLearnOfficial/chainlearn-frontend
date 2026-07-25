@@ -136,17 +136,22 @@ export function useRecommendedCourses() {
   const jwt = useAuthStore((s) => s.jwt);
   const [recommended, setRecommended] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!jwt) {
       setLoading(false);
       return;
     }
+    setError(null);
     getRecommendedCourses(jwt)
       .then(setRecommended)
-      .catch(console.error)
+      .catch((err) => {
+        const message = err instanceof Error ? err.message : "Failed to load recommendations";
+        setError(message);
+      })
       .finally(() => setLoading(false));
   }, [jwt]);
 
-  return { recommended, loading };
+  return { recommended, loading, error };
 }

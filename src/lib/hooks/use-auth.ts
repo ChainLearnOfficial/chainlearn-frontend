@@ -17,16 +17,17 @@ export function useAuth() {
     isAuthenticated,
     isConnecting,
     network,
+    error,
     connect,
     disconnect: storeDisconnect,
     setIsConnecting,
+    setError,
+    clearError,
   } = useAuthStore();
-
-  const [error, setError] = useState<string | null>(null);
 
   const connectWallet = useCallback(async () => {
     setIsConnecting(true);
-    setError(null);
+    clearError();
 
     try {
       // Check Freighter is installed
@@ -62,11 +63,10 @@ export function useAuth() {
     } finally {
       setIsConnecting(false);
     }
-  }, [network, connect]);
+  }, [network, connect, setIsConnecting, clearError, setError]);
 
   const disconnect = useCallback(() => {
     storeDisconnect();
-    setError(null);
   }, [storeDisconnect]);
 
   return {
