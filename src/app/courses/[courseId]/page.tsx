@@ -89,7 +89,7 @@ export default function CourseDetailPage({
           >
             {capitalize(course.difficulty)}
           </span>
-          <span className="text-xs text-gray-500">{course.category}</span>
+          <span className="text-xs text-gray-500">{capitalize(course.category)}</span>
         </div>
 
         <h1 className="text-3xl font-bold text-gray-900 mb-3">

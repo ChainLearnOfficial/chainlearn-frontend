@@ -50,7 +50,7 @@ export function CourseCard({
             >
               {capitalize(course.difficulty)}
             </span>
-            <span className="text-xs text-gray-500">{course.category}</span>
+            <span className="text-xs text-gray-500">{capitalize(course.category)}</span>
           </div>
 
           <h3 className="font-semibold text-gray-900 group-hover:text-primary-600 transition-colors mb-1">
