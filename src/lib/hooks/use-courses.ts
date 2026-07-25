@@ -99,6 +99,7 @@ export function useCourseDetail(courseId: string) {
 export function useModule(courseId: string, moduleId: string) {
   const jwt = useAuthStore((s) => s.jwt);
   const updateProgress = useCourseStore((s) => s.updateProgress);
+  const setEnrollments = useCourseStore((s) => s.setEnrollments);
   const currentCourse = useCourseStore((s) => s.currentCourse);
   const setCurrentCourse = useCourseStore((s) => s.setCurrentCourse);
   const [module, setModule] = useState<Module | null>(null);
@@ -124,7 +125,9 @@ export function useModule(courseId: string, moduleId: string) {
       setCurrentCourse(course);
     }
     updateProgress(courseId, moduleId);
-  }, [courseId, moduleId, jwt, updateProgress, currentCourse, setCurrentCourse]);
+    // Sync enrollments with server data so progress sources don't diverge
+    getEnrollments(jwt).then(setEnrollments).catch(console.error);
+  }, [courseId, moduleId, jwt, updateProgress, setEnrollments, currentCourse, setCurrentCourse]);
 
   return { module, loading, error, complete };
 }

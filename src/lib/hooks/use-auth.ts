@@ -15,12 +15,13 @@ export function useAuth() {
     walletAddress,
     jwt,
     isAuthenticated,
+    isConnecting,
     network,
     connect,
     disconnect: storeDisconnect,
+    setIsConnecting,
   } = useAuthStore();
 
-  const [isConnecting, setIsConnecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const connectWallet = useCallback(async () => {
