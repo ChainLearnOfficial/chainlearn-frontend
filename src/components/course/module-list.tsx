@@ -69,6 +69,7 @@ export function ModuleList({
               key={mod.id}
               role="listitem"
               aria-disabled="true"
+              aria-label={`${mod.title} (locked - complete previous modules to unlock)`}
               tabIndex={-1}
               className={cn(
                 "flex items-center gap-3 rounded-lg px-3 py-3",
