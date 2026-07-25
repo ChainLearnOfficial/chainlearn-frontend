@@ -42,6 +42,14 @@ export async function signAndSubmitTransaction(
       return { hash: "", success: false, error: result.error.message };
     }
 
+    if (!result.result?.hash) {
+      return {
+        hash: "",
+        success: false,
+        error: "Invalid RPC response: missing transaction hash",
+      };
+    }
+
     return {
       hash: result.result.hash,
       success: true,
