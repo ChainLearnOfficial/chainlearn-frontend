@@ -4,16 +4,40 @@ import { useAuth } from "@/lib/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Wallet, LogOut, Loader2 } from "lucide-react";
 import { truncateAddress } from "@/lib/utils/format";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 
 export function ConnectButton() {
   const { isAuthenticated, walletAddress, isConnecting, connectWallet, disconnect } =
     useAuth();
   const [showDisconnect, setShowDisconnect] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!showDisconnect) return;
+
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setShowDisconnect(false);
+      }
+    };
+
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setShowDisconnect(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleEscape);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [showDisconnect]);
 
   if (isAuthenticated && walletAddress) {
     return (
-      <div className="relative">
+      <div className="relative" ref={dropdownRef}>
         <Button
           variant="outline"
           size="sm"
