@@ -9,6 +9,7 @@ import {
   getNetworkPassphrase,
 } from "@/lib/stellar/wallet";
 import { getChallenge, verifySignature } from "@/lib/api/auth";
+import type { WalletInfo } from "@/types/stellar";
 
 export function useAuth() {
   const {
@@ -69,12 +70,21 @@ export function useAuth() {
     storeDisconnect();
   }, [storeDisconnect]);
 
+  const walletInfo: WalletInfo | null = walletAddress
+    ? {
+        publicKey: walletAddress,
+        network,
+        isConnected: isAuthenticated,
+      }
+    : null;
+
   return {
     walletAddress,
     jwt,
     isAuthenticated,
     isConnecting,
     error,
+    walletInfo,
     connectWallet,
     disconnect,
   };
