@@ -20,6 +20,7 @@ interface ToastProps {
   onClose: () => void;
   autoClose?: number;
   className?: string;
+  index?: number;
 }
 
 const variantStyles = {
@@ -40,6 +41,7 @@ export function Toast({
   onClose,
   autoClose = 5000,
   className,
+  index = 0,
 }: ToastProps) {
   const [visible, setVisible] = useState(true);
   const Icon = variantIcons[variant];
@@ -64,11 +66,12 @@ export function Toast({
   return (
     <div
       className={cn(
-        "fixed bottom-4 right-4 z-[100] flex items-center gap-3 rounded-lg border px-4 py-3 shadow-lg transition-all",
+        "fixed right-4 z-[100] flex items-center gap-3 rounded-lg border px-4 py-3 shadow-lg transition-all",
         visible ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0",
         variantStyles[variant],
         className
       )}
+      style={{ bottom: `${16 + index * 72}px` }}
     >
       <Icon className="h-5 w-5 flex-shrink-0" />
       <p className="text-sm font-medium">{message}</p>
@@ -91,27 +94,28 @@ export function useToast() {
     { id: string; message: string; variant: ToastVariant }[]
   >([]);
 
-  const addToast = (message: string, variant: ToastVariant = "info") => {
+  const addToast = useCallback((message: string, variant: ToastVariant = "info") => {
     const id = Math.random().toString(36).slice(2);
     setToasts((prev) => [...prev, { id, message, variant }]);
-  };
+  }, []);
 
-  const removeToast = (id: string) => {
+  const removeToast = useCallback((id: string) => {
     setToasts((prev) => prev.filter((t) => t.id !== id));
-  };
+  }, []);
 
-  const ToastContainer = () => (
+  const ToastContainer = useCallback(() => (
     <>
-      {toasts.map((toast) => (
+      {toasts.map((toast, index) => (
         <Toast
           key={toast.id}
           message={toast.message}
           variant={toast.variant}
           onClose={() => removeToast(toast.id)}
+          index={index}
         />
       ))}
     </>
-  );
+  ), [toasts, removeToast]);
 
   return { addToast, ToastContainer };
 }
@@ -142,12 +146,13 @@ export function ToastContextProvider({ children }: { children: ReactNode }) {
   return (
     <ToastContext.Provider value={{ addToast }}>
       {children}
-      {toasts.map((toast) => (
+      {toasts.map((toast, index) => (
         <Toast
           key={toast.id}
           message={toast.message}
           variant={toast.variant}
           onClose={() => removeToast(toast.id)}
+          index={index}
         />
       ))}
     </ToastContext.Provider>
