@@ -79,16 +79,7 @@ export function CourseCard({
 
           {enrolled && progress !== undefined && (
             <div className="w-full mt-3">
-              <div className="flex items-center justify-between text-xs mb-1">
-                <span className="text-gray-500">Progress</span>
-                <span className="font-medium">{progress}%</span>
-              </div>
-              <div className="h-1.5 w-full rounded-full bg-gray-100">
-                <div
-                  className="h-full rounded-full bg-primary-500 transition-all"
-                  style={{ width: `${progress}%` }}
-                />
-              </div>
+              <ProgressBar value={progress} size="sm" />
             </div>
           )}
         </CardFooter>
