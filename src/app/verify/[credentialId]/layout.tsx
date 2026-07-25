@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { apiClient } from "@/lib/api/client";
-import type { CredentialNFT } from "@/types/stellar";
 
 interface PageProps {
   params: Promise<{ credentialId: string }>;
@@ -15,20 +14,37 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       metadata: { courseTitle: string };
     }>(`/credentials/${credentialId}/verify`);
     const data = response.data;
+    const title = `Verify - ${data.metadata.courseTitle}`;
+    const description = `On-chain verification of ${data.metadata.courseTitle} credential on ChainLearn.`;
 
     return {
-      title: `Verify - ${data.metadata.courseTitle}`,
-      description: `On-chain verification of ${data.metadata.courseTitle} credential on ChainLearn.`,
+      title,
+      description,
       openGraph: {
         title: `Verify ${data.metadata.courseTitle} | ChainLearn`,
-        description: `On-chain verification of ${data.metadata.courseTitle} credential on ChainLearn.`,
+        description,
         type: "article",
+      },
+      twitter: {
+        card: "summary_large_image",
+        title: `Verify ${data.metadata.courseTitle} | ChainLearn`,
+        description,
       },
     };
   } catch {
     return {
       title: "Verify Credential",
       description: "Verify an on-chain credential on ChainLearn.",
+      openGraph: {
+        title: "Verify Credential | ChainLearn",
+        description: "Verify an on-chain credential on ChainLearn.",
+        type: "article",
+      },
+      twitter: {
+        card: "summary_large_image",
+        title: "Verify Credential | ChainLearn",
+        description: "Verify an on-chain credential on ChainLearn.",
+      },
     };
   }
 }
