@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { User, Target, Zap, ArrowRight } from "lucide-react";
+import { useToastContext } from "@/components/shared/toast";
 
 const backgrounds = [
   "Beginner - New to blockchain",
@@ -33,6 +34,7 @@ const paces = [
 export default function OnboardingPage() {
   const router = useRouter();
   const jwt = useAuthStore((s) => s.jwt);
+  const { addToast } = useToastContext();
   const [step, setStep] = useState(0);
   const [displayName, setDisplayName] = useState("");
   const [background, setBackground] = useState("");
@@ -59,6 +61,7 @@ export default function OnboardingPage() {
       router.push("/dashboard");
     } catch (err) {
       console.error("Failed to save profile:", err);
+      addToast("Failed to save profile. Please try again.", "error");
     } finally {
       setSaving(false);
     }

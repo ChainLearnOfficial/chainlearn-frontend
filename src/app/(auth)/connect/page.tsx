@@ -31,7 +31,19 @@ export default function ConnectPage() {
     try {
       await connectWallet();
       addToast("Wallet connected successfully!", "success");
-      router.push("/onboarding");
+      const { getProfile } = await import("@/lib/api/auth");
+      const { useAuthStore } = await import("@/store/auth-store");
+      const jwt = useAuthStore.getState().jwt;
+      if (jwt) {
+        const profile = await getProfile(jwt);
+        if (profile.displayName) {
+          router.push("/dashboard");
+        } else {
+          router.push("/onboarding");
+        }
+      } else {
+        router.push("/onboarding");
+      }
     } catch {
       addToast("Failed to connect wallet. Please try again.", "error");
     }
