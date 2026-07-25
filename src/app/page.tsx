@@ -1,15 +1,12 @@
-"use client";
-
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/lib/hooks/use-auth";
+import { HeroCTA } from "@/components/landing/hero-cta";
+import { BottomCTA } from "@/components/landing/bottom-cta";
 import {
   BookOpen,
   Trophy,
   Award,
   Zap,
-  ArrowRight,
-  GraduationCap,
   Shield,
   Sparkles,
 } from "lucide-react";
@@ -42,8 +39,6 @@ const features = [
 ];
 
 export default function LandingPage() {
-  const { isAuthenticated, connectWallet, isConnecting } = useAuth();
-
   return (
     <div className="relative">
       {/* Hero Section */}
@@ -66,31 +61,7 @@ export default function LandingPage() {
               to you. Earn token rewards and verifiable credentials as you
               progress, all secured on the Stellar network.
             </p>
-            <div className="mt-10 flex items-center gap-4">
-              {isAuthenticated ? (
-                <Link href="/dashboard">
-                  <Button size="lg" className="gap-2">
-                    Go to Dashboard
-                    <ArrowRight className="h-5 w-5" />
-                  </Button>
-                </Link>
-              ) : (
-                <Button
-                  size="lg"
-                  onClick={connectWallet}
-                  disabled={isConnecting}
-                  className="gap-2"
-                >
-                  <GraduationCap className="h-5 w-5" />
-                  {isConnecting ? "Connecting..." : "Connect Wallet to Start"}
-                </Button>
-              )}
-              <Link href="/courses">
-                <Button variant="outline" size="lg">
-                  Browse Courses
-                </Button>
-              </Link>
-            </div>
+            <HeroCTA />
           </div>
         </div>
       </section>
@@ -184,31 +155,7 @@ export default function LandingPage() {
           <p className="mt-4 text-lg text-white/80">
             Join thousands of learners earning tokens and credentials on Stellar.
           </p>
-          <div className="mt-8">
-            {isAuthenticated ? (
-              <Link href="/courses">
-                <Button
-                  size="lg"
-                  variant="secondary"
-                  className="gap-2"
-                >
-                  Explore Courses
-                  <ArrowRight className="h-5 w-5" />
-                </Button>
-              </Link>
-            ) : (
-              <Button
-                size="lg"
-                variant="secondary"
-                onClick={connectWallet}
-                disabled={isConnecting}
-                className="gap-2"
-              >
-                <GraduationCap className="h-5 w-5" />
-                {isConnecting ? "Connecting..." : "Get Started Free"}
-              </Button>
-            )}
-          </div>
+          <BottomCTA />
         </div>
       </section>
 

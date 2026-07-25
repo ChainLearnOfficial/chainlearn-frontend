@@ -1,6 +1,15 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
+function setSessionCookie(token: string | null) {
+  if (typeof document === "undefined") return;
+  if (token) {
+    document.cookie = `chainlearn-session=${token}; path=/; max-age=86400; SameSite=Lax`;
+  } else {
+    document.cookie = "chainlearn-session=; path=/; max-age=0";
+  }
+}
+
 interface AuthState {
   walletAddress: string | null;
   jwt: string | null;
@@ -28,7 +37,8 @@ export const useAuthStore = create<AuthState>()(
       network: "testnet",
       tokenExpiresAt: null,
 
-      connect: (address: string, token: string, expiresIn?: number) =>
+      connect: (address: string, token: string, expiresIn?: number) => {
+        setSessionCookie(token);
         set({
           walletAddress: address,
           jwt: token,
@@ -37,15 +47,18 @@ export const useAuthStore = create<AuthState>()(
           tokenExpiresAt: expiresIn
             ? Date.now() + expiresIn * 1000
             : null,
-        }),
+        });
+      },
 
-      disconnect: () =>
+      disconnect: () => {
+        setSessionCookie(null);
         set({
           walletAddress: null,
           jwt: null,
           isAuthenticated: false,
           tokenExpiresAt: null,
-        }),
+        });
+      },
 
       setJwt: (token: string, expiresIn?: number) =>
         set({
