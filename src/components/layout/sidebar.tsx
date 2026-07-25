@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils/cn";
-import { navLinks, settingsLink } from "./nav-links";
+import { navLinks } from "./nav-links";
 
 export function Sidebar() {
   const pathname = usePathname();
@@ -31,16 +31,6 @@ export function Sidebar() {
           );
         })}
       </nav>
-
-      <div className="px-3 py-4 border-t border-gray-200">
-        <Link
-          href={settingsLink.href}
-          className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors"
-        >
-          <settingsLink.icon className="h-5 w-5" />
-          {settingsLink.label}
-        </Link>
-      </div>
     </aside>
   );
 }

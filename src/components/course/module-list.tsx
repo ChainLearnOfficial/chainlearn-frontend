@@ -33,18 +33,8 @@ export function ModuleList({
         const isCurrent = mod.id === currentModuleId;
         const isAccessible = isCompleted || isCurrent || index === 0 || completedModuleIds.includes(sorted[index - 1]?.id);
 
-        return (
-          <Link
-            key={mod.id}
-            href={isAccessible ? `/courses/${courseId}/modules/${mod.id}` : "#"}
-            className={cn(
-              "flex items-center gap-3 rounded-lg px-3 py-3 transition-colors",
-              isAccessible
-                ? "hover:bg-gray-50 cursor-pointer"
-                : "opacity-50 cursor-not-allowed",
-              isCurrent && "bg-primary-50 border border-primary-200"
-            )}
-          >
+        const content = (
+          <>
             <div className="flex-shrink-0">
               {isCompleted ? (
                 <CheckCircle className="h-5 w-5 text-green-500" />
@@ -70,6 +60,35 @@ export function ModuleList({
             <span className="text-xs text-gray-400 flex-shrink-0">
               {formatDuration(mod.estimatedMinutes)}
             </span>
+          </>
+        );
+
+        if (!isAccessible) {
+          return (
+            <div
+              key={mod.id}
+              role="listitem"
+              aria-disabled="true"
+              className={cn(
+                "flex items-center gap-3 rounded-lg px-3 py-3",
+                "opacity-50 cursor-not-allowed"
+              )}
+            >
+              {content}
+            </div>
+          );
+        }
+
+        return (
+          <Link
+            key={mod.id}
+            href={`/courses/${courseId}/modules/${mod.id}`}
+            className={cn(
+              "flex items-center gap-3 rounded-lg px-3 py-3 transition-colors hover:bg-gray-50 cursor-pointer",
+              isCurrent && "bg-primary-50 border border-primary-200"
+            )}
+          >
+            {content}
           </Link>
         );
       })}

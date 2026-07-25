@@ -3,7 +3,6 @@ import {
   BookOpen,
   Trophy,
   Award,
-  Settings,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -19,9 +18,3 @@ export const navLinks: NavLink[] = [
   { href: "/rewards", label: "Rewards", icon: Trophy },
   { href: "/credentials", label: "Credentials", icon: Award },
 ];
-
-export const settingsLink: NavLink = {
-  href: "/settings",
-  label: "Settings",
-  icon: Settings,
-};
