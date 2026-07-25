@@ -3,6 +3,7 @@
 import { cn } from "@/lib/utils/cn";
 import { formatDate, formatTokenBalance, truncateAddress } from "@/lib/utils/format";
 import { ExternalLink, CheckCircle, Clock, XCircle } from "lucide-react";
+import { useAuthStore } from "@/store/auth-store";
 import type { RewardClaim } from "@/types/stellar";
 
 interface RewardHistoryProps {
@@ -23,6 +24,8 @@ const statusColors = {
 };
 
 export function RewardHistory({ claims, className }: RewardHistoryProps) {
+  const network = useAuthStore((s) => s.network);
+
   if (claims.length === 0) {
     return (
       <div className={cn("text-center py-8 text-gray-500", className)}>
@@ -60,7 +63,7 @@ export function RewardHistory({ claims, className }: RewardHistoryProps) {
               </span>
               {claim.txHash && (
                 <a
-                  href={`https://stellar.expert/explorer/testnet/tx/${claim.txHash}`}
+                  href={`https://stellar.expert/explorer/${network}/tx/${claim.txHash}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-gray-400 hover:text-gray-600"
