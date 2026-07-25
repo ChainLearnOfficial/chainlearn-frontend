@@ -6,6 +6,7 @@ interface AuthState {
   jwt: string | null;
   isAuthenticated: boolean;
   isConnecting: boolean;
+  hasHydrated: boolean;
   network: "testnet" | "public";
   tokenExpiresAt: number | null;
   connect: (address: string, token: string, expiresIn?: number) => void;
@@ -13,6 +14,7 @@ interface AuthState {
   setJwt: (token: string, expiresIn?: number) => void;
   setNetwork: (network: "testnet" | "public") => void;
   isTokenExpired: () => boolean;
+  setHasHydrated: (value: boolean) => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -22,6 +24,7 @@ export const useAuthStore = create<AuthState>()(
       jwt: null,
       isAuthenticated: false,
       isConnecting: false,
+      hasHydrated: false,
       network: "testnet",
       tokenExpiresAt: null,
 
@@ -59,6 +62,8 @@ export const useAuthStore = create<AuthState>()(
         if (!jwt || !tokenExpiresAt) return false;
         return Date.now() >= tokenExpiresAt;
       },
+
+      setHasHydrated: (value: boolean) => set({ hasHydrated: value }),
     }),
     {
       name: "chainlearn-auth",
@@ -69,6 +74,11 @@ export const useAuthStore = create<AuthState>()(
         network: state.network,
         tokenExpiresAt: state.tokenExpiresAt,
       }),
+      onRehydrateStorage: () => {
+        return () => {
+          useAuthStore.getState().setHasHydrated(true);
+        };
+      },
     }
   )
 );
