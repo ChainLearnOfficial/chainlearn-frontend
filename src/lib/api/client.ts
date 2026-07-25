@@ -1,4 +1,5 @@
 import { ApiError, ApiResponse } from "@/types/api";
+import { useAuthStore } from "@/store/auth-store";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
 
@@ -21,6 +22,9 @@ class ApiClient {
 
   private async handleResponse<T>(response: Response): Promise<T> {
     if (!response.ok) {
+      if (response.status === 401) {
+        useAuthStore.getState().disconnect();
+      }
       const errorBody = await response.json().catch(() => ({}));
       throw new ApiError(
         response.status,
