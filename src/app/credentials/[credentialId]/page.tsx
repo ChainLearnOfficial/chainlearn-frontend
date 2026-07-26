@@ -23,7 +23,7 @@ export default function CredentialDetailPage({
   params: Promise<{ credentialId: string }>;
 }) {
   const { credentialId } = use(params);
-  const { credential, loading } = useCredentialDetail(credentialId);
+  const { credential, loading, error } = useCredentialDetail(credentialId);
   const [copied, setCopied] = useState(false);
 
   const copyAddress = (address: string) => {
@@ -40,10 +40,12 @@ export default function CredentialDetailPage({
     );
   }
 
-  if (!credential) {
+  if (error || !credential) {
     return (
       <div className="mx-auto max-w-2xl px-4 py-16 text-center">
-        <p className="text-gray-500">Credential not found.</p>
+        <p role="alert" aria-live="polite" className="text-gray-500">
+          {error || "Credential not found."}
+        </p>
       </div>
     );
   }
