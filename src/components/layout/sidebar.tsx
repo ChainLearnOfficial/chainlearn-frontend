@@ -2,11 +2,16 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useAuthStore } from "@/store/auth-store";
 import { cn } from "@/lib/utils/cn";
 import { isNavLinkActive, navLinks } from "./nav-links";
 
 export function Sidebar() {
   const pathname = usePathname();
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const hasHydrated = useAuthStore((s) => s.hasHydrated);
+
+  if (!hasHydrated || !isAuthenticated) return null;
 
   return (
     <aside className="hidden lg:flex flex-col w-64 border-r border-gray-200 bg-gray-50/50 min-h-[calc(100vh-4rem)]">

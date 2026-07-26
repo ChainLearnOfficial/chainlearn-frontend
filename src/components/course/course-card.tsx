@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import Link from "next/link";
 import { cn } from "@/lib/utils/cn";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
@@ -21,7 +22,7 @@ const difficultyColors = {
   advanced: "bg-red-100 text-red-700",
 };
 
-export function CourseCard({
+export const CourseCard = memo(function CourseCard({
   course,
   enrolled,
   progress,
@@ -50,7 +51,7 @@ export function CourseCard({
             >
               {capitalize(course.difficulty)}
             </span>
-            <span className="text-xs text-gray-500">{course.category}</span>
+            <span className="text-xs text-gray-500">{capitalize(course.category)}</span>
           </div>
 
           <h3 className="font-semibold text-gray-900 group-hover:text-primary-600 transition-colors mb-1">
@@ -87,4 +88,4 @@ export function CourseCard({
       </Card>
     </Link>
   );
-}
+});

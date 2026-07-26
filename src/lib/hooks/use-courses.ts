@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useAuthStore } from "@/store/auth-store";
 import { useCourseStore } from "@/store/course-store";
 import {
@@ -200,6 +200,8 @@ export function useCourses() {
 
 export function useCourseDetail(courseId: string) {
   const jwt = useAuthStore((s) => s.jwt);
+  const jwtRef = useRef(jwt);
+  jwtRef.current = jwt;
   const [course, setCourse] = useState<Course | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -207,13 +209,13 @@ export function useCourseDetail(courseId: string) {
   useEffect(() => {
     if (!courseId) return;
     setLoading(true);
-    getCourse(courseId, jwt ?? undefined)
+    getCourse(courseId, jwtRef.current ?? undefined)
       .then(setCourse)
       .catch((err) =>
         setError(err instanceof Error ? err.message : "Failed to load course")
       )
       .finally(() => setLoading(false));
-  }, [courseId, jwt]);
+  }, [courseId]);
 
   return { course, loading, error };
 }

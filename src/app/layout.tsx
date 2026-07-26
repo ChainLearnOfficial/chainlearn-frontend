@@ -2,8 +2,6 @@ import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import { WalletProvider } from "@/components/wallet/wallet-provider";
 import { Header } from "@/components/layout/header";
-import { MobileNav } from "@/components/layout/mobile-nav";
-import { Sidebar } from "@/components/layout/sidebar";
 import { ErrorBoundary } from "@/components/shared/error-boundary";
 import { ToastProvider } from "@/components/shared/toast-provider";
 import { AuthProvider } from "@/components/auth/auth-provider";
