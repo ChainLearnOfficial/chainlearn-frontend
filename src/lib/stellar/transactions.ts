@@ -1,5 +1,5 @@
 import freighterApi from "@stellar/freighter-api";
-import { Contract, Address, TransactionBuilder, xdr } from "@stellar/stellar-sdk";
+import { Contract, Account, TransactionBuilder, nativeToScVal } from "@stellar/stellar-sdk";
 import type { NetworkType } from "./wallet";
 import { getNetworkPassphrase, getRpcUrl } from "./wallet";
 import type { TransactionResult } from "@/types/stellar";
@@ -81,21 +81,14 @@ export async function simulateContractCall(
   const contract = new Contract(contractAddress);
 
   const txBuilder = new TransactionBuilder(
-    new Address(contractAddress),
+    new Account(contractAddress, "0"),
     {
       fee: "100",
       networkPassphrase: passphrase,
     }
   );
 
-  const sorobanArgs = args.map((arg) => {
-    if (typeof arg === "string") return xdr.ScVal.scvString(arg);
-    if (typeof arg === "number") return xdr.ScVal.scvU32(arg);
-    if (typeof arg === "bigint") return xdr.ScVal.scvU64(arg);
-    if (typeof arg === "boolean") return xdr.ScVal.scvBool(arg);
-    if (arg instanceof Uint8Array) return xdr.ScVal.scvBytes(arg);
-    return xdr.ScVal.scvString(JSON.stringify(arg));
-  });
+  const sorobanArgs = args.map((arg) => nativeToScVal(arg));
 
   const tx = txBuilder
     .addOperation(contract.call(method, ...sorobanArgs))
