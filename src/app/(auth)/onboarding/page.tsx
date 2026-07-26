@@ -64,10 +64,28 @@ export default function OnboardingPage() {
 
   const handleComplete = async () => {
     if (!jwt) return;
+
+    const trimmed = displayName.trim();
+    if (!trimmed) {
+      addToast("Display name cannot be empty.", "error");
+      setStep(0);
+      return;
+    }
+    if (trimmed.length < 2 || trimmed.length > 50) {
+      addToast("Display name must be between 2 and 50 characters.", "error");
+      setStep(0);
+      return;
+    }
+    if (/[\r\n\t\0<>]/.test(trimmed)) {
+      addToast("Display name contains invalid characters.", "error");
+      setStep(0);
+      return;
+    }
+
     setSaving(true);
     try {
       await updateProfile(jwt, {
-        displayName,
+        displayName: trimmed,
         background,
         learningGoals: selectedGoals,
         preferredPace: pace,
