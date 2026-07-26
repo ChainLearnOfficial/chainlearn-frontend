@@ -138,12 +138,14 @@ export function QuizInterface({ quiz, onSubmit, className }: QuizInterfaceProps)
       <CardContent className="space-y-6">
         <p className="text-lg font-medium text-gray-900">{question.text}</p>
 
-        <div className="space-y-2">
+        <div className="space-y-2" role="radiogroup" aria-label={question.text}>
           {question.options.map((option) => {
             const isSelected = answers[question.id] === option.id;
             return (
               <button
                 key={option.id}
+                role="radio"
+                aria-checked={isSelected}
                 onClick={() => selectOption(question.id, option.id)}
                 className={cn(
                   "w-full text-left rounded-lg border p-4 transition-all",

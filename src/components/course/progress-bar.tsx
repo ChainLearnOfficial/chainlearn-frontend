@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import { cn } from "@/lib/utils/cn";
 
 interface ProgressBarProps {
@@ -9,7 +10,7 @@ interface ProgressBarProps {
   className?: string;
 }
 
-export function ProgressBar({
+export const ProgressBar = memo(function ProgressBar({
   value,
   size = "md",
   showLabel = true,
@@ -51,4 +52,4 @@ export function ProgressBar({
       </div>
     </div>
   );
-}
+});
