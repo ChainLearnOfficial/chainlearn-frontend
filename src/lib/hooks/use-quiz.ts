@@ -12,7 +12,10 @@ export function useQuiz(courseId: string) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!courseId) return;
+    if (!courseId) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     getQuiz(courseId, jwt ?? undefined)
       .then(setQuiz)
