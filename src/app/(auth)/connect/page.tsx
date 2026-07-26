@@ -45,7 +45,7 @@ export default function ConnectPage() {
         router.push("/onboarding");
       }
     } catch {
-      addToast("Failed to connect wallet. Please try again.", "error");
+      // Error is already displayed inline via the error state from useAuth
     }
   };
 

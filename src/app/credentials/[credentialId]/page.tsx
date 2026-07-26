@@ -26,10 +26,29 @@ export default function CredentialDetailPage({
   const { credential, loading, error } = useCredentialDetail(credentialId);
   const [copied, setCopied] = useState(false);
 
-  const copyAddress = (address: string) => {
-    navigator.clipboard.writeText(address);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+  const copyAddress = async (address: string) => {
+    try {
+      await navigator.clipboard.writeText(address);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (error) {
+      console.error("Failed to copy address:", error);
+      // Fallback for older browsers or when clipboard API is not available
+      try {
+        const textArea = document.createElement("textarea");
+        textArea.value = address;
+        textArea.style.position = "fixed";
+        textArea.style.left = "-9999px";
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textArea);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      } catch (fallbackError) {
+        console.error("Fallback copy failed:", fallbackError);
+      }
+    }
   };
 
   if (loading) {
