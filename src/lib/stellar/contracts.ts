@@ -1,7 +1,7 @@
 import type { NetworkType } from "./wallet";
 import { simulateContractCall, signAndSubmitTransaction } from "./transactions";
 import type { TransactionResult } from "@/types/stellar";
-import { scval } from "@stellar/stellar-sdk";
+import { xdr, scValToNative } from "@stellar/stellar-sdk";
 
 // Validate required environment variables at startup
 function validateEnvironmentVariables() {
@@ -69,7 +69,10 @@ export async function readRewardBalance(
     throw new Error("Invalid simulation result");
   }
 
-  const resultArray = simResult.results || simResult;
+  const resultArray =
+    "results" in simResult && Array.isArray((simResult as Record<string, unknown>).results)
+      ? (simResult as Record<string, unknown>).results
+      : simResult;
   if (!Array.isArray(resultArray) || resultArray.length === 0) {
     throw new Error("No results in simulation response");
   }
@@ -79,7 +82,7 @@ export async function readRewardBalance(
     throw new Error("Missing XDR in simulation result");
   }
 
-  const scVal = scval.native.fromXDR(result.xdr, "base64");
+  const scVal = scValToNative(xdr.ScVal.fromXDR(result.xdr, "base64"));
   const balance = scVal as unknown as bigint | number | string;
   return String(balance);
 }
