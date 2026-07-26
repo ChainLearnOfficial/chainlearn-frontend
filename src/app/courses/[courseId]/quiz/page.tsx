@@ -9,7 +9,7 @@ import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { useAuthStore } from "@/store/auth-store";
 import { submitQuiz } from "@/lib/api/quizzes";
-import { useToast } from "@/components/shared/toast";
+import { useToastContext } from "@/components/shared/toast";
 
 export default function QuizPage({
   params,
@@ -19,7 +19,7 @@ export default function QuizPage({
   const { courseId } = use(params);
   const jwt = useAuthStore((s) => s.jwt);
   const { quiz, loading, error } = useQuiz(courseId);
-  const { addToast, ToastContainer } = useToast();
+  const { addToast } = useToastContext();
 
   const handleSubmit = async (answers: Record<string, string>) => {
     if (!quiz || !jwt) throw new Error("Not ready");
@@ -78,7 +78,6 @@ export default function QuizPage({
       </div>
 
       <QuizInterface quiz={quiz} onSubmit={handleSubmit} />
-      <ToastContainer />
     </div>
   );
 }
