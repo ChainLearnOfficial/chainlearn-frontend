@@ -1,9 +1,10 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useAuthStore } from "@/store/auth-store";
 import { updateProfile } from "@/lib/api/auth";
+import { useSwipe } from "@/lib/hooks/use-swipe";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -41,6 +42,19 @@ export default function OnboardingPage() {
   const [selectedGoals, setSelectedGoals] = useState<string[]>([]);
   const [pace, setPace] = useState<"slow" | "moderate" | "fast">("moderate");
   const [saving, setSaving] = useState(false);
+
+  const goNext = useCallback(() => {
+    setStep((prev) => Math.min(prev + 1, steps.length - 1));
+  }, []);
+
+  const goPrev = useCallback(() => {
+    setStep((prev) => Math.max(prev - 1, 0));
+  }, []);
+
+  const { handleTouchStart, handleTouchEnd } = useSwipe({
+    onSwipeLeft: goNext,
+    onSwipeRight: goPrev,
+  });
 
   const toggleGoal = (goal: string) => {
     setSelectedGoals((prev) =>
@@ -208,7 +222,11 @@ export default function OnboardingPage() {
 
   return (
     <div className="flex min-h-[80vh] items-center justify-center px-4">
-      <Card className="w-full max-w-md">
+      <Card
+        className="w-full max-w-md touch-pan-y"
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+      >
         <CardHeader>
           <div className="flex justify-center gap-2 mb-2">
             {steps.map((_, i) => (
