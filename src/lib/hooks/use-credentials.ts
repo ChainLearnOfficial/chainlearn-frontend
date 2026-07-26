@@ -66,7 +66,10 @@ export function useCredentialDetail(credentialId: string) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!credentialId) return;
+    if (!credentialId) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     setError(null);
     getCredential(credentialId, jwt ?? undefined)
