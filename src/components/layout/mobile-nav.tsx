@@ -4,7 +4,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuthStore } from "@/store/auth-store";
 import { cn } from "@/lib/utils/cn";
-import { useAuthStore } from "@/store/auth-store";
 import { isNavLinkActive, navLinks } from "./nav-links";
 
 export function MobileNav() {

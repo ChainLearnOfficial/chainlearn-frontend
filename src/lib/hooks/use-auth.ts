@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { useAuthStore } from "@/store/auth-store";
 import {
   connectFreighter,
@@ -26,6 +26,9 @@ export function useAuth() {
     clearError,
   } = useAuthStore();
 
+  const networkRef = useRef(network);
+  networkRef.current = network;
+
   const connectWallet = useCallback(async () => {
     setIsConnecting(true);
     clearError();
@@ -46,7 +49,7 @@ export function useAuth() {
       const challenge = await getChallenge(address);
 
       // Sign challenge with Freighter
-      const passphrase = getNetworkPassphrase(network);
+      const passphrase = getNetworkPassphrase(networkRef.current);
       const signedChallenge = await signChallenge(challenge, passphrase);
 
       // Verify signature and get JWT
@@ -64,7 +67,7 @@ export function useAuth() {
     } finally {
       setIsConnecting(false);
     }
-  }, [network, connect, setIsConnecting, clearError, setError]);
+  }, [connect, setIsConnecting, clearError, setError]);
 
   const disconnect = useCallback(() => {
     storeDisconnect();
