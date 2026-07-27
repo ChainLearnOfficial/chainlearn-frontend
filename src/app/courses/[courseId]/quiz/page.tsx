@@ -1,8 +1,7 @@
 "use client";
 
-import { use } from "react";
+import { lazy, Suspense, use } from "react";
 import { useQuiz } from "@/lib/hooks/use-quiz";
-import { QuizInterface } from "@/components/course/quiz-interface";
 import { LoadingSkeleton } from "@/components/shared/loading-skeleton";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
@@ -10,6 +9,13 @@ import Link from "next/link";
 import { useAuthStore } from "@/store/auth-store";
 import { submitQuiz } from "@/lib/api/quizzes";
 import { useToastContext } from "@/components/shared/toast";
+
+// Deferred so the interactive quiz chunk streams in after the page shell.
+const QuizInterface = lazy(() =>
+  import("@/components/course/quiz-interface").then((m) => ({
+    default: m.QuizInterface,
+  }))
+);
 
 export default function QuizPage({
   params,
@@ -77,7 +83,9 @@ export default function QuizPage({
         </Link>
       </div>
 
-      <QuizInterface quiz={quiz} onSubmit={handleSubmit} />
+      <Suspense fallback={<LoadingSkeleton count={3} />}>
+        <QuizInterface quiz={quiz} onSubmit={handleSubmit} />
+      </Suspense>
     </div>
   );
 }

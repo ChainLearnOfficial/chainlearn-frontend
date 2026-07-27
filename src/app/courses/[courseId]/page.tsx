@@ -1,10 +1,9 @@
 "use client";
 
-import { use } from "react";
+import { lazy, Suspense, use } from "react";
 import { useCourseDetail, useCourses } from "@/lib/hooks/use-courses";
 import { useAuth } from "@/lib/hooks/use-auth";
 import { useCourseStore } from "@/store/course-store";
-import { ModuleList } from "@/components/course/module-list";
 import { ProgressBar } from "@/components/course/progress-bar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -27,6 +26,14 @@ const difficultyColors = {
   intermediate: "bg-yellow-100 text-yellow-700",
   advanced: "bg-red-100 text-red-700",
 };
+
+// Deferred so the module list chunk streams in independently of the
+// hero/enrollment section above it.
+const ModuleList = lazy(() =>
+  import("@/components/course/module-list").then((m) => ({
+    default: m.ModuleList,
+  }))
+);
 
 export default function CourseDetailPage({
   params,
@@ -163,12 +170,14 @@ export default function CourseDetailPage({
       {/* Modules */}
       <Card>
         <CardContent className="p-6">
-          <ModuleList
-            courseId={courseId}
-            modules={course.modules}
-            completedModuleIds={enrollment?.completedModules ?? []}
-            currentModuleId={courseProgress?.currentModuleId}
-          />
+          <Suspense fallback={<LoadingSkeleton count={4} variant="text" />}>
+            <ModuleList
+              courseId={courseId}
+              modules={course.modules}
+              completedModuleIds={enrollment?.completedModules ?? []}
+              currentModuleId={courseProgress?.currentModuleId}
+            />
+          </Suspense>
         </CardContent>
       </Card>
     </div>
