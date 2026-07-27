@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import { WalletProvider } from "@/components/wallet/wallet-provider";
 import { Header } from "@/components/layout/header";
+import { Footer } from "@/components/layout/footer";
 import { ErrorBoundary } from "@/components/shared/error-boundary";
 import { ToastProvider } from "@/components/shared/toast-provider";
 import { AuthProvider } from "@/components/auth/auth-provider";
@@ -60,7 +61,10 @@ export default function RootLayout({
             <ToastProvider>
               <div className="flex min-h-screen flex-col">
                 <Header />
-                <AuthProvider>{children}</AuthProvider>
+                <AuthProvider>
+                  <div className="flex-1">{children}</div>
+                </AuthProvider>
+                <Footer />
               </div>
             </ToastProvider>
           </WalletProvider>

@@ -222,6 +222,8 @@ export function useCourseDetail(courseId: string) {
 
 export function useModule(courseId: string, moduleId: string) {
   const jwt = useAuthStore((s) => s.jwt);
+  const jwtRef = useRef(jwt);
+  jwtRef.current = jwt;
   const updateProgress = useCourseStore((s) => s.updateProgress);
   const setEnrollments = useCourseStore((s) => s.setEnrollments);
   const currentCourse = useCourseStore((s) => s.currentCourse);
@@ -233,26 +235,27 @@ export function useModule(courseId: string, moduleId: string) {
   useEffect(() => {
     if (!courseId || !moduleId) return;
     setLoading(true);
-    getModule(courseId, moduleId, jwt ?? undefined)
+    getModule(courseId, moduleId, jwtRef.current ?? undefined)
       .then(setModule)
       .catch((err) =>
         setError(err instanceof Error ? err.message : "Failed to load module")
       )
       .finally(() => setLoading(false));
-  }, [courseId, moduleId, jwt]);
+  }, [courseId, moduleId]);
 
   const complete = useCallback(async () => {
-    if (!jwt) throw new Error("Not authenticated");
-    await markModuleComplete(courseId, moduleId, jwt);
+    const token = jwtRef.current;
+    if (!token) throw new Error("Not authenticated");
+    await markModuleComplete(courseId, moduleId, token);
     if (!currentCourse || currentCourse.id !== courseId) {
-      const course = await getCourse(courseId, jwt);
+      const course = await getCourse(courseId, token);
       setCurrentCourse(course);
     }
     updateProgress(courseId, moduleId);
     // Sync enrollments with server data so progress sources don't diverge
-    invalidateEnrollmentsCache(jwt);
-    loadEnrollments(jwt).then(setEnrollments).catch(console.error);
-  }, [courseId, moduleId, jwt, updateProgress, setEnrollments, currentCourse, setCurrentCourse]);
+    invalidateEnrollmentsCache(token);
+    loadEnrollments(token).then(setEnrollments).catch(console.error);
+  }, [courseId, moduleId, updateProgress, setEnrollments, currentCourse, setCurrentCourse]);
 
   return { module, loading, error, complete };
 }
