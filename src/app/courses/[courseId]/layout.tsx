@@ -3,11 +3,11 @@ import { apiClient } from "@/lib/api/client";
 import type { Course } from "@/types/course";
 
 interface PageProps {
-  params: Promise<{ courseId: string }>;
+  params: { courseId: string };
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { courseId } = await params;
+  const { courseId } = params;
 
   try {
     const response = await apiClient.get<Course>(`/courses/${courseId}`);

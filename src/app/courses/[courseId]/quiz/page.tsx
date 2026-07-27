@@ -1,6 +1,6 @@
 "use client";
 
-import { lazy, Suspense, use } from "react";
+import { lazy, Suspense } from "react";
 import { useQuiz } from "@/lib/hooks/use-quiz";
 import { LoadingSkeleton } from "@/components/shared/loading-skeleton";
 import { Button } from "@/components/ui/button";
@@ -20,9 +20,9 @@ const QuizInterface = lazy(() =>
 export default function QuizPage({
   params,
 }: {
-  params: Promise<{ courseId: string }>;
+  params: { courseId: string };
 }) {
-  const { courseId } = use(params);
+  const { courseId } = params;
   const jwt = useAuthStore((s) => s.jwt);
   const { quiz, loading, error } = useQuiz(courseId);
   const { addToast } = useToastContext();

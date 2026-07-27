@@ -1,6 +1,6 @@
 "use client";
 
-import { lazy, Suspense, use } from "react";
+import { lazy, Suspense } from "react";
 import { useCourseDetail, useCourses } from "@/lib/hooks/use-courses";
 import { useAuth } from "@/lib/hooks/use-auth";
 import { useCourseStore } from "@/store/course-store";
@@ -38,9 +38,9 @@ const ModuleList = lazy(() =>
 export default function CourseDetailPage({
   params,
 }: {
-  params: Promise<{ courseId: string }>;
+  params: { courseId: string };
 }) {
-  const { courseId } = use(params);
+  const { courseId } = params;
   const { course, loading, error } = useCourseDetail(courseId);
   const { isAuthenticated } = useAuth();
   const { enroll } = useCourses();

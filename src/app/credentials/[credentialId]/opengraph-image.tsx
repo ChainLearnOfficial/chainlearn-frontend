@@ -8,11 +8,11 @@ export const contentType = "image/png";
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
 
 interface ImageProps {
-  params: Promise<{ credentialId: string }>;
+  params: { credentialId: string };
 }
 
 export default async function Image({ params }: ImageProps) {
-  const { credentialId } = await params;
+  const { credentialId } = params;
   let title = "Credential on ChainLearn";
   let description = "On-chain verifiable credential issued on the Stellar network.";
 
