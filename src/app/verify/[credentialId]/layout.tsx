@@ -2,11 +2,11 @@ import type { Metadata } from "next";
 import { apiClient } from "@/lib/api/client";
 
 interface PageProps {
-  params: Promise<{ credentialId: string }>;
+  params: { credentialId: string };
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { credentialId } = await params;
+  const { credentialId } = params;
 
   try {
     const response = await apiClient.get<{

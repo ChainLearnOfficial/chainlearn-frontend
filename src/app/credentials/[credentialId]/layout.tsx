@@ -3,11 +3,11 @@ import { apiClient } from "@/lib/api/client";
 import type { CredentialNFT } from "@/types/stellar";
 
 interface PageProps {
-  params: Promise<{ credentialId: string }>;
+  params: { credentialId: string };
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { credentialId } = await params;
+  const { credentialId } = params;
 
   try {
     const response = await apiClient.get<CredentialNFT>(

@@ -1,6 +1,5 @@
 "use client";
 
-import { use } from "react";
 import { useVerifyCredential } from "@/lib/hooks/use-credentials";
 import { CredentialBadge } from "@/components/credentials/credential-badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,9 +18,9 @@ import {
 export default function VerifyCredentialPage({
   params,
 }: {
-  params: Promise<{ credentialId: string }>;
+  params: { credentialId: string };
 }) {
-  const { credentialId } = use(params);
+  const { credentialId } = params;
   const { verification, loading, error } = useVerifyCredential(credentialId);
 
   if (loading) {

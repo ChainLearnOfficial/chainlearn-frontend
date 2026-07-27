@@ -1,6 +1,5 @@
 "use client";
 
-import { use } from "react";
 import Link from "next/link";
 import { useCredentialDetail } from "@/lib/hooks/use-credentials";
 import { CredentialBadge } from "@/components/credentials/credential-badge";
@@ -20,9 +19,9 @@ import { useState } from "react";
 export default function CredentialDetailPage({
   params,
 }: {
-  params: Promise<{ credentialId: string }>;
+  params: { credentialId: string };
 }) {
-  const { credentialId } = use(params);
+  const { credentialId } = params;
   const { credential, loading, error } = useCredentialDetail(credentialId);
   const [copied, setCopied] = useState(false);
 

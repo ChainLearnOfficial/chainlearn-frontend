@@ -8,11 +8,11 @@ export const contentType = "image/png";
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
 
 interface ImageProps {
-  params: Promise<{ courseId: string }>;
+  params: { courseId: string };
 }
 
 export default async function Image({ params }: ImageProps) {
-  const { courseId } = await params;
+  const { courseId } = params;
   let title = "Course on ChainLearn";
   let description =
     "Earn tokens and verifiable credentials while learning on Stellar.";
