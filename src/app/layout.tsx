@@ -56,13 +56,21 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} ${jetbrainsMono.variable}`}>
       <body className="min-h-screen bg-gray-50 font-sans">
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-white focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-gray-900 focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+        >
+          Skip to content
+        </a>
         <ErrorBoundary>
           <WalletProvider>
             <ToastProvider>
               <div className="flex min-h-screen flex-col">
                 <Header />
                 <AuthProvider>
-                  <div className="flex-1">{children}</div>
+                  <div id="main-content" className="flex-1">
+                    {children}
+                  </div>
                 </AuthProvider>
                 <Footer />
               </div>
