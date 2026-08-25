@@ -7,6 +7,13 @@ import { CourseCard } from "@/components/course/course-card";
 import { CourseCardSkeleton } from "@/components/shared/loading-skeleton";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Search, Filter } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 
@@ -89,23 +96,18 @@ export default function CoursesPage() {
 
           <div className="flex items-center gap-2">
             <span className="text-sm text-gray-500">Difficulty:</span>
-            <div className="flex gap-1">
-              {difficulties.map((diff) => (
-                <button
-                  key={diff}
-                  onClick={() => setDifficulty(diff)}
-                  aria-pressed={difficulty === diff}
-                  className={cn(
-                    "rounded-full px-3 py-1 text-xs font-medium transition-colors",
-                    difficulty === diff
-                      ? "bg-primary-100 text-primary-700"
-                      : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                  )}
-                >
-                  {diff}
-                </button>
-              ))}
-            </div>
+            <Select value={difficulty} onValueChange={setDifficulty}>
+              <SelectTrigger className="w-40">
+                <SelectValue placeholder="Difficulty" />
+              </SelectTrigger>
+              <SelectContent>
+                {difficulties.map((diff) => (
+                  <SelectItem key={diff} value={diff}>
+                    {diff}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
       </div>

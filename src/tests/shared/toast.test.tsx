@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { render, screen, act } from "@testing-library/react";
+import { render, screen, act, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Toast } from "@/components/shared/toast";
 
@@ -12,6 +12,7 @@ describe("Toast", () => {
   it.each([
     ["success", "border-green-200"],
     ["error", "border-red-200"],
+    ["warning", "border-amber-200"],
     ["info", "border-blue-200"],
   ] as const)("variant=%s applies correct border class", (variant, cls) => {
     const { container } = render(
@@ -48,6 +49,51 @@ describe("Toast", () => {
     const onClose = vi.fn();
     render(<Toast message="stay" onClose={onClose} autoClose={0} />);
     act(() => vi.advanceTimersByTime(10000));
+    expect(onClose).not.toHaveBeenCalled();
+    vi.useRealTimers();
+  });
+
+  it("renders an action button and invokes its handler", async () => {
+    const onAction = vi.fn();
+    const onClose = vi.fn();
+    render(
+      <Toast
+        message="Reward claimed"
+        onClose={onClose}
+        autoClose={0}
+        action={{ label: "View Transaction", onClick: onAction }}
+      />,
+    );
+    await userEvent.click(screen.getByRole("button", { name: "View Transaction" }));
+    expect(onAction).toHaveBeenCalledTimes(1);
+  });
+
+  it("dismisses via swipe past the threshold", () => {
+    vi.useFakeTimers();
+    const onClose = vi.fn();
+    render(<Toast message="swipe" onClose={onClose} autoClose={0} />);
+    const toastEl = screen.getByRole("status");
+
+    fireEvent.pointerDown(toastEl, { clientX: 0, pointerId: 1 });
+    fireEvent.pointerMove(toastEl, { clientX: 150 });
+    fireEvent.pointerUp(toastEl);
+
+    act(() => vi.advanceTimersByTime(300));
+    expect(onClose).toHaveBeenCalledTimes(1);
+    vi.useRealTimers();
+  });
+
+  it("snaps back without dismissing when swipe is below threshold", () => {
+    vi.useFakeTimers();
+    const onClose = vi.fn();
+    render(<Toast message="swipe" onClose={onClose} autoClose={0} />);
+    const toastEl = screen.getByRole("status");
+
+    fireEvent.pointerDown(toastEl, { clientX: 0, pointerId: 1 });
+    fireEvent.pointerMove(toastEl, { clientX: 20 });
+    fireEvent.pointerUp(toastEl);
+
+    act(() => vi.advanceTimersByTime(300));
     expect(onClose).not.toHaveBeenCalled();
     vi.useRealTimers();
   });
