@@ -14,6 +14,7 @@ export function useCredentials() {
   const jwt = useAuthStore((s) => s.jwt);
   const [credentials, setCredentials] = useState<CredentialNFT[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchCredentials = useCallback(async () => {
     if (!jwt) {
@@ -21,10 +22,13 @@ export function useCredentials() {
       return;
     }
     setLoading(true);
+    setError(null);
     try {
       const data = await getCredentials(jwt);
       setCredentials(data);
     } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to fetch credentials";
+      setError(message);
       console.error("Failed to fetch credentials:", err);
     } finally {
       setLoading(false);
@@ -34,9 +38,16 @@ export function useCredentials() {
   const mint = useCallback(
     async (courseId: string) => {
       if (!jwt) throw new Error("Not authenticated");
-      const credential = await mintCredential(courseId, jwt);
-      setCredentials((prev) => [credential, ...prev]);
-      return credential;
+      setError(null);
+      try {
+        const credential = await mintCredential(courseId, jwt);
+        setCredentials((prev) => [credential, ...prev]);
+        return credential;
+      } catch (err) {
+        const message = err instanceof Error ? err.message : "Failed to mint credential";
+        setError(message);
+        throw err;
+      }
     },
     [jwt]
   );
@@ -45,24 +56,33 @@ export function useCredentials() {
     fetchCredentials();
   }, [fetchCredentials]);
 
-  return { credentials, loading, mint, refetch: fetchCredentials };
+  return { credentials, loading, error, mint, refetch: fetchCredentials };
 }
 
 export function useCredentialDetail(credentialId: string) {
   const jwt = useAuthStore((s) => s.jwt);
   const [credential, setCredential] = useState<CredentialNFT | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!credentialId) return;
+    if (!credentialId) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
+    setError(null);
     getCredential(credentialId, jwt ?? undefined)
       .then(setCredential)
-      .catch(console.error)
+      .catch((err) => {
+        const message = err instanceof Error ? err.message : "Failed to load credential";
+        setError(message);
+        console.error(message, err);
+      })
       .finally(() => setLoading(false));
   }, [credentialId, jwt]);
 
-  return { credential, loading };
+  return { credential, loading, error };
 }
 
 export function useVerifyCredential(credentialId: string) {

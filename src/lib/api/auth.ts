@@ -6,7 +6,7 @@ import type { AuthTokens, UserProfile } from "@/types/api";
  */
 export async function getChallenge(walletAddress: string): Promise<string> {
   const response = await apiClient.get<{ challenge: string }>(
-    `/auth/challenge?address=${walletAddress}`
+    `/auth/challenge?address=${encodeURIComponent(walletAddress)}`
   );
   return response.data.challenge;
 }

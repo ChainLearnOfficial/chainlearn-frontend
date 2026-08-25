@@ -18,3 +18,7 @@ export const navLinks: NavLink[] = [
   { href: "/rewards", label: "Rewards", icon: Trophy },
   { href: "/credentials", label: "Credentials", icon: Award },
 ];
+
+export function isNavLinkActive(pathname: string, href: string) {
+  return pathname === href || pathname.startsWith(`${href}/`);
+}

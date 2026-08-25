@@ -28,7 +28,7 @@ export default function DashboardPage() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const hasHydrated = useAuthStore((s) => s.hasHydrated);
   const { courses, enrollments, loading: coursesLoading } = useCourses();
-  const { recommended, loading: recommendedLoading } = useRecommendedCourses();
+  const { recommended, loading: recommendedLoading, error: recommendedError } = useRecommendedCourses();
   const { balances, loading: rewardsLoading } = useRewards();
   const { credentials, loading: credentialsLoading } = useCredentials();
   const progress = useCourseStore((s) => s.progress);
@@ -175,7 +175,13 @@ export default function DashboardPage() {
           <h2 className="text-lg font-semibold text-gray-900 mb-4">
             Recommended for You
           </h2>
-          {recommended.length === 0 ? (
+          {recommendedError ? (
+            <Card>
+              <CardContent className="py-6 text-center">
+                <p className="text-sm text-red-600">{recommendedError}</p>
+              </CardContent>
+            </Card>
+          ) : recommended.length === 0 ? (
             <Card>
               <CardContent className="py-6 text-center text-sm text-gray-500">
                 Complete your profile to get personalized recommendations.

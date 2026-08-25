@@ -1,9 +1,10 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useAuthStore } from "@/store/auth-store";
 import { updateProfile } from "@/lib/api/auth";
+import { useSwipe } from "@/lib/hooks/use-swipe";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -42,6 +43,19 @@ export default function OnboardingPage() {
   const [pace, setPace] = useState<"slow" | "moderate" | "fast">("moderate");
   const [saving, setSaving] = useState(false);
 
+  const goNext = useCallback(() => {
+    setStep((prev) => Math.min(prev + 1, steps.length - 1));
+  }, []);
+
+  const goPrev = useCallback(() => {
+    setStep((prev) => Math.max(prev - 1, 0));
+  }, []);
+
+  const { handleTouchStart, handleTouchEnd } = useSwipe({
+    onSwipeLeft: goNext,
+    onSwipeRight: goPrev,
+  });
+
   const toggleGoal = (goal: string) => {
     setSelectedGoals((prev) =>
       prev.includes(goal) ? prev.filter((g) => g !== goal) : [...prev, goal]
@@ -50,10 +64,28 @@ export default function OnboardingPage() {
 
   const handleComplete = async () => {
     if (!jwt) return;
+
+    const trimmed = displayName.trim();
+    if (!trimmed) {
+      addToast("Display name cannot be empty.", "error");
+      setStep(0);
+      return;
+    }
+    if (trimmed.length < 2 || trimmed.length > 50) {
+      addToast("Display name must be between 2 and 50 characters.", "error");
+      setStep(0);
+      return;
+    }
+    if (/[\r\n\t\0<>]/.test(trimmed)) {
+      addToast("Display name contains invalid characters.", "error");
+      setStep(0);
+      return;
+    }
+
     setSaving(true);
     try {
       await updateProfile(jwt, {
-        displayName,
+        displayName: trimmed,
         background,
         learningGoals: selectedGoals,
         preferredPace: pace,
@@ -208,7 +240,11 @@ export default function OnboardingPage() {
 
   return (
     <div className="flex min-h-[80vh] items-center justify-center px-4">
-      <Card className="w-full max-w-md">
+      <Card
+        className="w-full max-w-md touch-pan-y"
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+      >
         <CardHeader>
           <div className="flex justify-center gap-2 mb-2">
             {steps.map((_, i) => (

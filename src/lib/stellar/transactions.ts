@@ -1,5 +1,10 @@
 import freighterApi from "@stellar/freighter-api";
-import { Contract, Address, TransactionBuilder, xdr } from "@stellar/stellar-sdk";
+import {
+  Contract,
+  Account,
+  TransactionBuilder,
+  xdr,
+} from "@stellar/stellar-sdk";
 import type { NetworkType } from "./wallet";
 import { getNetworkPassphrase, getRpcUrl } from "./wallet";
 import type { TransactionResult } from "@/types/stellar";
@@ -11,7 +16,7 @@ import type { TransactionResult } from "@/types/stellar";
  */
 export async function signAndSubmitTransaction(
   xdr: string,
-  network: NetworkType
+  network: NetworkType,
 ): Promise<TransactionResult> {
   const passphrase = getNetworkPassphrase(network);
 
@@ -71,25 +76,22 @@ export async function simulateContractCall(
   contractAddress: string,
   method: string,
   args: unknown[],
-  network: NetworkType
+  network: NetworkType,
 ): Promise<unknown> {
   const passphrase = getNetworkPassphrase(network);
   const contract = new Contract(contractAddress);
 
-  const txBuilder = new TransactionBuilder(
-    new Address(contractAddress),
-    {
-      fee: "100",
-      networkPassphrase: passphrase,
-    }
-  );
+  const txBuilder = new TransactionBuilder(new Account(contractAddress, "0"), {
+    fee: "100",
+    networkPassphrase: passphrase,
+  });
 
   const sorobanArgs = args.map((arg) => {
     if (typeof arg === "string") return xdr.ScVal.scvString(arg);
     if (typeof arg === "number") return xdr.ScVal.scvU32(arg);
-    if (typeof arg === "bigint") return xdr.ScVal.scvU64(arg);
+    if (typeof arg === "bigint") return xdr.ScVal.scvU64(xdr.Uint64.fromString(arg.toString()));
     if (typeof arg === "boolean") return xdr.ScVal.scvBool(arg);
-    if (arg instanceof Uint8Array) return xdr.ScVal.scvBytes(arg);
+    if (arg instanceof Uint8Array) return xdr.ScVal.scvBytes(Buffer.from(arg));
     return xdr.ScVal.scvString(JSON.stringify(arg));
   });
 

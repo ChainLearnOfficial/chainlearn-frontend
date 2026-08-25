@@ -1,11 +1,13 @@
 "use client";
 
+import { memo } from "react";
 import Link from "next/link";
 import { cn } from "@/lib/utils/cn";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { ProgressBar } from "@/components/course/progress-bar";
 import { Clock, Users, Star } from "lucide-react";
 import type { Course } from "@/types/course";
-import { formatDuration } from "@/lib/utils/format";
+import { formatDuration, capitalize, formatNumber } from "@/lib/utils/format";
 
 interface CourseCardProps {
   course: Course;
@@ -20,7 +22,7 @@ const difficultyColors = {
   advanced: "bg-red-100 text-red-700",
 };
 
-export function CourseCard({
+export const CourseCard = memo(function CourseCard({
   course,
   enrolled,
   progress,
@@ -47,9 +49,9 @@ export function CourseCard({
                 difficultyColors[course.difficulty]
               )}
             >
-              {course.difficulty}
+              {capitalize(course.difficulty)}
             </span>
-            <span className="text-xs text-gray-500">{course.category}</span>
+            <span className="text-xs text-gray-500">{capitalize(course.category)}</span>
           </div>
 
           <h3 className="font-semibold text-gray-900 group-hover:text-primary-600 transition-colors mb-1">
@@ -69,30 +71,21 @@ export function CourseCard({
               </span>
               <span className="flex items-center gap-1">
                 <Users className="h-3.5 w-3.5" />
-                {course.enrolledCount}
+                {formatNumber(course.enrolledCount)}
               </span>
             </div>
             <span className="font-medium text-stellar-purple">
-              +{course.rewardTokenAmount} LEARN
+              +{formatNumber(course.rewardTokenAmount)} LEARN
             </span>
           </div>
 
           {enrolled && progress !== undefined && (
             <div className="w-full mt-3">
-              <div className="flex items-center justify-between text-xs mb-1">
-                <span className="text-gray-500">Progress</span>
-                <span className="font-medium">{progress}%</span>
-              </div>
-              <div className="h-1.5 w-full rounded-full bg-gray-100">
-                <div
-                  className="h-full rounded-full bg-primary-500 transition-all"
-                  style={{ width: `${progress}%` }}
-                />
-              </div>
+              <ProgressBar value={progress} size="sm" />
             </div>
           )}
         </CardFooter>
       </Card>
     </Link>
   );
-}
+});
