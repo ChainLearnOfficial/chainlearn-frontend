@@ -59,7 +59,7 @@ export function RewardHistory({ claims, className }: RewardHistoryProps) {
             </div>
             <div className="flex items-center gap-3">
               <span className="text-sm font-medium text-stellar-purple">
-                +{formatTokenBalance(claim.amount)} {claim.tokenCode}
+                +{formatTokenBalance(claim.amount, claim.decimals)} {claim.tokenCode}
               </span>
               {claim.txHash && (
                 <a

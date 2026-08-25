@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import Link from "next/link";
 import { cn } from "@/lib/utils/cn";
 import { CheckCircle, Circle, PlayCircle, Lock } from "lucide-react";
@@ -14,7 +15,7 @@ interface ModuleListProps {
   className?: string;
 }
 
-export function ModuleList({
+export const ModuleList = memo(function ModuleList({
   courseId,
   modules,
   completedModuleIds = [],
@@ -68,7 +69,7 @@ export function ModuleList({
             <div
               key={mod.id}
               role="listitem"
-              aria-disabled="true"
+              aria-label={`${mod.title} (locked - complete previous modules to unlock)`}
               tabIndex={-1}
               className={cn(
                 "flex items-center gap-3 rounded-lg px-3 py-3",
@@ -95,4 +96,4 @@ export function ModuleList({
       })}
     </div>
   );
-}
+});

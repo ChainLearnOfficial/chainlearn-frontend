@@ -1,25 +1,31 @@
 "use client";
 
-import { use } from "react";
+import { lazy, Suspense } from "react";
 import { useQuiz } from "@/lib/hooks/use-quiz";
-import { QuizInterface } from "@/components/course/quiz-interface";
 import { LoadingSkeleton } from "@/components/shared/loading-skeleton";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { useAuthStore } from "@/store/auth-store";
 import { submitQuiz } from "@/lib/api/quizzes";
-import { useToast } from "@/components/shared/toast";
+import { useToastContext } from "@/components/shared/toast";
+
+// Deferred so the interactive quiz chunk streams in after the page shell.
+const QuizInterface = lazy(() =>
+  import("@/components/course/quiz-interface").then((m) => ({
+    default: m.QuizInterface,
+  }))
+);
 
 export default function QuizPage({
   params,
 }: {
-  params: Promise<{ courseId: string }>;
+  params: { courseId: string };
 }) {
-  const { courseId } = use(params);
+  const { courseId } = params;
   const jwt = useAuthStore((s) => s.jwt);
   const { quiz, loading, error } = useQuiz(courseId);
-  const { addToast, ToastContainer } = useToast();
+  const { addToast } = useToastContext();
 
   const handleSubmit = async (answers: Record<string, string>) => {
     if (!quiz || !jwt) throw new Error("Not ready");
@@ -53,7 +59,9 @@ export default function QuizPage({
   if (error || !quiz) {
     return (
       <div className="mx-auto max-w-2xl px-4 py-16 text-center">
-        <p className="text-gray-500">{error || "Quiz not found."}</p>
+        <p role="alert" aria-live="polite" className="text-gray-500">
+          {error || "Quiz not found."}
+        </p>
         <Link href={`/courses/${courseId}`}>
           <Button variant="outline" className="mt-4">
             Back to Course
@@ -75,8 +83,9 @@ export default function QuizPage({
         </Link>
       </div>
 
-      <QuizInterface quiz={quiz} onSubmit={handleSubmit} />
-      <ToastContainer />
+      <Suspense fallback={<LoadingSkeleton count={3} />}>
+        <QuizInterface quiz={quiz} onSubmit={handleSubmit} />
+      </Suspense>
     </div>
   );
 }

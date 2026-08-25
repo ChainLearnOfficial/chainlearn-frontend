@@ -1,6 +1,5 @@
 "use client";
 
-import { use } from "react";
 import DOMPurify from "dompurify";
 import { useModule } from "@/lib/hooks/use-courses";
 import { Button } from "@/components/ui/button";
@@ -21,9 +20,9 @@ import { useState } from "react";
 export default function ModulePage({
   params,
 }: {
-  params: Promise<{ courseId: string; moduleId: string }>;
+  params: { courseId: string; moduleId: string };
 }) {
-  const { courseId, moduleId } = use(params);
+  const { courseId, moduleId } = params;
   const { module, loading, error, complete } = useModule(courseId, moduleId);
   const courseProgress = useCourseStore((s) => s.progress[courseId]);
   const { addToast } = useToastContext();
@@ -55,7 +54,9 @@ export default function ModulePage({
   if (error || !module) {
     return (
       <div className="mx-auto max-w-3xl px-4 py-16 text-center">
-        <p className="text-gray-500">{error || "Module not found."}</p>
+        <p role="alert" aria-live="polite" className="text-gray-500">
+          {error || "Module not found."}
+        </p>
       </div>
     );
   }

@@ -16,6 +16,7 @@ export interface RewardClaim {
   txHash: string;
   amount: string;
   tokenCode: string;
+  decimals?: number;
   claimedAt: string;
   status: "pending" | "confirmed" | "failed";
   courseTitle?: string;
