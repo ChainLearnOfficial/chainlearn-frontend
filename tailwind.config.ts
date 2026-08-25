@@ -42,6 +42,33 @@ const config: Config = {
         sans: ["var(--font-inter)", "system-ui", "sans-serif"],
         mono: ["var(--font-jetbrains)", "monospace"],
       },
+      // Dialog enter/exit animations, driven by Radix's data-[state] attributes.
+      // Defined here rather than pulling in tailwindcss-animate for two
+      // keyframes.
+      keyframes: {
+        "overlay-in": {
+          from: { opacity: "0" },
+          to: { opacity: "1" },
+        },
+        "overlay-out": {
+          from: { opacity: "1" },
+          to: { opacity: "0" },
+        },
+        "content-in": {
+          from: { opacity: "0", transform: "translate(-50%, -48%) scale(0.96)" },
+          to: { opacity: "1", transform: "translate(-50%, -50%) scale(1)" },
+        },
+        "content-out": {
+          from: { opacity: "1", transform: "translate(-50%, -50%) scale(1)" },
+          to: { opacity: "0", transform: "translate(-50%, -48%) scale(0.96)" },
+        },
+      },
+      animation: {
+        "overlay-in": "overlay-in 150ms ease-out",
+        "overlay-out": "overlay-out 150ms ease-in",
+        "content-in": "content-in 150ms ease-out",
+        "content-out": "content-out 150ms ease-in",
+      },
     },
   },
   plugins: [],

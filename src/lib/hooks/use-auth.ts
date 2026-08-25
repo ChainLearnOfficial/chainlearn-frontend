@@ -55,8 +55,14 @@ export function useAuth() {
       // Verify signature and get JWT
       const tokens = await verifySignature(address, signedChallenge);
 
-      // Store in Zustand
-      connect(address, tokens.accessToken, tokens.expiresIn);
+      // Store in Zustand. The refresh token is kept so useTokenRefresh can
+      // renew the session without another SEP-10 round trip.
+      connect(
+        address,
+        tokens.accessToken,
+        tokens.expiresIn,
+        tokens.refreshToken
+      );
 
       return address;
     } catch (err) {

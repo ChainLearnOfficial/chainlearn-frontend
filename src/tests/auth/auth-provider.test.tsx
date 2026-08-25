@@ -15,10 +15,21 @@ const authState = {
   hasHydrated: false,
 };
 
-vi.mock("@/store/auth-store", () => ({
-  useAuthStore: (selector: (s: typeof authState) => unknown) =>
-    selector(authState),
-}));
+// AuthProvider mounts useTokenRefresh, which reads the store imperatively via
+// getState(), so the mock has to expose it alongside the selector form.
+vi.mock("@/store/auth-store", () => {
+  const useAuthStore = (selector: (s: typeof authState) => unknown) =>
+    selector(authState);
+  useAuthStore.getState = () => ({
+    ...authState,
+    jwt: null,
+    refreshToken: null,
+    disconnect: vi.fn(),
+    setError: vi.fn(),
+    applyRefreshedTokens: vi.fn(),
+  });
+  return { useAuthStore };
+});
 
 describe("AuthProvider", () => {
   beforeEach(() => {
