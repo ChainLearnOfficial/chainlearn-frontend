@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -73,149 +74,173 @@ export default function DashboardPage() {
         </p>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-8">
-        <Card>
-          <CardContent className="flex items-center gap-3 p-4">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary-100">
-              <BookOpen className="h-5 w-5 text-primary-600" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold">{enrollments.length}</p>
-              <p className="text-xs text-gray-500">Enrolled Courses</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="flex items-center gap-3 p-4">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-100">
-              <TrendingUp className="h-5 w-5 text-green-600" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold">
-                {enrollments.filter((e) => e.progress === 100).length}
-              </p>
-              <p className="text-xs text-gray-500">Completed</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="flex items-center gap-3 p-4">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-stellar-purple/10">
-              <Trophy className="h-5 w-5 text-stellar-purple" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold">{totalBalance.toFixed(1)}</p>
-              <p className="text-xs text-gray-500">LEARN Tokens</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="flex items-center gap-3 p-4">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-yellow-100">
-              <Award className="h-5 w-5 text-yellow-600" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold">{credentials.length}</p>
-              <p className="text-xs text-gray-500">Credentials</p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      <Tabs defaultValue="overview" className="w-full">
+        <TabsList className="mb-8">
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="courses">Courses</TabsTrigger>
+          <TabsTrigger value="credentials">Credentials</TabsTrigger>
+          <TabsTrigger value="rewards">Rewards</TabsTrigger>
+        </TabsList>
 
-      {/* Enrolled Courses */}
-      <section className="mb-8">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-gray-900">My Courses</h2>
-          <Link href="/courses">
-            <Button variant="ghost" size="sm" className="gap-1">
-              View All <ArrowRight className="h-4 w-4" />
-            </Button>
-          </Link>
-        </div>
-        {enrolledCourses.length === 0 ? (
-          <Card>
-            <CardContent className="py-8 text-center">
-              <BookOpen className="mx-auto h-10 w-10 text-gray-300 mb-3" />
-              <p className="text-gray-500">You haven&apos;t enrolled in any courses yet.</p>
+        <TabsContent value="overview" className="space-y-8 focus-visible:outline-none focus-visible:ring-0">
+          {/* Stats */}
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <Card>
+              <CardContent className="flex items-center gap-3 p-4">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary-100">
+                  <BookOpen className="h-5 w-5 text-primary-600" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold">{enrollments.length}</p>
+                  <p className="text-xs text-gray-500">Enrolled Courses</p>
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="flex items-center gap-3 p-4">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-100">
+                  <TrendingUp className="h-5 w-5 text-green-600" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold">
+                    {enrollments.filter((e) => e.progress === 100).length}
+                  </p>
+                  <p className="text-xs text-gray-500">Completed</p>
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="flex items-center gap-3 p-4">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-stellar-purple/10">
+                  <Trophy className="h-5 w-5 text-stellar-purple" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold">{totalBalance.toFixed(1)}</p>
+                  <p className="text-xs text-gray-500">LEARN Tokens</p>
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="flex items-center gap-3 p-4">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-yellow-100">
+                  <Award className="h-5 w-5 text-yellow-600" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold">{credentials.length}</p>
+                  <p className="text-xs text-gray-500">Credentials</p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          <section>
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">
+              Recommended for You
+            </h2>
+            {recommendedError ? (
+              <Card>
+                <CardContent className="py-6 text-center">
+                  <p className="text-sm text-red-600">{recommendedError}</p>
+                </CardContent>
+              </Card>
+            ) : recommended.length === 0 ? (
+              <Card>
+                <CardContent className="py-6 text-center text-sm text-gray-500">
+                  Complete your profile to get personalized recommendations.
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {recommended.slice(0, 3).map((course) => (
+                  <CourseCard key={course.id} course={course} />
+                ))}
+              </div>
+            )}
+          </section>
+        </TabsContent>
+
+        <TabsContent value="courses" className="focus-visible:outline-none focus-visible:ring-0">
+          <section className="mb-8">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-gray-900">My Courses</h2>
               <Link href="/courses">
-                <Button className="mt-4" size="sm">
-                  Browse Courses
+                <Button variant="ghost" size="sm" className="gap-1">
+                  Browse Catalog <ArrowRight className="h-4 w-4" />
                 </Button>
               </Link>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {enrolledCourses.map(({ enrollment, course }) => (
-              <Card key={enrollment.id}>
-                <CardContent className="p-4">
-                  <h3 className="font-semibold text-gray-900 mb-2">
-                    {course?.title || "Course"}
-                  </h3>
-                  <ProgressBar
-                    value={progress[enrollment.courseId]?.progressPercent ?? enrollment.progress}
-                  />
-                  <Link href={`/courses/${enrollment.courseId}`}>
-                    <Button variant="ghost" size="sm" className="mt-3 w-full">
-                      Continue Learning
+            </div>
+            {enrolledCourses.length === 0 ? (
+              <Card>
+                <CardContent className="py-8 text-center">
+                  <BookOpen className="mx-auto h-10 w-10 text-gray-300 mb-3" />
+                  <p className="text-gray-500">You haven&apos;t enrolled in any courses yet.</p>
+                  <Link href="/courses">
+                    <Button className="mt-4" size="sm">
+                      Explore Courses
                     </Button>
                   </Link>
                 </CardContent>
               </Card>
-            ))}
-          </div>
-        )}
-      </section>
+            ) : (
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {enrolledCourses.map(({ enrollment, course }) => (
+                  <Card key={enrollment.id}>
+                    <CardContent className="p-4">
+                      <h3 className="font-semibold text-gray-900 mb-2">
+                        {course?.title || "Course"}
+                      </h3>
+                      <ProgressBar
+                        value={progress[enrollment.courseId]?.progressPercent ?? enrollment.progress}
+                      />
+                      <Link href={`/courses/${enrollment.courseId}`}>
+                        <Button variant="ghost" size="sm" className="mt-3 w-full">
+                          Continue Learning
+                        </Button>
+                      </Link>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </section>
+        </TabsContent>
 
-      {/* Two column: Recommended + Recent Credentials */}
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
-        {/* Recommended */}
-        <section>
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">
-            Recommended for You
-          </h2>
-          {recommendedError ? (
-            <Card>
-              <CardContent className="py-6 text-center">
-                <p className="text-sm text-red-600">{recommendedError}</p>
-              </CardContent>
-            </Card>
-          ) : recommended.length === 0 ? (
-            <Card>
-              <CardContent className="py-6 text-center text-sm text-gray-500">
-                Complete your profile to get personalized recommendations.
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="space-y-3">
-              {recommended.slice(0, 3).map((course) => (
-                <CourseCard key={course.id} course={course} />
-              ))}
-            </div>
-          )}
-        </section>
+        <TabsContent value="credentials" className="focus-visible:outline-none focus-visible:ring-0">
+          <section>
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">
+              My Credentials
+            </h2>
+            {credentials.length === 0 ? (
+              <Card>
+                <CardContent className="py-12 text-center">
+                  <Award className="mx-auto h-12 w-12 text-gray-300 mb-3" />
+                  <p className="text-gray-500">You haven&apos;t earned any credentials yet.</p>
+                  <p className="text-sm text-gray-400 mt-1">Complete courses to earn verifiable credentials on the Stellar network.</p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {credentials.map((cred) => (
+                  <CredentialCard key={cred.id} credential={cred} />
+                ))}
+              </div>
+            )}
+          </section>
+        </TabsContent>
 
-        {/* Recent Credentials */}
-        <section>
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">
-            Recent Credentials
-          </h2>
-          {credentials.length === 0 ? (
+        <TabsContent value="rewards" className="focus-visible:outline-none focus-visible:ring-0">
+          <section className="mb-8">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">
+              Rewards Balance
+            </h2>
             <Card>
-              <CardContent className="py-6 text-center text-sm text-gray-500">
-                Complete courses to earn verifiable credentials.
+              <CardContent className="p-6">
+                <BalanceDisplay />
               </CardContent>
             </Card>
-          ) : (
-            <div className="space-y-3">
-              {credentials.slice(0, 3).map((cred) => (
-                <CredentialCard key={cred.id} credential={cred} />
-              ))}
-            </div>
-          )}
-        </section>
-      </div>
+          </section>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
