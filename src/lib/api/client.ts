@@ -1,5 +1,6 @@
 import { ApiError, ApiResponse } from "@/types/api";
 import { useAuthStore } from "@/store/auth-store";
+import { useErrorStore } from "@/store/error-store";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
 
@@ -51,6 +52,13 @@ class ApiClient {
     return JSON.parse(text) as T;
   }
 
+  private isTransientError(error: Error): boolean {
+    if (error instanceof ApiError) {
+      return error.code === "TIMEOUT" || error.code === "NETWORK_ERROR";
+    }
+    return false;
+  }
+
   /**
    * Runs fetch with a request timeout and retries on transient network
    * failures (connection drop, DNS failure, timeout). Retries are skipped
@@ -92,13 +100,25 @@ class ApiClient {
     }
   }
 
+  private handleApiError(error: ApiError): void {
+    const isTransient = this.isTransientError(error);
+    useErrorStore.getState().setError(error, isTransient);
+  }
+
   async get<T>(path: string, jwt?: string): Promise<ApiResponse<T>> {
-    const response = await this.fetchWithRetry(
-      `${this.baseUrl}${path}`,
-      { method: "GET", headers: this.getHeaders(jwt) },
-      2
-    );
-    return this.handleResponse<ApiResponse<T>>(response);
+    try {
+      const response = await this.fetchWithRetry(
+        `${this.baseUrl}${path}`,
+        { method: "GET", headers: this.getHeaders(jwt) },
+        2
+      );
+      return this.handleResponse<ApiResponse<T>>(response);
+    } catch (error) {
+      if (error instanceof ApiError) {
+        this.handleApiError(error);
+      }
+      throw error;
+    }
   }
 
   async post<T>(
@@ -106,16 +126,23 @@ class ApiClient {
     body: unknown,
     jwt?: string
   ): Promise<ApiResponse<T>> {
-    const response = await this.fetchWithRetry(
-      `${this.baseUrl}${path}`,
-      {
-        method: "POST",
-        headers: this.getHeaders(jwt),
-        body: JSON.stringify(body),
-      },
-      0
-    );
-    return this.handleResponse<ApiResponse<T>>(response);
+    try {
+      const response = await this.fetchWithRetry(
+        `${this.baseUrl}${path}`,
+        {
+          method: "POST",
+          headers: this.getHeaders(jwt),
+          body: JSON.stringify(body),
+        },
+        0
+      );
+      return this.handleResponse<ApiResponse<T>>(response);
+    } catch (error) {
+      if (error instanceof ApiError) {
+        this.handleApiError(error);
+      }
+      throw error;
+    }
   }
 
   async put<T>(
@@ -123,25 +150,39 @@ class ApiClient {
     body: unknown,
     jwt?: string
   ): Promise<ApiResponse<T>> {
-    const response = await this.fetchWithRetry(
-      `${this.baseUrl}${path}`,
-      {
-        method: "PUT",
-        headers: this.getHeaders(jwt),
-        body: JSON.stringify(body),
-      },
-      2
-    );
-    return this.handleResponse<ApiResponse<T>>(response);
+    try {
+      const response = await this.fetchWithRetry(
+        `${this.baseUrl}${path}`,
+        {
+          method: "PUT",
+          headers: this.getHeaders(jwt),
+          body: JSON.stringify(body),
+        },
+        2
+      );
+      return this.handleResponse<ApiResponse<T>>(response);
+    } catch (error) {
+      if (error instanceof ApiError) {
+        this.handleApiError(error);
+      }
+      throw error;
+    }
   }
 
   async delete<T>(path: string, jwt?: string): Promise<ApiResponse<T>> {
-    const response = await this.fetchWithRetry(
-      `${this.baseUrl}${path}`,
-      { method: "DELETE", headers: this.getHeaders(jwt) },
-      2
-    );
-    return this.handleResponse<ApiResponse<T>>(response);
+    try {
+      const response = await this.fetchWithRetry(
+        `${this.baseUrl}${path}`,
+        { method: "DELETE", headers: this.getHeaders(jwt) },
+        2
+      );
+      return this.handleResponse<ApiResponse<T>>(response);
+    } catch (error) {
+      if (error instanceof ApiError) {
+        this.handleApiError(error);
+      }
+      throw error;
+    }
   }
 }
 
