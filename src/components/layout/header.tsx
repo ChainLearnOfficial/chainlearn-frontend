@@ -9,6 +9,8 @@ import { BookOpen, Menu, X } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils/cn";
 import { isNavLinkActive, navLinks } from "./nav-links";
+import { Avatar, AvatarFallback, getInitials } from "@/components/ui/avatar";
+import { Separator } from "@/components/ui/separator";
 
 export function Header() {
   const { isAuthenticated, walletAddress } = useAuthStore();
@@ -50,9 +52,15 @@ export function Header() {
         {/* Right side */}
         <div className="flex items-center gap-3">
           {isAuthenticated && walletAddress && (
-            <span className="hidden sm:block text-xs font-mono text-gray-500">
-              {truncateAddress(walletAddress)}
-            </span>
+            <>
+              <Avatar size="sm">
+                <AvatarFallback>{getInitials(walletAddress)}</AvatarFallback>
+              </Avatar>
+              <span className="hidden sm:block text-xs font-mono text-gray-500">
+                {truncateAddress(walletAddress)}
+              </span>
+              <Separator orientation="vertical" className="hidden sm:block h-6" />
+            </>
           )}
           <ConnectButton />
 

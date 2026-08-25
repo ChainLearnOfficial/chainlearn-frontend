@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { HeroCTA } from "@/components/landing/hero-cta";
 import { BottomCTA } from "@/components/landing/bottom-cta";
+import { Separator } from "@/components/ui/separator";
 import {
   BookOpen,
   Trophy,
@@ -96,6 +97,8 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
+
+      <Separator />
 
       {/* How It Works Section */}
       <section className="py-24 bg-gray-50">
