@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useAuthStore } from "@/store/auth-store";
 import { ConnectButton } from "@/components/wallet/connect-button";
 import { truncateAddress } from "@/lib/utils/format";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { BookOpen, Menu, X } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils/cn";
@@ -50,9 +51,16 @@ export function Header() {
         {/* Right side */}
         <div className="flex items-center gap-3">
           {isAuthenticated && walletAddress && (
-            <span className="hidden sm:block text-xs font-mono text-gray-500">
-              {truncateAddress(walletAddress)}
-            </span>
+            <div className="hidden sm:flex items-center gap-2">
+              <Avatar size="sm">
+                <AvatarFallback>
+                  {walletAddress.slice(2, 4).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+              <span className="text-xs font-mono text-gray-500">
+                {truncateAddress(walletAddress)}
+              </span>
+            </div>
           )}
           <ConnectButton />
 
