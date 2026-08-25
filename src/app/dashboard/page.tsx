@@ -1,8 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { useAuthStore } from "@/store/auth-store";
+import { useRequireAuth } from "@/lib/hooks/use-require-auth";
 import { useCourses, useRecommendedCourses } from "@/lib/hooks/use-courses";
 import { useRewards } from "@/lib/hooks/use-rewards";
 import { useCredentials } from "@/lib/hooks/use-credentials";
@@ -24,22 +22,14 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
 export default function DashboardPage() {
-  const router = useRouter();
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-  const hasHydrated = useAuthStore((s) => s.hasHydrated);
+  const { ready } = useRequireAuth();
   const { courses, enrollments, loading: coursesLoading } = useCourses();
   const { recommended, loading: recommendedLoading, error: recommendedError } = useRecommendedCourses();
   const { balances, loading: rewardsLoading } = useRewards();
   const { credentials, loading: credentialsLoading } = useCredentials();
   const progress = useCourseStore((s) => s.progress);
 
-  useEffect(() => {
-    if (hasHydrated && !isAuthenticated) {
-      router.push("/connect");
-    }
-  }, [hasHydrated, isAuthenticated, router]);
-
-  if (!hasHydrated || !isAuthenticated) return null;
+  if (!ready) return null;
 
   const isLoading =
     coursesLoading || rewardsLoading || credentialsLoading || recommendedLoading;

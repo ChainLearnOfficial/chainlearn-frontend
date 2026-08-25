@@ -1,8 +1,7 @@
 "use client";
 
-import { lazy, Suspense, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { useAuthStore } from "@/store/auth-store";
+import { lazy, Suspense } from "react";
+import { useRequireAuth } from "@/lib/hooks/use-require-auth";
 import { useRewards } from "@/lib/hooks/use-rewards";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TokenBalance } from "@/components/rewards/token-balance";
@@ -20,9 +19,7 @@ const RewardHistory = lazy(() =>
 );
 
 export default function RewardsPage() {
-  const router = useRouter();
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-  const hasHydrated = useAuthStore((s) => s.hasHydrated);
+  const { ready } = useRequireAuth();
   const { balances, history, claimables, loading, claim, claiming } =
     useRewards();
   const { addToast } = useToastContext();
@@ -37,13 +34,7 @@ export default function RewardsPage() {
     }
   };
 
-  useEffect(() => {
-    if (hasHydrated && !isAuthenticated) {
-      router.push("/connect");
-    }
-  }, [hasHydrated, isAuthenticated, router]);
-
-  if (!hasHydrated || !isAuthenticated) return null;
+  if (!ready) return null;
 
   if (loading) {
     return (
