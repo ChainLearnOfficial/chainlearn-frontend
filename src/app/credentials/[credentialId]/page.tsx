@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCredentialDetail } from "@/lib/hooks/use-credentials";
 import { CredentialBadge } from "@/components/credentials/credential-badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { LoadingSkeleton } from "@/components/shared/loading-skeleton";
 import { formatDate, truncateAddress } from "@/lib/utils/format";
 import {
@@ -136,12 +137,9 @@ export default function CredentialDetailPage({
               <p className="text-sm text-gray-500 mb-2">Skills Demonstrated</p>
               <div className="flex flex-wrap gap-2">
                 {credential.metadata.skills.map((skill) => (
-                  <span
-                    key={skill}
-                    className="inline-flex rounded-full bg-primary-50 px-3 py-1 text-xs font-medium text-primary-700"
-                  >
+                  <Badge key={skill}>
                     {skill}
-                  </span>
+                  </Badge>
                 ))}
               </div>
             </div>
