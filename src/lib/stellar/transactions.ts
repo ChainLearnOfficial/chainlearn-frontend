@@ -1,12 +1,13 @@
 import freighterApi from "@stellar/freighter-api";
-import { Contract, Account, TransactionBuilder, nativeToScVal } from "@stellar/stellar-sdk";
+import {
+  Contract,
+  Account,
+  TransactionBuilder,
+  xdr,
+} from "@stellar/stellar-sdk";
 import type { NetworkType } from "./wallet";
 import { getNetworkPassphrase, getRpcUrl } from "./wallet";
 import type { TransactionResult } from "@/types/stellar";
-
-function generateJsonRpcId(): number {
-  return Math.floor(Math.random() * 1000000) + 1;
-}
 
 /**
  * Build and sign a transaction using Freighter.
@@ -15,7 +16,7 @@ function generateJsonRpcId(): number {
  */
 export async function signAndSubmitTransaction(
   xdr: string,
-  network: NetworkType
+  network: NetworkType,
 ): Promise<TransactionResult> {
   const passphrase = getNetworkPassphrase(network);
 
@@ -34,7 +35,7 @@ export async function signAndSubmitTransaction(
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         jsonrpc: "2.0",
-        id: generateJsonRpcId(),
+        id: 1,
         method: "sendTransaction",
         params: [signed.signedTxXdr],
       }),
@@ -75,20 +76,24 @@ export async function simulateContractCall(
   contractAddress: string,
   method: string,
   args: unknown[],
-  network: NetworkType
+  network: NetworkType,
 ): Promise<unknown> {
   const passphrase = getNetworkPassphrase(network);
   const contract = new Contract(contractAddress);
 
-  const txBuilder = new TransactionBuilder(
-    new Account(contractAddress, "0"),
-    {
-      fee: "100",
-      networkPassphrase: passphrase,
-    }
-  );
+  const txBuilder = new TransactionBuilder(new Account(contractAddress, "0"), {
+    fee: "100",
+    networkPassphrase: passphrase,
+  });
 
-  const sorobanArgs = args.map((arg) => nativeToScVal(arg));
+  const sorobanArgs = args.map((arg) => {
+    if (typeof arg === "string") return xdr.ScVal.scvString(arg);
+    if (typeof arg === "number") return xdr.ScVal.scvU32(arg);
+    if (typeof arg === "bigint") return xdr.ScVal.scvU64(xdr.Uint64.fromString(arg.toString()));
+    if (typeof arg === "boolean") return xdr.ScVal.scvBool(arg);
+    if (arg instanceof Uint8Array) return xdr.ScVal.scvBytes(Buffer.from(arg));
+    return xdr.ScVal.scvString(JSON.stringify(arg));
+  });
 
   const tx = txBuilder
     .addOperation(contract.call(method, ...sorobanArgs))
@@ -103,7 +108,7 @@ export async function simulateContractCall(
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       jsonrpc: "2.0",
-      id: generateJsonRpcId(),
+      id: 1,
       method: "simulateTransaction",
       params: [txXdr],
     }),
@@ -112,11 +117,5 @@ export async function simulateContractCall(
   if (result.error) {
     throw new Error(result.error.message);
   }
-
-  const resultArray = result.result;
-  if (!resultArray || !Array.isArray(resultArray) || resultArray.length === 0) {
-    throw new Error("Invalid simulation result: no results returned");
-  }
-
-  return resultArray[0];
+  return result.result;
 }
