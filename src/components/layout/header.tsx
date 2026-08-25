@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useAuthStore } from "@/store/auth-store";
 import { ConnectButton } from "@/components/wallet/connect-button";
 import { truncateAddress } from "@/lib/utils/format";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { BookOpen, Menu, X } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils/cn";
@@ -61,6 +62,16 @@ export function Header() {
               </span>
               <Separator orientation="vertical" className="hidden sm:block h-6" />
             </>
+            <div className="hidden sm:flex items-center gap-2">
+              <Avatar size="sm">
+                <AvatarFallback>
+                  {walletAddress.slice(2, 4).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+              <span className="text-xs font-mono text-gray-500">
+                {truncateAddress(walletAddress)}
+              </span>
+            </div>
           )}
           <ConnectButton />
 
