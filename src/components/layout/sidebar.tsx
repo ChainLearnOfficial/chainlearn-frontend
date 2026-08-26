@@ -2,22 +2,27 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useAuthStore } from "@/store/auth-store";
 import { cn } from "@/lib/utils/cn";
-import { navLinks } from "./nav-links";
+import { isNavLinkActive, navLinks } from "./nav-links";
 
 export function Sidebar() {
   const pathname = usePathname();
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const hasHydrated = useAuthStore((s) => s.hasHydrated);
+
+  if (!hasHydrated || !isAuthenticated) return null;
 
   return (
     <aside className="hidden lg:flex flex-col w-64 border-r border-gray-200 bg-gray-50/50 min-h-[calc(100vh-4rem)]">
-      <nav className="flex-1 px-3 py-4 space-y-1">
+      <nav aria-label="Course navigation" className="flex-1 px-3 py-4 space-y-1">
         {navLinks.map((link) => {
-          const isActive =
-            pathname === link.href || pathname.startsWith(link.href + "/");
+          const isActive = isNavLinkActive(pathname, link.href);
           return (
             <Link
               key={link.href}
               href={link.href}
+              aria-current={isActive ? "page" : undefined}
               className={cn(
                 "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
                 isActive

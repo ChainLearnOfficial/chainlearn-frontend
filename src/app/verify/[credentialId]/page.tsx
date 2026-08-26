@@ -1,6 +1,5 @@
 "use client";
 
-import { use } from "react";
 import { useVerifyCredential } from "@/lib/hooks/use-credentials";
 import { CredentialBadge } from "@/components/credentials/credential-badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,9 +18,9 @@ import {
 export default function VerifyCredentialPage({
   params,
 }: {
-  params: Promise<{ credentialId: string }>;
+  params: { credentialId: string };
 }) {
-  const { credentialId } = use(params);
+  const { credentialId } = params;
   const { verification, loading, error } = useVerifyCredential(credentialId);
 
   if (loading) {
@@ -46,7 +45,7 @@ export default function VerifyCredentialPage({
       </div>
 
       {error || !verification ? (
-        <Card>
+        <Card role="alert" aria-live="polite">
           <CardContent className="py-12 text-center">
             <XCircle className="mx-auto h-12 w-12 text-red-400 mb-4" />
             <h2 className="text-lg font-semibold text-gray-900 mb-2">

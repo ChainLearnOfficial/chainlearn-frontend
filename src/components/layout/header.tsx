@@ -1,16 +1,21 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useAuthStore } from "@/store/auth-store";
 import { ConnectButton } from "@/components/wallet/connect-button";
 import { truncateAddress } from "@/lib/utils/format";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { BookOpen, Menu, X } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils/cn";
-import { navLinks } from "./nav-links";
+import { isNavLinkActive, navLinks } from "./nav-links";
+import { Avatar, AvatarFallback, getInitials } from "@/components/ui/avatar";
+import { Separator } from "@/components/ui/separator";
 
 export function Header() {
   const { isAuthenticated, walletAddress } = useAuthStore();
+  const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
@@ -25,13 +30,19 @@ export function Header() {
         </Link>
 
         {/* Desktop nav */}
-        <nav className="hidden md:flex items-center gap-6">
+        <nav aria-label="Primary navigation" className="hidden md:flex items-center gap-6">
           {isAuthenticated &&
             navLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                className="flex items-center gap-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
+                aria-current={isNavLinkActive(pathname, link.href) ? "page" : undefined}
+                className={cn(
+                  "flex items-center gap-1.5 text-sm font-medium transition-colors",
+                  isNavLinkActive(pathname, link.href)
+                    ? "text-primary-700"
+                    : "text-gray-600 hover:text-gray-900"
+                )}
               >
                 <link.icon className="h-4 w-4" />
                 {link.label}
@@ -42,18 +53,35 @@ export function Header() {
         {/* Right side */}
         <div className="flex items-center gap-3">
           {isAuthenticated && walletAddress && (
-            <span className="hidden sm:block text-xs font-mono text-gray-500">
-              {truncateAddress(walletAddress)}
-            </span>
+            <>
+              <Avatar size="sm">
+                <AvatarFallback>{getInitials(walletAddress)}</AvatarFallback>
+              </Avatar>
+              <span className="hidden sm:block text-xs font-mono text-gray-500">
+                {truncateAddress(walletAddress)}
+              </span>
+              <Separator orientation="vertical" className="hidden sm:block h-6" />
+            </>
+            <div className="hidden sm:flex items-center gap-2">
+              <Avatar size="sm">
+                <AvatarFallback>
+                  {walletAddress.slice(2, 4).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+              <span className="text-xs font-mono text-gray-500">
+                {truncateAddress(walletAddress)}
+              </span>
+            </div>
           )}
           <ConnectButton />
 
           {/* Mobile toggle */}
           <button
             className="md:hidden p-2 text-gray-600 hover:text-gray-900"
-            onClick={() => setMobileOpen(!mobileOpen)}
-            aria-label="Toggle navigation"
+            onClick={() => setMobileOpen((open) => !open)}
+            aria-label="Toggle navigation menu"
             aria-expanded={mobileOpen}
+            aria-controls="mobile-nav"
           >
             {mobileOpen ? (
               <X className="h-5 w-5" />
@@ -66,22 +94,32 @@ export function Header() {
 
       {/* Mobile nav */}
       {mobileOpen && isAuthenticated && (
-        <nav className="md:hidden border-t border-gray-200 bg-white">
+        <nav
+          aria-label="Mobile navigation"
+          className="md:hidden border-t border-gray-200 bg-white"
+          id="mobile-nav"
+        >
           <div className="px-4 py-3 space-y-1">
-            {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                onClick={() => setMobileOpen(false)}
-                className={cn(
-                  "flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium",
-                  "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-                )}
-              >
-                <link.icon className="h-4 w-4" />
-                {link.label}
-              </Link>
-            ))}
+            {navLinks.map((link) => {
+              const isActive = isNavLinkActive(pathname, link.href);
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  onClick={() => setMobileOpen(false)}
+                  aria-current={isActive ? "page" : undefined}
+                  className={cn(
+                    "flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                    isActive
+                      ? "bg-gray-100 text-primary-700"
+                      : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                  )}
+                >
+                  <link.icon className="h-4 w-4" />
+                  {link.label}
+                </Link>
+              );
+            })}
           </div>
         </nav>
       )}

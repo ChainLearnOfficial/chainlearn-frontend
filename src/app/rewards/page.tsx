@@ -1,16 +1,23 @@
 "use client";
 
-import { useEffect } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/auth-store";
 import { useRewards } from "@/lib/hooks/use-rewards";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TokenBalance } from "@/components/rewards/token-balance";
 import { ClaimButton } from "@/components/rewards/claim-button";
-import { RewardHistory } from "@/components/rewards/reward-history";
 import { LoadingSkeleton } from "@/components/shared/loading-skeleton";
 import { useToastContext } from "@/components/shared/toast";
 import { Gift, Coins, TrendingUp } from "lucide-react";
+
+// Deferred so the (potentially long) claim history list streams in after
+// balances and claimables have rendered.
+const RewardHistory = lazy(() =>
+  import("@/components/rewards/reward-history").then((m) => ({
+    default: m.RewardHistory,
+  }))
+);
 
 export default function RewardsPage() {
   const router = useRouter();
@@ -114,7 +121,9 @@ export default function RewardsPage() {
         </h2>
         <Card>
           <CardContent className="p-4">
-            <RewardHistory claims={history} />
+            <Suspense fallback={<LoadingSkeleton count={3} variant="text" />}>
+              <RewardHistory claims={history} />
+            </Suspense>
           </CardContent>
         </Card>
       </section>

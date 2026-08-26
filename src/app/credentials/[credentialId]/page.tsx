@@ -1,6 +1,5 @@
 "use client";
 
-import { use } from "react";
 import Link from "next/link";
 import { useCredentialDetail } from "@/lib/hooks/use-credentials";
 import { CredentialBadge } from "@/components/credentials/credential-badge";
@@ -20,16 +19,35 @@ import { useState } from "react";
 export default function CredentialDetailPage({
   params,
 }: {
-  params: Promise<{ credentialId: string }>;
+  params: { credentialId: string };
 }) {
-  const { credentialId } = use(params);
-  const { credential, loading } = useCredentialDetail(credentialId);
+  const { credentialId } = params;
+  const { credential, loading, error } = useCredentialDetail(credentialId);
   const [copied, setCopied] = useState(false);
 
-  const copyAddress = (address: string) => {
-    navigator.clipboard.writeText(address);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+  const copyAddress = async (address: string) => {
+    try {
+      await navigator.clipboard.writeText(address);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (error) {
+      console.error("Failed to copy address:", error);
+      // Fallback for older browsers or when clipboard API is not available
+      try {
+        const textArea = document.createElement("textarea");
+        textArea.value = address;
+        textArea.style.position = "fixed";
+        textArea.style.left = "-9999px";
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textArea);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      } catch (fallbackError) {
+        console.error("Fallback copy failed:", fallbackError);
+      }
+    }
   };
 
   if (loading) {
@@ -40,10 +58,12 @@ export default function CredentialDetailPage({
     );
   }
 
-  if (!credential) {
+  if (error || !credential) {
     return (
       <div className="mx-auto max-w-2xl px-4 py-16 text-center">
-        <p className="text-gray-500">Credential not found.</p>
+        <p role="alert" aria-live="polite" className="text-gray-500">
+          {error || "Credential not found."}
+        </p>
       </div>
     );
   }
