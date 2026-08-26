@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils/cn";
 import { isNavLinkActive, navLinks } from "./nav-links";
 import { Avatar, AvatarFallback, getInitials } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 export function Header() {
   const { isAuthenticated, walletAddress } = useAuthStore();
@@ -57,9 +58,16 @@ export function Header() {
               <Avatar size="sm">
                 <AvatarFallback>{getInitials(walletAddress)}</AvatarFallback>
               </Avatar>
-              <span className="hidden sm:block text-xs font-mono text-gray-500">
-                {truncateAddress(walletAddress)}
-              </span>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="hidden sm:block text-xs font-mono text-gray-500 cursor-help">
+                    {truncateAddress(walletAddress)}
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{walletAddress}</p>
+                </TooltipContent>
+              </Tooltip>
               <Separator orientation="vertical" className="hidden sm:block h-6" />
             </>
             <div className="hidden sm:flex items-center gap-2">
@@ -68,9 +76,16 @@ export function Header() {
                   {walletAddress.slice(2, 4).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
-              <span className="text-xs font-mono text-gray-500">
-                {truncateAddress(walletAddress)}
-              </span>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="text-xs font-mono text-gray-500 cursor-help">
+                    {truncateAddress(walletAddress)}
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{walletAddress}</p>
+                </TooltipContent>
+              </Tooltip>
             </div>
           )}
           <ConnectButton />
