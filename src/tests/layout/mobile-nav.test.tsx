@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
+import { useAuthStore } from "@/store/auth-store";
 import { MobileNav } from "@/components/layout/mobile-nav";
 
 const mockUsePathname = vi.fn(() => "/");
@@ -10,7 +11,11 @@ vi.mock("next/navigation", () => ({
   useSearchParams: () => new URLSearchParams(),
 }));
 
-describe("MobileNav", () => {
+describe("Nav", () => {
+  beforeEach(() => {
+    useAuthStore.setState({ isAuthenticated: true, hasHydrated: true });
+  });
+
   it("renders all nav links", () => {
     render(<MobileNav />);
     expect(screen.getByRole("link", { name: /dashboard/i })).toBeInTheDocument();

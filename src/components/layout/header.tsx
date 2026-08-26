@@ -5,12 +5,11 @@ import { usePathname } from "next/navigation";
 import { useAuthStore } from "@/store/auth-store";
 import { ConnectButton } from "@/components/wallet/connect-button";
 import { truncateAddress } from "@/lib/utils/format";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { BookOpen, Menu, X } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils/cn";
 import { isNavLinkActive, navLinks } from "./nav-links";
-import { Avatar, AvatarFallback, getInitials } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage, getInitials } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import {
   DropdownMenu,

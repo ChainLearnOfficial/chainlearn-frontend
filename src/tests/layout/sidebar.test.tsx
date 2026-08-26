@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
+import { useAuthStore } from "@/store/auth-store";
 import { Sidebar } from "@/components/layout/sidebar";
 
 // Override usePathname from setup.ts per-test
@@ -11,7 +12,11 @@ vi.mock("next/navigation", () => ({
   useSearchParams: () => new URLSearchParams(),
 }));
 
-describe("Sidebar", () => {
+describe("Nav", () => {
+  beforeEach(() => {
+    useAuthStore.setState({ isAuthenticated: true, hasHydrated: true });
+  });
+
   it("renders all nav links", () => {
     render(<Sidebar />);
     expect(screen.getByRole("link", { name: /dashboard/i })).toBeInTheDocument();
