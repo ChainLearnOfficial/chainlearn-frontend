@@ -4,7 +4,7 @@ import { memo } from "react";
 import Link from "next/link";
 import { cn } from "@/lib/utils/cn";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Badge, difficultyVariant } from "@/components/ui/badge";
 import { ProgressBar } from "@/components/course/progress-bar";
 import { Clock, Users, Star, MoreVertical, Share, Bookmark } from "lucide-react";
 import {
@@ -22,7 +22,6 @@ interface CourseCardProps {
   progress?: number;
   className?: string;
 }
-
 
 
 export const CourseCard = memo(function CourseCard({
@@ -68,7 +67,7 @@ export const CourseCard = memo(function CourseCard({
 
         <CardContent className="p-4">
           <div className="flex items-center gap-2 mb-2">
-            <Badge variant={course.difficulty as "beginner" | "intermediate" | "advanced"}>
+            <Badge variant={difficultyVariant(course.difficulty)}>
               {capitalize(course.difficulty)}
             </Badge>
             <span className="text-xs text-gray-500">{capitalize(course.category)}</span>

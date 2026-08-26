@@ -42,6 +42,9 @@ const config: Config = {
         sans: ["var(--font-inter)", "system-ui", "sans-serif"],
         mono: ["var(--font-jetbrains)", "monospace"],
       },
+      // Dialog enter/exit animations, driven by Radix's data-[state] attributes.
+      // Defined here rather than pulling in tailwindcss-animate for two
+      // keyframes.
       keyframes: {
         "dialog-overlay-show": {
           "0%": { opacity: "0" },
@@ -59,12 +62,32 @@ const config: Config = {
           "0%": { opacity: "1", transform: "translate(-50%, -50%) scale(1)" },
           "100%": { opacity: "0", transform: "translate(-50%, -48%) scale(0.95)" },
         },
+        "overlay-in": {
+          from: { opacity: "0" },
+          to: { opacity: "1" },
+        },
+        "overlay-out": {
+          from: { opacity: "1" },
+          to: { opacity: "0" },
+        },
+        "content-in": {
+          from: { opacity: "0", transform: "translate(-50%, -48%) scale(0.96)" },
+          to: { opacity: "1", transform: "translate(-50%, -50%) scale(1)" },
+        },
+        "content-out": {
+          from: { opacity: "1", transform: "translate(-50%, -50%) scale(1)" },
+          to: { opacity: "0", transform: "translate(-50%, -48%) scale(0.96)" },
+        },
       },
       animation: {
         "dialog-overlay-show": "dialog-overlay-show 0.2s ease-out",
         "dialog-content-show": "dialog-content-show 0.2s ease-out",
         "dialog-overlay-hide": "dialog-overlay-hide 0.2s ease-in",
         "dialog-content-hide": "dialog-content-hide 0.2s ease-in",
+        "overlay-in": "overlay-in 150ms ease-out",
+        "overlay-out": "overlay-out 150ms ease-in",
+        "content-in": "content-in 150ms ease-out",
+        "content-out": "content-out 150ms ease-in",
       },
     },
   },

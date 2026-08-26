@@ -2,6 +2,7 @@
 
 import { cn } from "@/lib/utils/cn";
 import { Award, Shield, CheckCircle } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface CredentialBadgeProps {
   courseTitle: string;
@@ -47,9 +48,16 @@ export function CredentialBadge({
       </p>
 
       {verified && (
-        <div className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-green-500 text-white">
-          <CheckCircle className="h-4 w-4" />
-        </div>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-green-500 text-white cursor-help">
+              <CheckCircle className="h-4 w-4" />
+            </div>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Verified on the Stellar network</p>
+          </TooltipContent>
+        </Tooltip>
       )}
     </div>
   );
