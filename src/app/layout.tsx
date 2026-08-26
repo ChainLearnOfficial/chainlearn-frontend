@@ -6,6 +6,7 @@ import { Footer } from "@/components/layout/footer";
 import { ErrorBoundary } from "@/components/shared/error-boundary";
 import { ToastProvider } from "@/components/shared/toast-provider";
 import { AuthProvider } from "@/components/auth/auth-provider";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import "./globals.css";
 
 const inter = Inter({
@@ -64,17 +65,19 @@ export default function RootLayout({
         </a>
         <ErrorBoundary>
           <WalletProvider>
-            <ToastProvider>
-              <div className="flex min-h-screen flex-col">
-                <Header />
-                <AuthProvider>
-                  <div id="main-content" className="flex-1">
-                    {children}
-                  </div>
-                </AuthProvider>
-                <Footer />
-              </div>
-            </ToastProvider>
+            <TooltipProvider>
+              <ToastProvider>
+                <div className="flex min-h-screen flex-col">
+                  <Header />
+                  <AuthProvider>
+                    <div id="main-content" className="flex-1">
+                      {children}
+                    </div>
+                  </AuthProvider>
+                  <Footer />
+                </div>
+              </ToastProvider>
+            </TooltipProvider>
           </WalletProvider>
         </ErrorBoundary>
       </body>

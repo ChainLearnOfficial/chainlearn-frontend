@@ -1,8 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { useAuthStore } from "@/store/auth-store";
+import { useRequireAuth } from "@/lib/hooks/use-require-auth";
 import { useCredentials } from "@/lib/hooks/use-credentials";
 import { CredentialCard } from "@/components/credentials/credential-card";
 import { CredentialBadge } from "@/components/credentials/credential-badge";
@@ -11,18 +9,10 @@ import { LoadingSkeleton } from "@/components/shared/loading-skeleton";
 import { Award, Shield } from "lucide-react";
 
 export default function CredentialsPage() {
-  const router = useRouter();
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-  const hasHydrated = useAuthStore((s) => s.hasHydrated);
+  const { ready } = useRequireAuth();
   const { credentials, loading } = useCredentials();
 
-  useEffect(() => {
-    if (hasHydrated && !isAuthenticated) {
-      router.push("/connect");
-    }
-  }, [hasHydrated, isAuthenticated, router]);
-
-  if (!hasHydrated || !isAuthenticated) return null;
+  if (!ready) return null;
 
   if (loading) {
     return (

@@ -1,7 +1,8 @@
 "use client";
 
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/auth-store";
+import { useTokenRefresh } from "@/lib/hooks/use-token-refresh";
 import { Sidebar } from "@/components/layout/sidebar";
 import { MobileNav } from "@/components/layout/mobile-nav";
 
@@ -9,6 +10,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const hasHydrated = useAuthStore((s) => s.hasHydrated);
   const pathname = usePathname();
+  const router = useRouter();
+
+  // Mounted once here, at the root of the authenticated tree, so a single
+  // refresh loop covers every page rather than one per route.
+  useTokenRefresh({
+    onSessionExpired: () => router.push("/connect"),
+  });
 
   return (
     <div className="flex min-h-screen flex-col">
