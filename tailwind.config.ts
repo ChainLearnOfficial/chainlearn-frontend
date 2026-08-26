@@ -62,12 +62,22 @@ const config: Config = {
           from: { opacity: "1", transform: "translate(-50%, -50%) scale(1)" },
           to: { opacity: "0", transform: "translate(-50%, -48%) scale(0.96)" },
         },
+        "accordion-down": {
+          from: { height: "0" },
+          to: { height: "var(--radix-accordion-content-height)" },
+        },
+        "accordion-up": {
+          from: { height: "var(--radix-accordion-content-height)" },
+          to: { height: "0" },
+        },
       },
       animation: {
         "overlay-in": "overlay-in 150ms ease-out",
         "overlay-out": "overlay-out 150ms ease-in",
         "content-in": "content-in 150ms ease-out",
         "content-out": "content-out 150ms ease-in",
+        "accordion-down": "accordion-down 0.2s ease-out",
+        "accordion-up": "accordion-up 0.2s ease-out",
       },
     },
   },

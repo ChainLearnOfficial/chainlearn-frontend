@@ -7,6 +7,7 @@ import { useCourseStore } from "@/store/course-store";
 import { ProgressBar } from "@/components/course/progress-bar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { AutoBreadcrumb } from "@/components/ui/breadcrumb";
 import { LoadingSkeleton } from "@/components/shared/loading-skeleton";
 import { useToastContext } from "@/components/shared/toast";
 import {
@@ -86,6 +87,11 @@ export default function CourseDetailPage({
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
+      <AutoBreadcrumb
+        className="mb-6"
+        labels={{ [courseId]: course.title }}
+      />
+
       {/* Hero */}
       <div className="mb-8">
         <div className="flex items-center gap-2 mb-4">
