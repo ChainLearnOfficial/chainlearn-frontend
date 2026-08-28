@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useCourses } from "@/lib/hooks/use-courses";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useCourses, useInfiniteCourses } from "@/lib/hooks/use-courses";
 import { useCourseStore } from "@/store/course-store";
 import { CourseCard } from "@/components/course/course-card";
 import { CourseCardSkeleton } from "@/components/shared/loading-skeleton";
@@ -14,8 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { PaginationControl } from "@/components/ui/pagination";
-import { Search, Filter } from "lucide-react";
+import { Search, Filter, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 
 const categories = [
@@ -28,44 +27,63 @@ const categories = [
 
 const difficulties = ["All", "Beginner", "Intermediate", "Advanced"];
 
-const PAGE_SIZE = 9;
-
 export default function CoursesPage() {
-  const { courses, enrollments, loading } = useCourses();
+  const { enrollments } = useCourses();
   const progress = useCourseStore((s) => s.progress);
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All");
   const [difficulty, setDifficulty] = useState("All");
-  const [page, setPage] = useState(1);
 
-  const filtered = courses.filter((course) => {
-    const matchesSearch =
-      !search ||
-      course.title.toLowerCase().includes(search.toLowerCase()) ||
-      course.description.toLowerCase().includes(search.toLowerCase());
-    const matchesCategory =
-      category === "All" || course.category === category;
-    const matchesDifficulty =
-      difficulty === "All" ||
-      course.difficulty === difficulty.toLowerCase();
-    return matchesSearch && matchesCategory && matchesDifficulty;
-  });
+  const {
+    courses,
+    hasMore,
+    loading,
+    loadingMore,
+    error,
+    loadMore,
+  } = useInfiniteCourses({ category, difficulty });
 
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-  const currentPage = Math.min(page, totalPages);
-  const paginated = filtered.slice(
-    (currentPage - 1) * PAGE_SIZE,
-    currentPage * PAGE_SIZE
+  const enrolledIds = useMemo(
+    () => new Set(enrollments.map((e) => e.courseId)),
+    [enrollments]
   );
 
-  const enrolledIds = new Set(enrollments.map((e) => e.courseId));
+  const filtered = useMemo(() => {
+    if (!search.trim()) return courses;
+    const query = search.toLowerCase();
+    return courses.filter(
+      (course) =>
+        course.title.toLowerCase().includes(query) ||
+        course.description.toLowerCase().includes(query)
+    );
+  }, [courses, search]);
+
+  // Load the next page when the sentinel scrolls into view.
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    const node = sentinelRef.current;
+    if (!node || !hasMore) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) {
+          loadMore();
+        }
+      },
+      { rootMargin: "200px" }
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [hasMore, loadingMore, loadMore]);
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Course Catalog</h1>
-        <p className="text-gray-500 mt-1">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+          Course Catalog
+        </h1>
+        <p className="text-gray-500 mt-1 dark:text-gray-400">
           Browse courses and start earning tokens and credentials.
         </p>
       </div>
@@ -77,10 +95,7 @@ export default function CoursesPage() {
           <Input
             placeholder="Search courses..."
             value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-              setPage(1);
-            }}
+            onChange={(e) => setSearch(e.target.value)}
             className="pl-10"
           />
         </div>
@@ -88,21 +103,20 @@ export default function CoursesPage() {
         <div className="flex flex-wrap gap-4">
           <div className="flex items-center gap-2">
             <Filter className="h-4 w-4 text-gray-400" />
-            <span className="text-sm text-gray-500">Category:</span>
+            <span className="text-sm text-gray-500 dark:text-gray-400">
+              Category:
+            </span>
             <div className="flex gap-1">
               {categories.map((cat) => (
                 <button
                   key={cat}
-                  onClick={() => {
-                    setCategory(cat);
-                    setPage(1);
-                  }}
+                  onClick={() => setCategory(cat)}
                   aria-pressed={category === cat}
                   className={cn(
                     "rounded-full px-3 py-1 text-xs font-medium transition-colors",
                     category === cat
-                      ? "bg-primary-100 text-primary-700"
-                      : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                      ? "bg-primary-100 text-primary-700 dark:bg-primary-900/40 dark:text-primary-300"
+                      : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
                   )}
                 >
                   {cat}
@@ -112,13 +126,12 @@ export default function CoursesPage() {
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-500">Difficulty:</span>
+            <span className="text-sm text-gray-500 dark:text-gray-400">
+              Difficulty:
+            </span>
             <Select
               value={difficulty}
-              onValueChange={(value) => {
-                setDifficulty(value);
-                setPage(1);
-              }}
+              onValueChange={(value) => setDifficulty(value)}
             >
               <SelectTrigger className="w-40">
                 <SelectValue placeholder="Difficulty" />
@@ -142,9 +155,28 @@ export default function CoursesPage() {
             <CourseCardSkeleton key={i} />
           ))}
         </div>
+      ) : error ? (
+        <div className="text-center py-16">
+          <p role="alert" aria-live="polite" className="text-gray-500 dark:text-gray-400">
+            {error}
+          </p>
+          <Button
+            variant="outline"
+            className="mt-4"
+            onClick={() => {
+              setCategory("All");
+              setDifficulty("All");
+              setSearch("");
+            }}
+          >
+            Retry
+          </Button>
+        </div>
       ) : filtered.length === 0 ? (
         <div className="text-center py-16">
-          <p className="text-gray-500">No courses found matching your filters.</p>
+          <p className="text-gray-500 dark:text-gray-400">
+            No courses found matching your filters.
+          </p>
           <Button
             variant="outline"
             className="mt-4"
@@ -152,7 +184,6 @@ export default function CoursesPage() {
               setSearch("");
               setCategory("All");
               setDifficulty("All");
-              setPage(1);
             }}
           >
             Clear Filters
@@ -161,7 +192,7 @@ export default function CoursesPage() {
       ) : (
         <>
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {paginated.map((course) => (
+            {filtered.map((course) => (
               <CourseCard
                 key={course.id}
                 course={course}
@@ -171,12 +202,19 @@ export default function CoursesPage() {
             ))}
           </div>
 
-          <PaginationControl
-            className="mt-8"
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={setPage}
-          />
+          {/* Infinite scroll sentinel + loading indicator */}
+          <div ref={sentinelRef} className="h-10" aria-hidden="true" />
+          {loadingMore && (
+            <div className="flex justify-center py-6 text-gray-500 dark:text-gray-400">
+              <Loader2 className="h-5 w-5 animate-spin" />
+              <span className="sr-only">Loading more courses…</span>
+            </div>
+          )}
+          {!hasMore && (
+            <p className="text-center py-6 text-sm text-gray-400 dark:text-gray-500">
+              You&apos;ve reached the end of the catalog.
+            </p>
+          )}
         </>
       )}
     </div>

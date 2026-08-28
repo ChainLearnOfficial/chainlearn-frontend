@@ -7,6 +7,7 @@ import { ErrorBoundary } from "@/components/shared/error-boundary";
 import { ToastProvider } from "@/components/shared/toast-provider";
 import { AuthProvider } from "@/components/auth/auth-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { ThemeProvider, themeInitScript } from "@/components/theme/theme-provider";
 import "./globals.css";
 
 const inter = Inter({
@@ -56,7 +57,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${inter.variable} ${jetbrainsMono.variable}`}>
-      <body className="min-h-screen bg-gray-50 font-sans">
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+      </head>
+      <body className="min-h-screen bg-gray-50 font-sans dark:bg-gray-950 dark:text-gray-100">
         <a
           href="#main-content"
           className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-white focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-gray-900 focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
@@ -67,15 +71,17 @@ export default function RootLayout({
           <WalletProvider>
             <TooltipProvider>
               <ToastProvider>
-                <div className="flex min-h-screen flex-col">
-                  <Header />
-                  <AuthProvider>
-                    <div id="main-content" className="flex-1">
-                      {children}
-                    </div>
-                  </AuthProvider>
-                  <Footer />
-                </div>
+                <ThemeProvider>
+                  <div className="flex min-h-screen flex-col">
+                    <Header />
+                    <AuthProvider>
+                      <div id="main-content" className="flex-1">
+                        {children}
+                      </div>
+                    </AuthProvider>
+                    <Footer />
+                  </div>
+                </ThemeProvider>
               </ToastProvider>
             </TooltipProvider>
           </WalletProvider>
