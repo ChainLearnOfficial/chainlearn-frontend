@@ -23,6 +23,7 @@ export interface WalletError {
   resolution: string;
 }
 
+// Helper to classify wallet errors
 function classifyWalletError(err: unknown, currentNetwork: string): WalletError {
   const msg = err instanceof Error ? err.message : String(err);
   const lower = msg.toLowerCase();
