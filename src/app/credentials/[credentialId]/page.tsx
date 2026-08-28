@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCredentialDetail } from "@/lib/hooks/use-credentials";
 import { CredentialBadge } from "@/components/credentials/credential-badge";
+import { QrCode } from "@/components/credentials/qr-code";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { LoadingSkeleton } from "@/components/shared/loading-skeleton";
@@ -14,8 +15,10 @@ import {
   ExternalLink,
   Copy,
   CheckCircle,
+  Download,
+  ShieldCheck,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 
 export default function CredentialDetailPage({
   params,
@@ -26,6 +29,10 @@ export default function CredentialDetailPage({
   const { credential, loading, error } = useCredentialDetail(credentialId);
   const [copied, setCopied] = useState(false);
 
+  const verificationUrl = typeof window !== "undefined"
+    ? `${window.location.origin}/verify/${credentialId}`
+    : "";
+
   const copyAddress = async (address: string) => {
     try {
       await navigator.clipboard.writeText(address);
@@ -33,7 +40,6 @@ export default function CredentialDetailPage({
       setTimeout(() => setCopied(false), 2000);
     } catch (error) {
       console.error("Failed to copy address:", error);
-      // Fallback for older browsers or when clipboard API is not available
       try {
         const textArea = document.createElement("textarea");
         textArea.value = address;
@@ -50,6 +56,37 @@ export default function CredentialDetailPage({
       }
     }
   };
+
+  const handleDownload = useCallback(() => {
+    if (!credential) return;
+    const html = `<!DOCTYPE html>
+<html><head><title>Certificate - ${credential.courseTitle}</title>
+<style>
+  body{font-family:Georgia,serif;display:flex;justify-content:center;align-items:center;min-height:100vh;margin:0;background:#f9fafb}
+  .cert{background:white;border:2px solid #111;padding:48px;max-width:640px;text-align:center}
+  .cert h1{font-size:28px;margin:0 0 8px}.cert h2{font-size:18px;font-weight:normal;color:#555;margin:0 0 24px}
+  .cert .line{border-top:1px solid #ddd;margin:16px 0}.cert .meta{font-size:13px;color:#666}
+</style></head><body>
+<div class="cert">
+  <h1>Certificate of Completion</h1>
+  <h2>${credential.courseTitle}</h2>
+  <div class="line"></div>
+  <p class="meta">Issued: ${formatDate(credential.issuedAt)}</p>
+  <p class="meta">Credential ID: ${credential.id}</p>
+  <p class="meta">Token: ${truncateAddress(credential.tokenId, 8)}</p>
+  ${credential.metadata.score ? `<p class="meta">Score: ${credential.metadata.score}%</p>` : ""}
+  <div class="line"></div>
+  <p class="meta">Verified on Stellar blockchain</p>
+</div>
+</body></html>`;
+    const blob = new Blob([html], { type: "text/html" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `certificate-${credential.courseTitle.toLowerCase().replace(/\s+/g, "-")}.html`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }, [credential]);
 
   if (loading) {
     return (
@@ -131,6 +168,19 @@ export default function CredentialDetailPage({
             </div>
           </div>
 
+          {/* On-chain Verification */}
+          <div className="rounded-lg bg-green-50 border border-green-200 p-3">
+            <div className="flex items-center gap-2 text-sm">
+              <ShieldCheck className="h-4 w-4 text-green-600" />
+              <div>
+                <p className="font-medium text-green-700">On-Chain Verified</p>
+                <p className="text-xs text-green-600 font-mono">
+                  Contract: {truncateAddress(credential.contractAddress, 8)}
+                </p>
+              </div>
+            </div>
+          </div>
+
           {/* Skills */}
           {credential.metadata.skills.length > 0 && (
             <div>
@@ -145,8 +195,23 @@ export default function CredentialDetailPage({
             </div>
           )}
 
-          {/* Verification Link */}
-          <div className="pt-4 border-t border-gray-200">
+          {/* QR Code */}
+          {verificationUrl && (
+            <div className="flex flex-col items-center gap-2 py-4">
+              <p className="text-sm text-gray-500">Scan to verify</p>
+              <QrCode value={verificationUrl} size={140} />
+            </div>
+          )}
+
+          {/* Actions */}
+          <div className="pt-4 border-t border-gray-200 space-y-2">
+            <button
+              onClick={handleDownload}
+              className="flex items-center justify-center gap-2 w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+            >
+              <Download className="h-4 w-4" />
+              Download Certificate
+            </button>
             <Link
               href={`/verify/${credentialId}`}
               className="flex items-center justify-center gap-2 rounded-lg bg-gray-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-gray-800 transition-colors"

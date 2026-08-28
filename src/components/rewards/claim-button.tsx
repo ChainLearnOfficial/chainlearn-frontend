@@ -1,8 +1,9 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Gift, Loader2 } from "lucide-react";
+import { Gift } from "lucide-react";
 import { useState } from "react";
+import { RewardClaimDialog } from "./reward-claim-dialog";
 
 interface ClaimButtonProps {
   claimableId: string;
@@ -19,19 +20,12 @@ export function ClaimButton({
   onClaim,
   className,
 }: ClaimButtonProps) {
-  const [claiming, setClaiming] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
   const [claimed, setClaimed] = useState(false);
 
-  const handleClaim = async () => {
-    setClaiming(true);
-    try {
-      await onClaim(claimableId);
-      setClaimed(true);
-    } catch (err) {
-      console.error("Claim failed:", err);
-    } finally {
-      setClaiming(false);
-    }
+  const handleConfirm = async () => {
+    await onClaim(claimableId);
+    setClaimed(true);
   };
 
   if (claimed) {
@@ -43,23 +37,23 @@ export function ClaimButton({
   }
 
   return (
-    <Button
-      onClick={handleClaim}
-      disabled={claiming}
-      className={className}
-      size="sm"
-    >
-      {claiming ? (
-        <>
-          <Loader2 className="h-4 w-4 animate-spin mr-1" />
-          Claiming...
-        </>
-      ) : (
-        <>
-          <Gift className="h-4 w-4 mr-1" />
-          Claim {amount} LEARN
-        </>
-      )}
-    </Button>
+    <>
+      <Button
+        onClick={() => setDialogOpen(true)}
+        className={className}
+        size="sm"
+      >
+        <Gift className="h-4 w-4 mr-1" />
+        Claim {amount} LEARN
+      </Button>
+
+      <RewardClaimDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        amount={amount}
+        sourceTitle={sourceTitle}
+        onConfirm={handleConfirm}
+      />
+    </>
   );
 }
