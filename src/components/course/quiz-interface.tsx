@@ -125,7 +125,8 @@ export function QuizInterface({ quiz, onSubmit, onRetry, className }: QuizInterf
               </Button>
               <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
                 You need {quiz.passingScore}% to pass.
-              </p>
+            </div>
+          )}
           {!attempt.passed && onRetry && (
             <div className="pt-4 text-center">
               <Button onClick={onRetry} variant="outline">

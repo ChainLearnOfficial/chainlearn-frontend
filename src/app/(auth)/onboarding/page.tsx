@@ -44,7 +44,7 @@ export default function OnboardingPage() {
   const [saving, setSaving] = useState(false);
 
   const goNext = useCallback(() => {
-    setStep((prev) => Math.min(prev + 1, steps.length - 1));
+    setStep((prev) => Math.min(prev + 1, 3));
   }, []);
 
   const goPrev = useCallback(() => {
