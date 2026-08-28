@@ -10,10 +10,11 @@ import type { Quiz, QuizAttempt, QuizQuestion } from "@/types/quiz";
 interface QuizInterfaceProps {
   quiz: Quiz;
   onSubmit: (answers: Record<string, string>) => Promise<QuizAttempt>;
+  onRetry?: () => void;
   className?: string;
 }
 
-export function QuizInterface({ quiz, onSubmit, className }: QuizInterfaceProps) {
+export function QuizInterface({ quiz, onSubmit, onRetry, className }: QuizInterfaceProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [attempt, setAttempt] = useState<QuizAttempt | null>(null);
@@ -124,6 +125,11 @@ export function QuizInterface({ quiz, onSubmit, className }: QuizInterfaceProps)
               <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
                 You need {quiz.passingScore}% to pass.
               </p>
+          {!attempt.passed && onRetry && (
+            <div className="pt-4 text-center">
+              <Button onClick={onRetry} variant="outline">
+                Retry Quiz
+              </Button>
             </div>
           )}
         </CardContent>
