@@ -86,4 +86,22 @@ function SkeletonStack({
 
 SkeletonStack.displayName = "SkeletonStack";
 
-export { Skeleton, SkeletonText, SkeletonCircle, SkeletonStack };
+/** Shortcut for a standard rectangle skeleton. */
+function SkeletonRect({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>) {
+  return <Skeleton variant="rectangle" className={className} {...props} />;
+}
+SkeletonRect.displayName = "SkeletonRect";
+
+/** Shortcut for a card skeleton. */
+function SkeletonCard({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>) {
+  return <Skeleton variant="rectangle" className={cn("h-48 w-full rounded-xl", className)} {...props} />;
+}
+SkeletonCard.displayName = "SkeletonCard";
+
+export { Skeleton, SkeletonText, SkeletonCircle, SkeletonStack, SkeletonRect, SkeletonCard };
