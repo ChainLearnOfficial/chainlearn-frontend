@@ -42,13 +42,7 @@ export const CourseCard = memo(function CourseCard({
         <div className="h-40 rounded-t-xl bg-gradient-to-br from-stellar-purple/20 to-stellar-blue/20 flex items-center justify-center relative">
           <Star className="h-10 w-10 text-stellar-purple/40" />
           
-          <div 
-            className="absolute top-2 right-2" 
-            onClick={(e) => e.preventDefault()}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") e.preventDefault();
-            }}
-          >
+          <div className="absolute top-2 right-2" onClick={(e) => e.preventDefault()} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') e.preventDefault(); }}>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                  <button aria-label="Course options" className="p-1.5 text-gray-500 hover:text-gray-900 bg-white/50 hover:bg-white/80 rounded-full transition-colors dark:text-gray-300 dark:hover:text-gray-100 dark:bg-gray-900/50 dark:hover:bg-gray-900/80">
@@ -105,7 +99,7 @@ export const CourseCard = memo(function CourseCard({
           </div>
 
           {enrolled && progress !== undefined && (
-            <div className="w-full mt-3">
+            <div className="w-full mt-3 animate-in fade-in slide-in-from-top-2 duration-300">
               <ProgressBar value={progress} size="sm" />
             </div>
           )}
