@@ -30,7 +30,7 @@ export function ModuleList({
         Course Modules ({modules.length})
       </h3>
       <ScrollArea className="h-[min(24rem,60vh)] pr-3">
-        <div className="space-y-1" role="list">
+        <div className="space-y-1" role="list" aria-label="Module list">
           {sorted.map((mod, index) => {
             const isCompleted = completedModuleIds.includes(mod.id);
             const isCurrent = mod.id === currentModuleId;
@@ -92,6 +92,7 @@ export function ModuleList({
                 key={mod.id}
                 href={`/courses/${courseId}/modules/${mod.id}`}
                 role="listitem"
+                aria-current={isCurrent ? "step" : undefined}
                 className={cn(
                   "flex items-center gap-3 rounded-lg px-3 py-3 transition-colors hover:bg-gray-50 cursor-pointer dark:hover:bg-gray-800",
                   isCurrent && "bg-primary-50 border border-primary-200"
