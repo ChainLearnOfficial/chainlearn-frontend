@@ -79,7 +79,6 @@ export function ModuleList({
                 <div
                   key={mod.id}
                   role="listitem"
-                  aria-disabled="true"
                   tabIndex={-1}
                   className={cn(
                     "flex items-center gap-3 rounded-lg px-3 py-3",

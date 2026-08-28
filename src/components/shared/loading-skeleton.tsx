@@ -37,7 +37,7 @@ export function LoadingSkeleton({
 
 export function CourseCardSkeleton() {
   return (
-    <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
+    <SkeletonCard>
       <SkeletonRect className="h-40 w-full rounded-none" />
       <div className="p-4 space-y-3">
         <div className="flex gap-2">
@@ -47,7 +47,7 @@ export function CourseCardSkeleton() {
         <SkeletonText className="h-5 w-3/4" />
         <SkeletonStack lines={2} />
       </div>
-    </div>
+    </SkeletonCard>
   );
 }
 
@@ -108,7 +108,7 @@ export function VerifySkeleton() {
 export function CourseDetailSkeleton() {
   return (
     <div className="space-y-6">
-      <SkeletonCard />
+      <SkeletonRect className="h-48 w-full rounded-xl" />
       <SkeletonText className="h-8 w-2/3" />
       <SkeletonStack lines={4} />
       <div className="space-y-3">

@@ -6,6 +6,7 @@ import { CredentialCard } from "@/components/credentials/credential-card";
 import { CredentialBadge } from "@/components/credentials/credential-badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { LoadingSkeleton } from "@/components/shared/loading-skeleton";
+import { EmptyState } from "@/components/shared/empty-state";
 import { Award, Shield } from "lucide-react";
 
 export default function CredentialsPage() {
@@ -34,18 +35,11 @@ export default function CredentialsPage() {
       </div>
 
       {credentials.length === 0 ? (
-        <Card>
-          <CardContent className="py-16 text-center">
-            <Award className="mx-auto h-12 w-12 text-gray-300 mb-4" />
-            <h2 className="text-lg font-semibold text-gray-900 mb-2">
-              No Credentials Yet
-            </h2>
-            <p className="text-sm text-gray-500 max-w-md mx-auto">
-              Complete courses and pass quizzes to earn verifiable credential
-              NFTs on the Stellar network.
-            </p>
-          </CardContent>
-        </Card>
+        <EmptyState
+          icon={Award}
+          title="No Credentials Yet"
+          description="Complete courses and pass quizzes to earn verifiable credential NFTs on the Stellar network."
+        />
       ) : (
         <>
           {/* Badge showcase */}

@@ -8,6 +8,7 @@ import { ToastProvider } from "@/components/shared/toast-provider";
 import { AuthProvider } from "@/components/auth/auth-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider, themeInitScript } from "@/components/theme/theme-provider";
+import { PageTransition } from "@/components/shared/page-transition";
 import "./globals.css";
 
 const inter = Inter({
