@@ -14,6 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { PaginationControl } from "@/components/ui/pagination";
 import { Search, Filter } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 
@@ -27,12 +28,15 @@ const categories = [
 
 const difficulties = ["All", "Beginner", "Intermediate", "Advanced"];
 
+const PAGE_SIZE = 9;
+
 export default function CoursesPage() {
   const { courses, enrollments, loading } = useCourses();
   const progress = useCourseStore((s) => s.progress);
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All");
   const [difficulty, setDifficulty] = useState("All");
+  const [page, setPage] = useState(1);
 
   const filtered = courses.filter((course) => {
     const matchesSearch =
@@ -46,6 +50,13 @@ export default function CoursesPage() {
       course.difficulty === difficulty.toLowerCase();
     return matchesSearch && matchesCategory && matchesDifficulty;
   });
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const paginated = filtered.slice(
+    (currentPage - 1) * PAGE_SIZE,
+    currentPage * PAGE_SIZE
+  );
 
   const enrolledIds = new Set(enrollments.map((e) => e.courseId));
 
@@ -66,7 +77,10 @@ export default function CoursesPage() {
           <Input
             placeholder="Search courses..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(1);
+            }}
             className="pl-10"
           />
         </div>
@@ -79,7 +93,10 @@ export default function CoursesPage() {
               {categories.map((cat) => (
                 <button
                   key={cat}
-                  onClick={() => setCategory(cat)}
+                  onClick={() => {
+                    setCategory(cat);
+                    setPage(1);
+                  }}
                   aria-pressed={category === cat}
                   className={cn(
                     "rounded-full px-3 py-1 text-xs font-medium transition-colors",
@@ -96,7 +113,13 @@ export default function CoursesPage() {
 
           <div className="flex items-center gap-2">
             <span className="text-sm text-gray-500">Difficulty:</span>
-            <Select value={difficulty} onValueChange={setDifficulty}>
+            <Select
+              value={difficulty}
+              onValueChange={(value) => {
+                setDifficulty(value);
+                setPage(1);
+              }}
+            >
               <SelectTrigger className="w-40">
                 <SelectValue placeholder="Difficulty" />
               </SelectTrigger>
@@ -129,22 +152,32 @@ export default function CoursesPage() {
               setSearch("");
               setCategory("All");
               setDifficulty("All");
+              setPage(1);
             }}
           >
             Clear Filters
           </Button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {filtered.map((course) => (
-            <CourseCard
-              key={course.id}
-              course={course}
-              enrolled={enrolledIds.has(course.id)}
-              progress={progress[course.id]?.progressPercent}
-            />
-          ))}
-        </div>
+        <>
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {paginated.map((course) => (
+              <CourseCard
+                key={course.id}
+                course={course}
+                enrolled={enrolledIds.has(course.id)}
+                progress={progress[course.id]?.progressPercent}
+              />
+            ))}
+          </div>
+
+          <PaginationControl
+            className="mt-8"
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setPage}
+          />
+        </>
       )}
     </div>
   );
