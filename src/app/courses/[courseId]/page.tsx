@@ -7,6 +7,7 @@ import { useCourseStore } from "@/store/course-store";
 import { ProgressBar } from "@/components/course/progress-bar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Badge, difficultyVariant } from "@/components/ui/badge";
 import { AutoBreadcrumb } from "@/components/ui/breadcrumb";
 import { LoadingSkeleton } from "@/components/shared/loading-skeleton";
 import { useToastContext } from "@/components/shared/toast";
@@ -15,19 +16,12 @@ import {
   Users,
   BookOpen,
   Trophy,
-  Star,
   Loader2,
   CheckCircle2,
 } from "lucide-react";
 import { formatDuration, capitalize } from "@/lib/utils/format";
 import { useState } from "react";
 import Link from "next/link";
-
-const difficultyColors = {
-  beginner: "bg-green-100 text-green-700",
-  intermediate: "bg-yellow-100 text-yellow-700",
-  advanced: "bg-red-100 text-red-700",
-};
 
 // Deferred so the module list chunk streams in independently of the
 // hero/enrollment section above it.
@@ -100,14 +94,12 @@ export default function CourseDetailPage({
       {/* Hero */}
       <div className="mb-8">
         <div className="flex items-center gap-2 mb-4">
-          <span
-            className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${
-              difficultyColors[course.difficulty]
-            }`}
-          >
+          <Badge variant={difficultyVariant(course.difficulty)}>
             {capitalize(course.difficulty)}
+          </Badge>
+          <span className="text-xs text-gray-500 dark:text-gray-400">
+            {capitalize(course.category)}
           </span>
-          <span className="text-xs text-gray-500">{capitalize(course.category)}</span>
         </div>
 
         <h1 className="text-3xl font-bold text-gray-900 mb-3 dark:text-gray-100">
