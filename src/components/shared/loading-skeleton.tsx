@@ -6,6 +6,8 @@ import {
   SkeletonCircle,
   SkeletonStack,
   SkeletonText,
+  SkeletonRect,
+  SkeletonCard,
 } from "@/components/ui/skeleton";
 
 interface LoadingSkeletonProps {
@@ -28,7 +30,7 @@ export function LoadingSkeleton({
         if (variant === "circle") {
           return <SkeletonCircle key={i} />;
         }
-        return <Skeleton key={i} className="h-48 w-full rounded-xl" />;
+        return <SkeletonCard key={i} />;
       })}
     </div>
   );
@@ -36,8 +38,8 @@ export function LoadingSkeleton({
 
 export function CourseCardSkeleton() {
   return (
-    <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
-      <Skeleton className="h-40 w-full rounded-none" />
+    <SkeletonCard>
+      <SkeletonRect className="h-40 w-full rounded-none" />
       <div className="p-4 space-y-3">
         <div className="flex gap-2">
           <Skeleton className="h-5 w-16 rounded-full" />
@@ -46,7 +48,7 @@ export function CourseCardSkeleton() {
         <SkeletonText className="h-5 w-3/4" />
         <SkeletonStack lines={2} />
       </div>
-    </div>
+    </SkeletonCard>
   );
 }
 
@@ -55,7 +57,7 @@ export function DashboardSkeleton() {
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {Array.from({ length: 3 }).map((_, i) => (
-          <Skeleton key={i} className="h-24 w-full rounded-xl" />
+          <SkeletonRect key={i} className="h-24 w-full rounded-xl" />
         ))}
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -70,7 +72,7 @@ export function DashboardSkeleton() {
 export function CredentialCardSkeleton() {
   return (
     <div className="rounded-xl border border-gray-200 bg-white p-4 flex gap-4">
-      <Skeleton className="h-12 w-12 flex-shrink-0 rounded-xl" />
+      <SkeletonRect className="h-12 w-12 flex-shrink-0 rounded-xl" />
       <div className="flex-1 space-y-2">
         <SkeletonText className="h-5 w-1/2" />
         <SkeletonStack lines={2} />
@@ -107,12 +109,12 @@ export function VerifySkeleton() {
 export function CourseDetailSkeleton() {
   return (
     <div className="space-y-6">
-      <Skeleton className="h-48 w-full rounded-xl" />
+      <SkeletonRect className="h-48 w-full rounded-xl" />
       <SkeletonText className="h-8 w-2/3" />
       <SkeletonStack lines={4} />
       <div className="space-y-3">
         {Array.from({ length: 3 }).map((_, i) => (
-          <Skeleton key={i} className="h-16 w-full rounded-lg" />
+          <SkeletonRect key={i} className="h-16 w-full rounded-lg" />
         ))}
       </div>
     </div>
