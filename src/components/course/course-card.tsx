@@ -6,7 +6,13 @@ import { cn } from "@/lib/utils/cn";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge, difficultyVariant } from "@/components/ui/badge";
 import { ProgressBar } from "@/components/course/progress-bar";
-import { Clock, Users, Star } from "lucide-react";
+import { Clock, Users, Star, MoreVertical, Share, Bookmark } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import type { Course } from "@/types/course";
 import { formatDuration, capitalize, formatNumber } from "@/lib/utils/format";
 
@@ -16,6 +22,7 @@ interface CourseCardProps {
   progress?: number;
   className?: string;
 }
+
 
 export const CourseCard = memo(function CourseCard({
   course,
@@ -32,8 +39,30 @@ export const CourseCard = memo(function CourseCard({
         )}
       >
         {/* Image placeholder */}
-        <div className="h-40 rounded-t-xl bg-gradient-to-br from-stellar-purple/20 to-stellar-blue/20 flex items-center justify-center">
+        <div className="h-40 rounded-t-xl bg-gradient-to-br from-stellar-purple/20 to-stellar-blue/20 flex items-center justify-center relative">
           <Star className="h-10 w-10 text-stellar-purple/40" />
+          
+          <div className="absolute top-2 right-2" onClick={(e) => e.preventDefault()}>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="p-1.5 text-gray-500 hover:text-gray-900 bg-white/50 hover:bg-white/80 rounded-full transition-colors">
+                  <MoreVertical className="h-4 w-4" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem>
+                  <Share className="mr-2 h-4 w-4" />
+                  <span>Share</span>
+                </DropdownMenuItem>
+                {enrolled && (
+                  <DropdownMenuItem>
+                    <Bookmark className="mr-2 h-4 w-4" />
+                    <span>Save</span>
+                  </DropdownMenuItem>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
 
         <CardContent className="p-4">

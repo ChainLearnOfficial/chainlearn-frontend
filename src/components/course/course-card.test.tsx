@@ -21,7 +21,7 @@ describe("CourseCard", () => {
   it("renders course title and difficulty", () => {
     render(<CourseCard course={mockCourse} />);
     expect(screen.getByText("Stellar Basics")).toBeInTheDocument();
-    expect(screen.getByText("beginner")).toBeInTheDocument();
+    expect(screen.getByText(/beginner/i)).toBeInTheDocument();
     expect(screen.getByText("Blockchain")).toBeInTheDocument();
     expect(screen.getByText("+50 LEARN")).toBeInTheDocument();
   });

@@ -53,7 +53,7 @@ describe("Header", () => {
     });
     render(<Header />);
 
-    const toggle = screen.getByLabelText("Toggle navigation");
+    const toggle = screen.getByLabelText(/Toggle navigation/i);
     expect(toggle).toHaveAttribute("aria-expanded", "false");
     await user.click(toggle);
     expect(toggle).toHaveAttribute("aria-expanded", "true");

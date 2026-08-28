@@ -3,6 +3,7 @@
 import { useVerifyCredential } from "@/lib/hooks/use-credentials";
 import { CredentialBadge } from "@/components/credentials/credential-badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { LoadingSkeleton } from "@/components/shared/loading-skeleton";
 import { formatDate, truncateAddress } from "@/lib/utils/format";
 import {
@@ -124,12 +125,9 @@ export default function VerifyCredentialPage({
                 </p>
                 <div className="flex flex-wrap gap-2">
                   {verification.metadata.skills.map((skill) => (
-                    <span
-                      key={skill}
-                      className="inline-flex rounded-full bg-green-50 px-3 py-1 text-xs font-medium text-green-700"
-                    >
+                    <Badge key={skill} variant="secondary">
                       {skill}
-                    </span>
+                    </Badge>
                   ))}
                 </div>
               </div>
