@@ -50,6 +50,8 @@ export const metadata: Metadata = {
   },
 };
 
+import { PageTransition } from "@/components/shared/page-transition";
+
 export default function RootLayout({
   children,
 }: {
@@ -76,7 +78,7 @@ export default function RootLayout({
                     <Header />
                     <AuthProvider>
                       <div id="main-content" className="flex-1">
-                        {children}
+                        <PageTransition>{children}</PageTransition>
                       </div>
                     </AuthProvider>
                     <Footer />
