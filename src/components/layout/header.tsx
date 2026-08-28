@@ -20,21 +20,24 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { LogOut, Settings, User } from "lucide-react";
+import { Sun, Moon } from "lucide-react";
+import { useTheme } from "@/components/theme/theme-provider";
 
 export function Header() {
   const { isAuthenticated, walletAddress } = useAuthStore();
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { resolvedTheme, toggleTheme } = useTheme();
 
   return (
-    <header className="sticky top-0 z-50 border-b border-gray-200 bg-white/80 backdrop-blur-md">
+    <header className="sticky top-0 z-50 border-b border-gray-200 bg-white/80 backdrop-blur-md dark:border-gray-800 dark:bg-gray-900/80">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-stellar-purple">
             <BookOpen className="h-5 w-5 text-white" />
           </div>
-          <span className="text-lg font-bold text-gray-900">ChainLearn</span>
+          <span className="text-lg font-bold text-gray-900 dark:text-gray-100">ChainLearn</span>
         </Link>
 
         {/* Desktop nav */}
@@ -48,8 +51,8 @@ export function Header() {
                 className={cn(
                   "flex items-center gap-1.5 text-sm font-medium transition-colors",
                   isNavLinkActive(pathname, link.href)
-                    ? "text-primary-700"
-                    : "text-gray-600 hover:text-gray-900"
+                    ? "text-primary-700 dark:text-primary-300"
+                    : "text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-gray-100"
                 )}
               >
                 <link.icon className="h-4 w-4" />
@@ -67,13 +70,13 @@ export function Header() {
                   <Avatar size="sm">
                     <AvatarFallback>{getInitials(walletAddress)}</AvatarFallback>
                   </Avatar>
-                  <span className="hidden sm:block text-xs font-mono text-gray-500">
+                   <span className="hidden sm:block text-xs font-mono text-gray-500 dark:text-gray-400">
                     {truncateAddress(walletAddress)}
                   </span>
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuLabel>My Account</DropdownMenuLabel>
+              <DropdownMenuContent align="end" className="w-56 dark:border-gray-800 dark:bg-gray-900">
+                <DropdownMenuLabel className="text-gray-900 dark:text-gray-100">My Account</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem>
                   <User className="mr-2 h-4 w-4" />
@@ -93,9 +96,27 @@ export function Header() {
           )}
           <ConnectButton />
 
+          {/* Theme toggle */}
+          <button
+            type="button"
+            onClick={toggleTheme}
+            className="p-2 text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-gray-100"
+            aria-label={
+              resolvedTheme === "dark"
+                ? "Switch to light mode"
+                : "Switch to dark mode"
+            }
+          >
+            {resolvedTheme === "dark" ? (
+              <Sun className="h-5 w-5" />
+            ) : (
+              <Moon className="h-5 w-5" />
+            )}
+          </button>
+
           {/* Mobile toggle */}
           <button
-            className="md:hidden p-2 text-gray-600 hover:text-gray-900"
+            className="md:hidden p-2 text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-gray-100"
             onClick={() => setMobileOpen((open) => !open)}
             aria-label="Toggle navigation menu"
             aria-expanded={mobileOpen}
@@ -114,7 +135,7 @@ export function Header() {
       {mobileOpen && isAuthenticated && (
         <nav
           aria-label="Mobile navigation"
-          className="md:hidden border-t border-gray-200 bg-white"
+          className="md:hidden border-t border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900"
           id="mobile-nav"
         >
           <div className="px-4 py-3 space-y-1">
@@ -129,8 +150,8 @@ export function Header() {
                   className={cn(
                     "flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
                     isActive
-                      ? "bg-gray-100 text-primary-700"
-                      : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                      ? "bg-gray-100 text-primary-700 dark:bg-gray-800 dark:text-primary-300"
+                      : "text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-gray-100"
                   )}
                 >
                   <link.icon className="h-4 w-4" />

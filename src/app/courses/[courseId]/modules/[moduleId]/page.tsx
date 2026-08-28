@@ -1,7 +1,7 @@
 "use client";
 
 import DOMPurify from "dompurify";
-import { useModule } from "@/lib/hooks/use-courses";
+import { useModule, useCourseDetail } from "@/lib/hooks/use-courses";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { LoadingSkeleton } from "@/components/shared/loading-skeleton";
@@ -24,10 +24,22 @@ export default function ModulePage({
 }) {
   const { courseId, moduleId } = params;
   const { module, loading, error, complete } = useModule(courseId, moduleId);
+  const { course } = useCourseDetail(courseId);
   const courseProgress = useCourseStore((s) => s.progress[courseId]);
   const { addToast } = useToastContext();
   const [completing, setCompleting] = useState(false);
   const [completed, setCompleted] = useState(false);
+
+  const sortedModules = course
+    ? [...course.modules].sort((a, b) => a.order - b.order)
+    : [];
+  const currentIndex = sortedModules.findIndex((m) => m.id === moduleId);
+  const prevModule =
+    currentIndex > 0 ? sortedModules[currentIndex - 1] : null;
+  const nextModule =
+    currentIndex >= 0 && currentIndex < sortedModules.length - 1
+      ? sortedModules[currentIndex + 1]
+      : null;
 
   const handleComplete = async () => {
     setCompleting(true);
@@ -67,7 +79,7 @@ export default function ModulePage({
       <div className="mb-6">
         <Link
           href={`/courses/${courseId}`}
-          className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700"
+          className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
         >
           <ArrowLeft className="h-4 w-4" />
           Back to Course
@@ -84,12 +96,12 @@ export default function ModulePage({
       {/* Module Content */}
       <Card>
         <CardContent className="p-6 sm:p-8">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">
+          <h1 className="text-2xl font-bold text-gray-900 mb-2 dark:text-gray-100">
             {module.title}
           </h1>
-          <p className="text-gray-500 mb-6">{module.description}</p>
+          <p className="text-gray-500 mb-6 dark:text-gray-400">{module.description}</p>
 
-          <div className="prose prose-gray max-w-none">
+          <div className="prose prose-gray max-w-none dark:prose-invert">
             {/* Render module content. In production, use a proper MD renderer. */}
             <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(module.content) }} />
           </div>
@@ -97,7 +109,7 @@ export default function ModulePage({
       </Card>
 
       {/* Actions */}
-      <div className="mt-6 flex items-center justify-between">
+      <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
         <Link href={`/courses/${courseId}`}>
           <Button variant="outline" className="gap-1">
             <ArrowLeft className="h-4 w-4" />
@@ -105,29 +117,49 @@ export default function ModulePage({
           </Button>
         </Link>
 
-        {completed ? (
-          <Link href={`/courses/${courseId}`}>
-            <Button className="gap-1">
-              <CheckCircle className="h-4 w-4" />
-              Continue
-              <ArrowRight className="h-4 w-4" />
-            </Button>
-          </Link>
-        ) : (
-          <Button onClick={handleComplete} disabled={completing} className="gap-1">
-            {completing ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" />
-                Marking...
-              </>
+        <div className="flex flex-wrap items-center gap-2">
+          {prevModule && (
+            <Link href={`/courses/${courseId}/modules/${prevModule.id}`}>
+              <Button variant="ghost" className="gap-1">
+                <ArrowLeft className="h-4 w-4" />
+                Previous
+              </Button>
+            </Link>
+          )}
+
+          {completed ? (
+            nextModule ? (
+              <Link href={`/courses/${courseId}/modules/${nextModule.id}`}>
+                <Button className="gap-1">
+                  Next Module
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+              </Link>
             ) : (
-              <>
-                <CheckCircle className="h-4 w-4" />
-                Mark as Complete
-              </>
-            )}
-          </Button>
-        )}
+              <Link href={`/courses/${courseId}`}>
+                <Button className="gap-1">
+                  <CheckCircle className="h-4 w-4" />
+                  Continue
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+              </Link>
+            )
+          ) : (
+            <Button onClick={handleComplete} disabled={completing} className="gap-1">
+              {completing ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Marking...
+                </>
+              ) : (
+                <>
+                  <CheckCircle className="h-4 w-4" />
+                  Mark as Complete
+                </>
+              )}
+            </Button>
+          )}
+        </div>
       </div>
     </div>
   );

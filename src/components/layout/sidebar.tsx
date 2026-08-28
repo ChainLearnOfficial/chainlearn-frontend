@@ -14,7 +14,7 @@ export function Sidebar() {
   if (!hasHydrated || !isAuthenticated) return null;
 
   return (
-    <aside className="hidden lg:flex flex-col w-64 border-r border-gray-200 bg-gray-50/50 min-h-[calc(100vh-4rem)]">
+    <aside className="hidden lg:flex flex-col w-64 border-r border-gray-200 bg-gray-50/50 min-h-[calc(100vh-4rem)] dark:border-gray-800 dark:bg-gray-900/50">
       <nav aria-label="Course navigation" className="flex-1 px-3 py-4 space-y-1">
         {navLinks.map((link) => {
           const isActive = isNavLinkActive(pathname, link.href);
@@ -26,8 +26,8 @@ export function Sidebar() {
               className={cn(
                 "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
                 isActive
-                  ? "bg-primary-100 text-primary-700"
-                  : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                  ? "bg-primary-100 text-primary-700 dark:bg-primary-900/40 dark:text-primary-300"
+                  : "text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-gray-100"
               )}
             >
               <link.icon className="h-5 w-5" />

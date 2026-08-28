@@ -26,7 +26,7 @@ export function ModuleList({
 
   return (
     <div className={cn("space-y-1", className)}>
-      <h3 className="font-semibold text-gray-900 mb-3">
+      <h3 className="font-semibold text-gray-900 mb-3 dark:text-gray-100">
         Course Modules ({modules.length})
       </h3>
       <ScrollArea className="h-[min(24rem,60vh)] pr-3">
@@ -93,7 +93,7 @@ export function ModuleList({
                 href={`/courses/${courseId}/modules/${mod.id}`}
                 role="listitem"
                 className={cn(
-                  "flex items-center gap-3 rounded-lg px-3 py-3 transition-colors hover:bg-gray-50 cursor-pointer",
+                  "flex items-center gap-3 rounded-lg px-3 py-3 transition-colors hover:bg-gray-50 cursor-pointer dark:hover:bg-gray-800",
                   isCurrent && "bg-primary-50 border border-primary-200"
                 )}
               >

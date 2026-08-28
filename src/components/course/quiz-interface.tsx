@@ -50,6 +50,12 @@ export function QuizInterface({ quiz, onSubmit, onRetry, className }: QuizInterf
     }
   };
 
+  const handleRetry = () => {
+    setAnswers({});
+    setAttempt(null);
+    setCurrentIndex(0);
+  };
+
   // Results view
   if (attempt) {
     return (
@@ -74,13 +80,13 @@ export function QuizInterface({ quiz, onSubmit, onRetry, className }: QuizInterf
           {quiz.questions.map((q, i) => {
             const answer = attempt.answers.find((a) => a.questionId === q.id);
             return (
-              <div
-                key={q.id}
-                className="rounded-lg border border-gray-200 p-4"
-              >
-                <p className="text-sm font-medium text-gray-900 mb-2">
-                  {i + 1}. {q.text}
-                </p>
+                <div
+                  key={q.id}
+                  className="rounded-lg border border-gray-200 p-4 dark:border-gray-700"
+                >
+                  <p className="text-sm font-medium text-gray-900 mb-2 dark:text-gray-100">
+                    {i + 1}. {q.text}
+                  </p>
                 <div className="flex items-center gap-2 text-sm">
                   {answer?.isCorrect ? (
                     <CheckCircle className="h-4 w-4 text-green-500" />
@@ -96,7 +102,7 @@ export function QuizInterface({ quiz, onSubmit, onRetry, className }: QuizInterf
                   </span>
                 </div>
                 {!answer?.isCorrect && (
-                  <p className="text-xs text-gray-500 mt-2">{q.explanation}</p>
+                  <p className="text-xs text-gray-500 mt-2 dark:text-gray-400">{q.explanation}</p>
                 )}
               </div>
             );
@@ -111,6 +117,14 @@ export function QuizInterface({ quiz, onSubmit, onRetry, className }: QuizInterf
             </div>
           )}
 
+          {!attempt.passed && (
+            <div className="text-center">
+              <Button onClick={handleRetry} className="gap-1">
+                Retry Quiz
+              </Button>
+              <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                You need {quiz.passingScore}% to pass.
+              </p>
           {!attempt.passed && onRetry && (
             <div className="pt-4 text-center">
               <Button onClick={onRetry} variant="outline">
@@ -135,7 +149,7 @@ export function QuizInterface({ quiz, onSubmit, onRetry, className }: QuizInterf
             {quiz.title}
           </span>
         </div>
-        <div className="h-1 w-full rounded-full bg-gray-100">
+        <div className="h-1 w-full rounded-full bg-gray-100 dark:bg-gray-800">
           <div
             className="h-full rounded-full bg-primary-500 transition-all"
             style={{
@@ -145,7 +159,7 @@ export function QuizInterface({ quiz, onSubmit, onRetry, className }: QuizInterf
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
-        <p className="text-lg font-medium text-gray-900">{question.text}</p>
+        <p className="text-lg font-medium text-gray-900 dark:text-gray-100">{question.text}</p>
 
         <div className="space-y-2" role="radiogroup" aria-label={question.text}>
           {question.options.map((option) => {
@@ -159,8 +173,8 @@ export function QuizInterface({ quiz, onSubmit, onRetry, className }: QuizInterf
                 className={cn(
                   "w-full text-left rounded-lg border p-4 transition-all",
                   isSelected
-                    ? "border-primary-500 bg-primary-50 text-primary-700"
-                    : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
+                    ? "border-primary-500 bg-primary-50 text-primary-700 dark:bg-primary-900/30 dark:text-primary-200"
+                    : "border-gray-200 hover:border-gray-300 hover:bg-gray-50 dark:border-gray-700 dark:hover:border-gray-600 dark:hover:bg-gray-800"
                 )}
               >
                 <span className="text-sm">{option.text}</span>

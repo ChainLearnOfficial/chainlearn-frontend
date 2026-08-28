@@ -45,7 +45,7 @@ export const CourseCard = memo(function CourseCard({
           <div className="absolute top-2 right-2" onClick={(e) => e.preventDefault()}>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="p-1.5 text-gray-500 hover:text-gray-900 bg-white/50 hover:bg-white/80 rounded-full transition-colors">
+                 <button className="p-1.5 text-gray-500 hover:text-gray-900 bg-white/50 hover:bg-white/80 rounded-full transition-colors dark:text-gray-300 dark:hover:text-gray-100 dark:bg-gray-900/50 dark:hover:bg-gray-900/80">
                   <MoreVertical className="h-4 w-4" />
                 </button>
               </DropdownMenuTrigger>
@@ -73,16 +73,16 @@ export const CourseCard = memo(function CourseCard({
             <span className="text-xs text-gray-500">{capitalize(course.category)}</span>
           </div>
 
-          <h3 className="font-semibold text-gray-900 group-hover:text-primary-600 transition-colors mb-1">
+           <h3 className="font-semibold text-gray-900 group-hover:text-primary-600 transition-colors mb-1 dark:text-gray-100 dark:group-hover:text-primary-300">
             {course.title}
           </h3>
-          <p className="text-sm text-gray-500 line-clamp-2">
+          <p className="text-sm text-gray-500 line-clamp-2 dark:text-gray-400">
             {course.description}
           </p>
         </CardContent>
 
         <CardFooter className="px-4 pb-4 pt-0">
-          <div className="flex items-center justify-between w-full text-xs text-gray-500">
+          <div className="flex items-center justify-between w-full text-xs text-gray-500 dark:text-gray-400">
             <div className="flex items-center gap-3">
               <span className="flex items-center gap-1">
                 <Clock className="h-3.5 w-3.5" />
