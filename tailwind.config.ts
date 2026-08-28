@@ -46,6 +46,22 @@ const config: Config = {
       // Defined here rather than pulling in tailwindcss-animate for two
       // keyframes.
       keyframes: {
+        "dialog-overlay-show": {
+          "0%": { opacity: "0" },
+          "100%": { opacity: "1" },
+        },
+        "dialog-content-show": {
+          "0%": { opacity: "0", transform: "translate(-50%, -48%) scale(0.95)" },
+          "100%": { opacity: "1", transform: "translate(-50%, -50%) scale(1)" },
+        },
+        "dialog-overlay-hide": {
+          "0%": { opacity: "1" },
+          "100%": { opacity: "0" },
+        },
+        "dialog-content-hide": {
+          "0%": { opacity: "1", transform: "translate(-50%, -50%) scale(1)" },
+          "100%": { opacity: "0", transform: "translate(-50%, -48%) scale(0.95)" },
+        },
         "overlay-in": {
           from: { opacity: "0" },
           to: { opacity: "1" },
@@ -64,6 +80,10 @@ const config: Config = {
         },
       },
       animation: {
+        "dialog-overlay-show": "dialog-overlay-show 0.2s ease-out",
+        "dialog-content-show": "dialog-content-show 0.2s ease-out",
+        "dialog-overlay-hide": "dialog-overlay-hide 0.2s ease-in",
+        "dialog-content-hide": "dialog-content-hide 0.2s ease-in",
         "overlay-in": "overlay-in 150ms ease-out",
         "overlay-out": "overlay-out 150ms ease-in",
         "content-in": "content-in 150ms ease-out",

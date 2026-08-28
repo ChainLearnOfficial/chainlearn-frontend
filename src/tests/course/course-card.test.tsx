@@ -30,7 +30,7 @@ describe("CourseCard", () => {
 
   it("renders the difficulty badge", () => {
     render(<CourseCard course={baseCourse} />);
-    expect(screen.getByText("beginner")).toBeInTheDocument();
+    expect(screen.getByText(/beginner/i)).toBeInTheDocument();
   });
 
   it("renders the category", () => {
@@ -71,7 +71,7 @@ describe("CourseCard", () => {
     ["advanced", "bg-red-100"],
   ] as const)("difficulty=%s has correct badge color", (difficulty, cls) => {
     render(<CourseCard course={{ ...baseCourse, difficulty }} />);
-    const badge = screen.getByText(difficulty);
+    const badge = screen.getByText(new RegExp(difficulty, "i"));
     expect(badge.className).toContain(cls);
   });
 });

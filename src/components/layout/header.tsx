@@ -5,14 +5,21 @@ import { usePathname } from "next/navigation";
 import { useAuthStore } from "@/store/auth-store";
 import { ConnectButton } from "@/components/wallet/connect-button";
 import { truncateAddress } from "@/lib/utils/format";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { BookOpen, Menu, X } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils/cn";
 import { isNavLinkActive, navLinks } from "./nav-links";
-import { Avatar, AvatarFallback, getInitials } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage, getInitials } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { LogOut, Settings, User } from "lucide-react";
 
 export function Header() {
   const { isAuthenticated, walletAddress } = useAuthStore();
@@ -54,39 +61,35 @@ export function Header() {
         {/* Right side */}
         <div className="flex items-center gap-3">
           {isAuthenticated && walletAddress && (
-            <>
-              <Avatar size="sm">
-                <AvatarFallback>{getInitials(walletAddress)}</AvatarFallback>
-              </Avatar>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <span className="hidden sm:block text-xs font-mono text-gray-500 cursor-help">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="flex items-center gap-2 outline-none hover:opacity-80 transition-opacity">
+                  <Avatar size="sm">
+                    <AvatarFallback>{getInitials(walletAddress)}</AvatarFallback>
+                  </Avatar>
+                  <span className="hidden sm:block text-xs font-mono text-gray-500">
                     {truncateAddress(walletAddress)}
                   </span>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>{walletAddress}</p>
-                </TooltipContent>
-              </Tooltip>
-              <Separator orientation="vertical" className="hidden sm:block h-6" />
-            </>
-            <div className="hidden sm:flex items-center gap-2">
-              <Avatar size="sm">
-                <AvatarFallback>
-                  {walletAddress.slice(2, 4).toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <span className="text-xs font-mono text-gray-500 cursor-help">
-                    {truncateAddress(walletAddress)}
-                  </span>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>{walletAddress}</p>
-                </TooltipContent>
-              </Tooltip>
-            </div>
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem>
+                  <User className="mr-2 h-4 w-4" />
+                  <span>Profile</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Settings className="mr-2 h-4 w-4" />
+                  <span>Settings</span>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem className="text-red-600 focus:text-red-700">
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Log out</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           )}
           <ConnectButton />
 
