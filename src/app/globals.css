@@ -64,6 +64,10 @@
   animation: fadeIn 0.2s ease-out;
 }
 
+#page-content.no-animation {
+  animation: none !important;
+}
+
 @keyframes fadeIn {
   from {
     opacity: 0;
