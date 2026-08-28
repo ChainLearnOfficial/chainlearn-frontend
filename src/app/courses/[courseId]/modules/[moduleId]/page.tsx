@@ -26,6 +26,9 @@ export default function ModulePage({
   const { module, loading, error, complete } = useModule(courseId, moduleId);
   const { course } = useCourseDetail(courseId);
   const courseProgress = useCourseStore((s) => s.progress[courseId]);
+  const enrollment = useCourseStore((s) =>
+    s.enrollments.find((item) => item.courseId === courseId)
+  );
   const { addToast } = useToastContext();
   const [completing, setCompleting] = useState(false);
   const [completed, setCompleted] = useState(false);
@@ -40,6 +43,10 @@ export default function ModulePage({
     currentIndex >= 0 && currentIndex < sortedModules.length - 1
       ? sortedModules[currentIndex + 1]
       : null;
+  const isComplete =
+    completed ||
+    Boolean(module?.isCompleted) ||
+    Boolean(enrollment?.completedModules.includes(moduleId));
 
   const handleComplete = async () => {
     setCompleting(true);
@@ -127,7 +134,7 @@ export default function ModulePage({
             </Link>
           )}
 
-          {completed ? (
+          {isComplete ? (
             nextModule ? (
               <Link href={`/courses/${courseId}/modules/${nextModule.id}`}>
                 <Button className="gap-1">

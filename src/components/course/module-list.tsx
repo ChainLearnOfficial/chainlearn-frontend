@@ -23,6 +23,10 @@ export function ModuleList({
   className,
 }: ModuleListProps) {
   const sorted = [...modules].sort((a, b) => a.order - b.order);
+  const completedIds = new Set([
+    ...completedModuleIds,
+    ...modules.filter((module) => module.isCompleted).map((module) => module.id),
+  ]);
 
   return (
     <div className={cn("space-y-1", className)}>
@@ -32,13 +36,13 @@ export function ModuleList({
       <ScrollArea className="h-[min(24rem,60vh)] pr-3">
         <div className="space-y-1" role="list">
           {sorted.map((mod, index) => {
-            const isCompleted = completedModuleIds.includes(mod.id);
+            const isCompleted = completedIds.has(mod.id);
             const isCurrent = mod.id === currentModuleId;
             const isAccessible =
               isCompleted ||
               isCurrent ||
               index === 0 ||
-              completedModuleIds.includes(sorted[index - 1]?.id);
+              completedIds.has(sorted[index - 1]?.id);
 
             const content = (
               <>
@@ -91,9 +95,12 @@ export function ModuleList({
                 key={mod.id}
                 href={`/courses/${courseId}/modules/${mod.id}`}
                 role="listitem"
+                aria-current={isCurrent ? "step" : undefined}
                 className={cn(
-                  "flex items-center gap-3 rounded-lg px-3 py-3 transition-colors hover:bg-gray-50 cursor-pointer dark:hover:bg-gray-800",
+                  "flex items-center gap-3 rounded-lg px-3 py-3 transition-colors hover:bg-gray-50 cursor-pointer dark:hover:bg-gray-800 focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:outline-none",
                   isCurrent && "bg-primary-50 border border-primary-200"
+                  "flex items-center gap-3 rounded-lg px-3 py-3 transition-colors hover:bg-gray-50 cursor-pointer dark:hover:bg-gray-800",
+                  isCurrent && "bg-primary-50 border border-primary-200 dark:bg-primary-900/30 dark:border-primary-800"
                 )}
               >
                 {content}

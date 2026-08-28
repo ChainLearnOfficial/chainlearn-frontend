@@ -77,7 +77,7 @@ export function QuizInterface({ quiz, onSubmit, onRetry, className }: QuizInterf
             You scored {attempt.score}% on this quiz
           </p>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-4 sm:p-6 p-4 pt-4 sm:pt-6">
           {quiz.questions.map((q, i) => {
             const answer = attempt.answers.find((a) => a.questionId === q.id);
             return (
@@ -160,7 +160,7 @@ export function QuizInterface({ quiz, onSubmit, onRetry, className }: QuizInterf
           />
         </div>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-6 sm:p-6 p-4 pt-4 sm:pt-6">
         <p className="text-lg font-medium text-gray-900 dark:text-gray-100">{question.text}</p>
 
         <div className="space-y-2" role="radiogroup" aria-label={question.text}>
