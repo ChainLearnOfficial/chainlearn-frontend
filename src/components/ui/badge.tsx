@@ -25,17 +25,17 @@ export type BadgeVariant =
   | "advanced";
 
 const variants: Record<BadgeVariant, string> = {
-  default: "bg-primary-100 text-primary-700",
-  secondary: "bg-gray-100 text-gray-700",
-  destructive: "bg-red-100 text-red-700",
-  outline: "border border-gray-300 bg-transparent text-gray-700",
-  success: "bg-green-100 text-green-700",
-  warning: "bg-yellow-100 text-yellow-800",
+  default: "bg-primary-100 text-primary-700 dark:bg-primary-900/40 dark:text-primary-200",
+  secondary: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-200",
+  destructive: "bg-red-100 text-red-700 dark:bg-red-950/60 dark:text-red-200",
+  outline: "border border-gray-300 bg-transparent text-gray-700 dark:border-gray-600 dark:text-gray-200",
+  success: "bg-green-100 text-green-700 dark:bg-green-950/60 dark:text-green-200",
+  warning: "bg-yellow-100 text-yellow-800 dark:bg-yellow-950/60 dark:text-yellow-200",
   // Difficulty levels, kept as named variants so call sites read as the domain
   // concept rather than a colour.
-  beginner: "bg-green-100 text-green-700",
-  intermediate: "bg-yellow-100 text-yellow-800",
-  advanced: "bg-red-100 text-red-700",
+  beginner: "bg-green-100 text-green-700 dark:bg-green-950/60 dark:text-green-200",
+  intermediate: "bg-yellow-100 text-yellow-800 dark:bg-yellow-950/60 dark:text-yellow-200",
+  advanced: "bg-red-100 text-red-700 dark:bg-red-950/60 dark:text-red-200",
 };
 
 export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
