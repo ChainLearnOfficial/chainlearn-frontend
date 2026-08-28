@@ -75,6 +75,66 @@
   }
 }
 
+/* ── Responsive design improvements (#228) ───────────────────────────────── */
+
+/* Prevent horizontal overflow on all pages */
+html, body {
+  overflow-x: hidden;
+}
+
+/* Ensure minimum touch target size (44px) for interactive elements on mobile */
+@media (max-width: 640px) {
+  button, a, [role="button"], input, select, textarea {
+    min-height: 44px;
+  }
+
+  /* Stack course grid to single column on small screens */
+  .grid-cols-1 {
+    gap: 1rem;
+  }
+
+  /* Improve card spacing on mobile */
+  .card, [class*="Card"] {
+    margin-bottom: 0.75rem;
+  }
+
+  /* Ensure text is readable on mobile */
+  h1 { font-size: 1.5rem; line-height: 2rem; }
+  h2 { font-size: 1.25rem; line-height: 1.75rem; }
+
+  /* Fix navigation menu for mobile */
+  nav[aria-label="Bottom navigation"] {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  /* Dashboard stats should stack on mobile */
+  .grid-cols-2 {
+    grid-template-columns: 1fr;
+  }
+
+  /* Credential cards full width on mobile */
+  .credential-card {
+    width: 100%;
+    max-width: none;
+  }
+
+  /* Quiz interface: ensure buttons and options are touch-friendly */
+  [class*="quiz"] button,
+  [class*="Quiz"] button {
+    min-height: 44px;
+    width: 100%;
+    text-align: left;
+    padding: 0.75rem 1rem;
+  }
+}
+
+/* Slightly larger screens: allow 2-column grids */
+@media (min-width: 641px) and (max-width: 1024px) {
+  .grid-cols-3 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 @layer base {
   @media (prefers-reduced-motion: reduce) {
     *,
