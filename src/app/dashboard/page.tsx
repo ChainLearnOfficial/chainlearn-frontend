@@ -10,6 +10,7 @@ import { ProgressBar } from "@/components/course/progress-bar";
 import { BalanceDisplay } from "@/components/wallet/balance-display";
 import { CredentialCard } from "@/components/credentials/credential-card";
 import { DashboardSkeleton } from "@/components/shared/loading-skeleton";
+import { EmptyState } from "@/components/shared/empty-state";
 import { useCourseStore } from "@/store/course-store";
 import {
   BookOpen,
@@ -160,17 +161,16 @@ export default function DashboardPage() {
               </Link>
             </div>
             {enrolledCourses.length === 0 ? (
-              <Card>
-                <CardContent className="py-8 text-center">
-                  <BookOpen className="mx-auto h-10 w-10 text-gray-300 mb-3" />
-                  <p className="text-gray-500">You haven&apos;t enrolled in any courses yet.</p>
+              <EmptyState
+                icon={BookOpen}
+                title="No Courses Yet"
+                description="You haven't enrolled in any courses yet."
+                action={
                   <Link href="/courses">
-                    <Button className="mt-4" size="sm">
-                      Explore Courses
-                    </Button>
+                    <Button size="sm">Explore Courses</Button>
                   </Link>
-                </CardContent>
-              </Card>
+                }
+              />
             ) : (
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {enrolledCourses.map(({ enrollment, course }) => (
@@ -201,13 +201,11 @@ export default function DashboardPage() {
               My Credentials
             </h2>
             {credentials.length === 0 ? (
-              <Card>
-                <CardContent className="py-12 text-center">
-                  <Award className="mx-auto h-12 w-12 text-gray-300 mb-3" />
-                  <p className="text-gray-500">You haven&apos;t earned any credentials yet.</p>
-                  <p className="text-sm text-gray-400 mt-1">Complete courses to earn verifiable credentials on the Stellar network.</p>
-                </CardContent>
-              </Card>
+              <EmptyState
+                icon={Award}
+                title="No Credentials Yet"
+                description="You haven't earned any credentials yet. Complete courses to earn verifiable credentials on the Stellar network."
+              />
             ) : (
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {credentials.map((cred) => (

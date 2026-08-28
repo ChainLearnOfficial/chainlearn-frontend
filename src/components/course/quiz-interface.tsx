@@ -4,6 +4,7 @@ import { useState } from "react";
 import { cn } from "@/lib/utils/cn";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { EmptyState } from "@/components/shared/empty-state";
 import { CheckCircle, XCircle, ChevronRight, Trophy } from "lucide-react";
 import type { Quiz, QuizAttempt, QuizQuestion } from "@/types/quiz";
 
@@ -26,11 +27,11 @@ export function QuizInterface({ quiz, onSubmit, onRetry, className }: QuizInterf
 
   if (!question) {
     return (
-      <Card className={cn("max-w-2xl mx-auto", className)}>
-        <CardContent className="py-16 text-center">
-          <p className="text-gray-500">This quiz has no questions yet.</p>
-        </CardContent>
-      </Card>
+      <EmptyState
+        className={cn("max-w-2xl mx-auto", className)}
+        title="No Questions"
+        description="This quiz has no questions yet."
+      />
     );
   }
 
