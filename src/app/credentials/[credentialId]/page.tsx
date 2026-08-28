@@ -17,6 +17,9 @@ import {
   CheckCircle,
   Download,
   ShieldCheck,
+  Award,
+  Hash,
+  Key,
 } from "lucide-react";
 import { useState, useCallback } from "react";
 
@@ -143,6 +146,41 @@ export default function CredentialDetailPage({
                 </p>
               </div>
             </div>
+            <div className="flex items-center gap-2 text-sm">
+              <Key className="h-4 w-4 text-gray-400" />
+              <div>
+                <p className="text-gray-500">Credential ID</p>
+                <p className="font-mono text-xs">
+                  {truncateAddress(credential.id, 8)}
+                </p>
+              </div>
+            </div>
+            {credential.metadata.score && (
+              <div className="flex items-center gap-2 text-sm">
+                <Award className="h-4 w-4 text-gray-400" />
+                <div>
+                  <p className="text-gray-500">Score</p>
+                  <p className="font-medium">{credential.metadata.score}%</p>
+                </div>
+              </div>
+            )}
+            {credential.txHash && (
+              <div className="flex items-center gap-2 text-sm">
+                <Hash className="h-4 w-4 text-gray-400" />
+                <div>
+                  <p className="text-gray-500">Transaction</p>
+                  <a
+                    href={`https://stellar.expert/explorer/testnet/tx/${credential.txHash}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="font-mono text-xs text-blue-600 hover:underline flex items-center gap-1"
+                  >
+                    {truncateAddress(credential.txHash, 8)}
+                    <ExternalLink className="h-3 w-3" />
+                  </a>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Learner Address */}
