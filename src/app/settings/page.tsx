@@ -1,4 +1,5 @@
 "use client";
+// User profile settings page
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
