@@ -17,6 +17,7 @@ import {
   Trophy,
   Star,
   Loader2,
+  CheckCircle2,
 } from "lucide-react";
 import { formatDuration, capitalize } from "@/lib/utils/format";
 import { useState } from "react";
@@ -49,6 +50,7 @@ export default function CourseDetailPage({
   const progress = useCourseStore((s) => s.progress);
   const { addToast } = useToastContext();
   const [enrolling, setEnrolling] = useState(false);
+  const [justEnrolled, setJustEnrolled] = useState(false);
 
   const enrollment = enrollments.find((e) => e.courseId === courseId);
   const isEnrolled = !!enrollment;
@@ -58,7 +60,10 @@ export default function CourseDetailPage({
     setEnrolling(true);
     try {
       await enroll(courseId);
+      setJustEnrolled(true);
       addToast("Successfully enrolled in the course!", "success");
+      // Allow the success animation to play before transitioning to progress view
+      setTimeout(() => setJustEnrolled(false), 1500);
     } catch (err) {
       console.error("Enrollment failed:", err);
       addToast("Enrollment failed. Please try again.", "error");
@@ -131,8 +136,8 @@ export default function CourseDetailPage({
       </div>
 
       {/* Enrollment / Progress */}
-      {isEnrolled ? (
-        <Card className="mb-8">
+      {isEnrolled && !justEnrolled ? (
+        <Card className="mb-8 transition-all duration-300 ease-in-out">
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="font-semibold text-gray-900 dark:text-gray-100">Your Progress</h2>
@@ -148,8 +153,17 @@ export default function CourseDetailPage({
             />
           </CardContent>
         </Card>
+      ) : justEnrolled ? (
+        <Card className="mb-8 border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950 transition-all duration-300 ease-in-out animate-in fade-in slide-in-from-bottom-2">
+          <CardContent className="p-6 flex items-center justify-center gap-3">
+            <CheckCircle2 className="h-6 w-6 text-green-600 dark:text-green-400 animate-in zoom-in duration-300" />
+            <span className="font-semibold text-green-800 dark:text-green-200">
+              Enrolled! Redirecting to your progress...
+            </span>
+          </CardContent>
+        </Card>
       ) : isAuthenticated ? (
-        <Card className="mb-8">
+        <Card className="mb-8 transition-all duration-300 ease-in-out">
           <CardContent className="p-6 flex items-center justify-between">
             <div>
               <h2 className="font-semibold text-gray-900 dark:text-gray-100">
@@ -159,7 +173,11 @@ export default function CourseDetailPage({
                 Enroll to track your progress and earn rewards.
               </p>
             </div>
-            <Button onClick={handleEnroll} disabled={enrolling}>
+            <Button
+              onClick={handleEnroll}
+              disabled={enrolling}
+              className="transition-all duration-200"
+            >
               {enrolling ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin mr-2" />

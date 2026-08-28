@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useCourses, useInfiniteCourses } from "@/lib/hooks/use-courses";
+import { useDebounce } from "@/lib/hooks/use-debounce";
 import { useCourseStore } from "@/store/course-store";
 import { CourseCard } from "@/components/course/course-card";
 import { CourseCardSkeleton } from "@/components/shared/loading-skeleton";
@@ -31,6 +32,7 @@ export default function CoursesPage() {
   const { enrollments } = useCourses();
   const progress = useCourseStore((s) => s.progress);
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search, 300);
   const [category, setCategory] = useState("All");
   const [difficulty, setDifficulty] = useState("All");
 
@@ -49,14 +51,14 @@ export default function CoursesPage() {
   );
 
   const filtered = useMemo(() => {
-    if (!search.trim()) return courses;
-    const query = search.toLowerCase();
+    if (!debouncedSearch.trim()) return courses;
+    const query = debouncedSearch.toLowerCase();
     return courses.filter(
       (course) =>
         course.title.toLowerCase().includes(query) ||
         course.description.toLowerCase().includes(query)
     );
-  }, [courses, search]);
+  }, [courses, debouncedSearch]);
 
   // Load the next page when the sentinel scrolls into view.
   const sentinelRef = useRef<HTMLDivElement | null>(null);
