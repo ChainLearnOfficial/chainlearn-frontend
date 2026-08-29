@@ -163,8 +163,12 @@ export const CourseCard = memo(function CourseCard({
 
           {/* Progress bar with percentage label */}
           {enrolled && progress !== undefined && (
-            <div className="w-full space-y-1 animate-in fade-in slide-in-from-top-2 duration-300">
-              <div className="flex items-center justify-between">
+            <div 
+              className="w-full space-y-1 animate-in fade-in slide-in-from-top-2 duration-300"
+              role="region"
+              aria-label={`Course progress: ${Math.round(progress)}%`}
+            >
+              <div className="flex items-center justify-between" aria-hidden="true">
                 <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
                   Progress
                 </span>
