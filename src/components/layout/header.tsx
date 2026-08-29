@@ -22,6 +22,7 @@ import {
 import { LogOut, Settings, User } from "lucide-react";
 import { Sun, Moon } from "lucide-react";
 import { useTheme } from "@/components/theme/theme-provider";
+import { NotificationBell } from "@/components/shared/notification-bell";
 
 export function Header() {
   const { isAuthenticated, walletAddress } = useAuthStore();
@@ -63,6 +64,7 @@ export function Header() {
 
         {/* Right side */}
         <div className="flex items-center gap-3">
+          {isAuthenticated && <NotificationBell />}
           {isAuthenticated && walletAddress && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>

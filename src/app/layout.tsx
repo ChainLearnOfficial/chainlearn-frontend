@@ -51,8 +51,6 @@ export const metadata: Metadata = {
   },
 };
 
-import { PageTransition } from "@/components/shared/page-transition";
-
 export default function RootLayout({
   children,
 }: {

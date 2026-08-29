@@ -37,6 +37,24 @@ export function formatDate(dateStr: string): string {
 }
 
 /**
+ * Format a timestamp as a relative time (e.g. "5m ago", "2h ago"), falling
+ * back to the full date for anything older than a week.
+ */
+export function formatRelativeTime(dateStr: string): string {
+  const date = new Date(dateStr);
+  if (isNaN(date.getTime())) return "";
+  const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
+  if (seconds < 60) return "Just now";
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `${days}d ago`;
+  return formatDate(dateStr);
+}
+
+/**
  * Format minutes into a human-readable duration string.
  */
 export function formatDuration(minutes: number): string {

@@ -98,8 +98,6 @@ export function ModuleList({
                 aria-current={isCurrent ? "step" : undefined}
                 className={cn(
                   "flex items-center gap-3 rounded-lg px-3 py-3 transition-colors hover:bg-gray-50 cursor-pointer dark:hover:bg-gray-800 focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:outline-none",
-                  isCurrent && "bg-primary-50 border border-primary-200"
-                  "flex items-center gap-3 rounded-lg px-3 py-3 transition-colors hover:bg-gray-50 cursor-pointer dark:hover:bg-gray-800",
                   isCurrent && "bg-primary-50 border border-primary-200 dark:bg-primary-900/30 dark:border-primary-800"
                 )}
               >
