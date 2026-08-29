@@ -93,6 +93,7 @@ export default function QuizPage({
         <QuizInterface
           key={attemptKey}
           quiz={quiz}
+          courseId={courseId}
           onSubmit={handleSubmit}
           onRetry={handleRetry}
         />

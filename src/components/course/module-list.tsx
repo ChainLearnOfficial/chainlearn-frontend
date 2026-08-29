@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { cn } from "@/lib/utils/cn";
-import { CheckCircle, Circle, PlayCircle, Lock } from "lucide-react";
+import { CheckCircle, Circle, PlayCircle, Lock, Video, Zap, Clock } from "lucide-react";
 import type { Module } from "@/types/course";
 import { formatDuration } from "@/lib/utils/format";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -44,33 +44,84 @@ export function ModuleList({
               index === 0 ||
               completedIds.has(sorted[index - 1]?.id);
 
+            const ContentTypeIcon =
+              mod.contentType === "video"
+                ? Video
+                : mod.contentType === "interactive"
+                  ? Zap
+                  : null;
+
             const content = (
               <>
+                {/* Status icon */}
                 <div className="flex-shrink-0">
                   {isCompleted ? (
-                    <CheckCircle className="h-5 w-5 text-green-500" />
+                    <CheckCircle className="h-5 w-5 text-green-500" aria-label="Completed" />
                   ) : isCurrent ? (
-                    <PlayCircle className="h-5 w-5 text-primary-500" />
+                    <PlayCircle className="h-5 w-5 text-primary-500" aria-label="In progress" />
                   ) : isAccessible ? (
-                    <Circle className="h-5 w-5 text-gray-300" />
+                    <Circle className="h-5 w-5 text-gray-300 dark:text-gray-600" aria-label="Not started" />
                   ) : (
-                    <Lock className="h-5 w-5 text-gray-300" />
+                    <Lock className="h-5 w-5 text-gray-300 dark:text-gray-600" aria-label="Locked" />
                   )}
                 </div>
+
+                {/* Title + description + badges */}
                 <div className="flex-1 min-w-0">
                   <p
                     className={cn(
                       "text-sm font-medium truncate",
-                      isCompleted ? "text-gray-500" : "text-gray-900"
+                      isCompleted
+                        ? "text-gray-400 dark:text-gray-500"
+                        : "text-gray-900 dark:text-gray-100"
                     )}
                   >
                     {index + 1}. {mod.title}
                   </p>
-                  <p className="text-xs text-gray-500">{mod.description}</p>
+                  <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                      {mod.description}
+                    </p>
+                    {/* Content-type badge */}
+                    {mod.contentType === "interactive" && (
+                      <span
+                        className="inline-flex items-center gap-1 rounded-full bg-violet-100 px-1.5 py-0.5 text-[10px] font-medium text-violet-700 dark:bg-violet-900/40 dark:text-violet-300 flex-shrink-0"
+                        aria-label="Quiz available"
+                      >
+                        <Zap className="h-2.5 w-2.5" aria-hidden="true" />
+                        Quiz
+                      </span>
+                    )}
+                    {mod.contentType === "video" && (
+                      <span
+                        className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-1.5 py-0.5 text-[10px] font-medium text-blue-700 dark:bg-blue-900/40 dark:text-blue-300 flex-shrink-0"
+                        aria-label="Video content"
+                      >
+                        <Video className="h-2.5 w-2.5" aria-hidden="true" />
+                        Video
+                      </span>
+                    )}
+                  </div>
                 </div>
-                <span className="text-xs text-gray-400 flex-shrink-0">
-                  {formatDuration(mod.estimatedMinutes)}
-                </span>
+
+                {/* Duration + content-type icon */}
+                <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                  <span className="flex items-center gap-1 text-xs text-gray-400 dark:text-gray-500">
+                    <Clock className="h-3 w-3" aria-hidden="true" />
+                    {formatDuration(mod.estimatedMinutes)}
+                  </span>
+                  {ContentTypeIcon && (
+                    <ContentTypeIcon
+                      className={cn(
+                        "h-3.5 w-3.5",
+                        mod.contentType === "interactive"
+                          ? "text-violet-400 dark:text-violet-500"
+                          : "text-blue-400 dark:text-blue-500"
+                      )}
+                      aria-hidden="true"
+                    />
+                  )}
+                </div>
               </>
             );
 
