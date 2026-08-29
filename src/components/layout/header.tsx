@@ -25,7 +25,7 @@ import { useTheme } from "@/components/theme/theme-provider";
 import { NotificationBell } from "@/components/shared/notification-bell";
 
 export function Header() {
-  const { isAuthenticated, walletAddress } = useAuthStore();
+  const { isAuthenticated, walletAddress, disconnect } = useAuthStore();
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
   const { resolvedTheme, toggleTheme } = useTheme();
@@ -80,16 +80,23 @@ export function Header() {
               <DropdownMenuContent align="end" className="w-56 dark:border-gray-800 dark:bg-gray-900">
                 <DropdownMenuLabel className="text-gray-900 dark:text-gray-100">My Account</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>
-                  <User className="mr-2 h-4 w-4" />
-                  <span>Profile</span>
+                <DropdownMenuItem asChild>
+                  <Link href="/profile" className="flex items-center w-full cursor-pointer">
+                    <User className="mr-2 h-4 w-4" />
+                    <span>Profile</span>
+                  </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Settings className="mr-2 h-4 w-4" />
-                  <span>Settings</span>
+                <DropdownMenuItem asChild>
+                  <Link href="/settings" className="flex items-center w-full cursor-pointer">
+                    <Settings className="mr-2 h-4 w-4" />
+                    <span>Settings</span>
+                  </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem className="text-red-600 focus:text-red-700">
+                <DropdownMenuItem
+                  onClick={() => disconnect()}
+                  className="text-red-600 focus:text-red-700 cursor-pointer"
+                >
                   <LogOut className="mr-2 h-4 w-4" />
                   <span>Log out</span>
                 </DropdownMenuItem>
