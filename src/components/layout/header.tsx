@@ -68,7 +68,10 @@ export function Header() {
           {isAuthenticated && walletAddress && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="flex items-center gap-2 outline-none hover:opacity-80 transition-opacity">
+                <button 
+                  className="flex items-center gap-2 outline-none hover:opacity-80 transition-opacity"
+                  aria-label="User account menu"
+                >
                   <Avatar size="sm">
                     <AvatarFallback>{getInitials(walletAddress)}</AvatarFallback>
                   </Avatar>

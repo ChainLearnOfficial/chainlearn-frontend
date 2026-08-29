@@ -104,6 +104,7 @@ export function Toast({
   return (
     <div
       role="status"
+      aria-live="polite"
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}

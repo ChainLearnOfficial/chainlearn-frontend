@@ -22,7 +22,7 @@ export function LoadingSkeleton({
   variant = "card",
 }: LoadingSkeletonProps) {
   return (
-    <div className={cn("space-y-3", className)}>
+    <div className={cn("space-y-3", className)} aria-live="polite" aria-busy="true">
       {Array.from({ length: count }).map((_, i) => {
         if (variant === "text") {
           return <SkeletonText key={i} />;
