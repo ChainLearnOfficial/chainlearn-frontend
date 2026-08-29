@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/hooks/use-auth";
 import { useToastContext } from "@/components/shared/toast";
 import { getProfile, updateProfile } from "@/lib/api/auth";
+import { AvatarUpload } from "@/components/shared/avatar-upload";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -115,6 +116,20 @@ export default function SettingsPage() {
           <CardTitle className="text-lg">Profile Information</CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
+          {/* Avatar Upload */}
+          <div className="flex justify-center mb-6">
+            <AvatarUpload
+              currentAvatarUrl={undefined} // We could load this from profile if the API supported it
+              name={displayName || walletAddress || "User"}
+              onUpload={async (file) => {
+                // In a real app, upload the file to storage and update profile
+                // For now, simulate upload
+                await new Promise((resolve) => setTimeout(resolve, 1000));
+                addToast("Avatar uploaded successfully", "success");
+              }}
+            />
+          </div>
+
           {/* Display Name */}
           <div className="space-y-2">
             <label
