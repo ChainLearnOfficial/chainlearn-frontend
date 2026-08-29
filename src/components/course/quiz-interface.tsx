@@ -156,7 +156,7 @@ export function QuizInterface({ quiz, courseId, onSubmit, onRetry, className }: 
 
       <CardContent className="space-y-6 p-4 sm:p-6 pt-2 sm:pt-2">
         {/* Question counter + text */}
-        <div>
+        <div aria-live="polite">
           <p className="text-xs font-medium text-gray-400 dark:text-gray-500 mb-2 uppercase tracking-wide">
             Question {currentIndex + 1} of {questions.length}
           </p>
