@@ -60,7 +60,7 @@ export function QuizInterface({ quiz, onSubmit, onRetry, className }: QuizInterf
   // Results view
   if (attempt) {
     return (
-      <Card className={cn("max-w-2xl mx-auto", className)}>
+      <Card className={cn("max-w-2xl mx-auto", className)} aria-live="polite">
         <CardHeader className="text-center">
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-stellar-purple/10 to-stellar-blue/10">
             <Trophy
@@ -141,7 +141,7 @@ export function QuizInterface({ quiz, onSubmit, onRetry, className }: QuizInterf
 
   // Question view
   return (
-    <Card className={cn("max-w-2xl mx-auto", className)}>
+    <Card className={cn("max-w-2xl mx-auto", className)} aria-live="polite">
       <CardHeader>
         <div className="flex items-center justify-between mb-2">
           <span className="text-sm text-gray-500">

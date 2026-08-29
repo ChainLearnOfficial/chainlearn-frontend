@@ -45,7 +45,7 @@ export const CourseCard = memo(function CourseCard({
           <div className="absolute top-2 right-2" onClick={(e) => e.preventDefault()} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') e.preventDefault(); }}>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                 <button className="p-1.5 text-gray-500 hover:text-gray-900 bg-white/50 hover:bg-white/80 rounded-full transition-colors dark:text-gray-300 dark:hover:text-gray-100 dark:bg-gray-900/50 dark:hover:bg-gray-900/80">
+                 <button aria-label="Course options" className="p-1.5 text-gray-500 hover:text-gray-900 bg-white/50 hover:bg-white/80 rounded-full transition-colors dark:text-gray-300 dark:hover:text-gray-100 dark:bg-gray-900/50 dark:hover:bg-gray-900/80">
                   <MoreVertical className="h-4 w-4" />
                 </button>
               </DropdownMenuTrigger>

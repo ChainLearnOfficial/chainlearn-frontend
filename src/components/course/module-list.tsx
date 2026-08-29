@@ -34,7 +34,7 @@ export function ModuleList({
         Course Modules ({modules.length})
       </h3>
       <ScrollArea className="h-[min(24rem,60vh)] pr-3">
-        <div className="space-y-1" role="list">
+        <div className="space-y-1" role="list" aria-label="Module list">
           {sorted.map((mod, index) => {
             const isCompleted = completedIds.has(mod.id);
             const isCurrent = mod.id === currentModuleId;
