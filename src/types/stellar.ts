@@ -29,6 +29,7 @@ export interface CredentialNFT {
   courseId: string;
   courseTitle: string;
   issuedAt: string;
+  txHash?: string;
   metadata: CredentialMetadata;
 }
 
