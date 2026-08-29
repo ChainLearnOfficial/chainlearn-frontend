@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { CourseCard } from "@/components/course/course-card";
 import { CourseProgressCard } from "@/components/course/course-progress-card";
 import { BalanceDisplay } from "@/components/wallet/balance-display";
+import { RewardHistory } from "@/components/rewards/reward-history";
 import { CredentialCard } from "@/components/credentials/credential-card";
 import { DashboardSkeleton } from "@/components/shared/loading-skeleton";
 import { EmptyState } from "@/components/shared/empty-state";
@@ -28,7 +29,7 @@ export default function DashboardPage() {
   const { ready } = useRequireAuth();
   const { courses, enrollments, loading: coursesLoading } = useCourses();
   const { recommended, loading: recommendedLoading, error: recommendedError } = useRecommendedCourses();
-  const { balances, loading: rewardsLoading } = useRewards();
+  const { balances, history, loading: rewardsLoading } = useRewards();
   const { credentials, loading: credentialsLoading } = useCredentials();
   const progress = useCourseStore((s) => s.progress);
 
@@ -199,6 +200,17 @@ export default function DashboardPage() {
             <Card>
               <CardContent className="p-6">
                 <BalanceDisplay />
+              </CardContent>
+            </Card>
+          </section>
+
+          <section>
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">
+              Reward History
+            </h2>
+            <Card>
+              <CardContent className="p-6">
+                <RewardHistory claims={history} />
               </CardContent>
             </Card>
           </section>
