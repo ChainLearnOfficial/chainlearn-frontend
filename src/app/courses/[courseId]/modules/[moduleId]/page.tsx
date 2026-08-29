@@ -5,6 +5,7 @@ import { useModule, useCourseDetail } from "@/lib/hooks/use-courses";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { LoadingSkeleton } from "@/components/shared/loading-skeleton";
+import { BackButton } from "@/components/shared/back-button";
 import { ProgressBar } from "@/components/course/progress-bar";
 import { useCourseStore } from "@/store/course-store";
 import { useToastContext } from "@/components/shared/toast";
@@ -83,15 +84,7 @@ export default function ModulePage({
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">
       {/* Breadcrumb */}
-      <div className="mb-6">
-        <Link
-          href={`/courses/${courseId}`}
-          className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back to Course
-        </Link>
-      </div>
+      <BackButton />
 
       {/* Progress */}
       {courseProgress && (

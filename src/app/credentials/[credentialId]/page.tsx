@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCredentialDetail } from "@/lib/hooks/use-credentials";
 import { CredentialBadge } from "@/components/credentials/credential-badge";
 import { QrCode } from "@/components/credentials/qr-code";
+import { BackButton } from "@/components/shared/back-button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { LoadingSkeleton } from "@/components/shared/loading-skeleton";
@@ -111,6 +112,7 @@ export default function CredentialDetailPage({
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-8">
+      <BackButton />
       {/* Badge */}
       <div className="flex justify-center mb-8">
         <CredentialBadge

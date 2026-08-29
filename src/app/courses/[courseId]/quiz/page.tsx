@@ -3,6 +3,7 @@
 import { lazy, Suspense, useState, useCallback } from "react";
 import { useQuiz } from "@/lib/hooks/use-quiz";
 import { LoadingSkeleton } from "@/components/shared/loading-skeleton";
+import { BackButton } from "@/components/shared/back-button";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
@@ -79,15 +80,7 @@ export default function QuizPage({
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">
-      <div className="mb-6">
-        <Link
-          href={`/courses/${courseId}`}
-          className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back to Course
-        </Link>
-      </div>
+      <BackButton />
 
       <Suspense fallback={<LoadingSkeleton count={3} />}>
         <QuizInterface
