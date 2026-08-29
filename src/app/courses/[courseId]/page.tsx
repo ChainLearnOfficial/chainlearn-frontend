@@ -10,6 +10,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge, difficultyVariant } from "@/components/ui/badge";
 import { AutoBreadcrumb } from "@/components/ui/breadcrumb";
 import { BackButton } from "@/components/shared/back-button";
+import { ShareButton } from "@/components/shared/share-button";
 import { LoadingSkeleton } from "@/components/shared/loading-skeleton";
 import { useToastContext } from "@/components/shared/toast";
 import {
@@ -88,10 +89,15 @@ export default function CourseDetailPage({
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
       <BackButton />
-      <AutoBreadcrumb
-        className="mb-6"
-        labels={{ [courseId]: course.title }}
-      />
+      <div className="flex items-center justify-between mb-6">
+        <AutoBreadcrumb
+          labels={{ [courseId]: course.title }}
+        />
+        <ShareButton 
+          url={typeof window !== "undefined" ? window.location.href : ""} 
+          title={course.title} 
+        />
+      </div>
 
       {/* Hero */}
       <div className="mb-8">

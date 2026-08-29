@@ -23,6 +23,7 @@ import {
   Key,
 } from "lucide-react";
 import { useState, useCallback } from "react";
+import { ShareButton } from "@/components/shared/share-button";
 
 export default function CredentialDetailPage({
   params,
@@ -252,13 +253,13 @@ export default function CredentialDetailPage({
               <Download className="h-4 w-4" />
               Download Certificate
             </button>
-            <Link
-              href={`/verify/${credentialId}`}
-              className="flex items-center justify-center gap-2 rounded-lg bg-gray-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-gray-800 transition-colors"
-            >
-              <ExternalLink className="h-4 w-4" />
-              Share Verification Link
-            </Link>
+            <ShareButton
+              url={verificationUrl}
+              title={credential.courseTitle}
+              text="Check out my verified credential!"
+              variant="default"
+              className="w-full flex items-center justify-center rounded-lg bg-gray-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-gray-800 transition-colors"
+            />
           </div>
         </CardContent>
       </Card>
