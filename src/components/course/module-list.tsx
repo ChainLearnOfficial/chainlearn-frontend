@@ -54,15 +54,15 @@ export function ModuleList({
             const content = (
               <>
                 {/* Status icon */}
-                <div className="flex-shrink-0">
+                <div className="flex-shrink-0" role="status" aria-label={isCompleted ? "Completed module" : isCurrent ? "Current module in progress" : isAccessible ? "Module not started" : "Locked module"}>
                   {isCompleted ? (
-                    <CheckCircle className="h-5 w-5 text-green-500" aria-label="Completed" />
+                    <CheckCircle className="h-5 w-5 text-green-500" aria-hidden="true" />
                   ) : isCurrent ? (
-                    <PlayCircle className="h-5 w-5 text-primary-500" aria-label="In progress" />
+                    <PlayCircle className="h-5 w-5 text-primary-500" aria-hidden="true" />
                   ) : isAccessible ? (
-                    <Circle className="h-5 w-5 text-gray-300 dark:text-gray-600" aria-label="Not started" />
+                    <Circle className="h-5 w-5 text-gray-300 dark:text-gray-600" aria-hidden="true" />
                   ) : (
-                    <Lock className="h-5 w-5 text-gray-300 dark:text-gray-600" aria-label="Locked" />
+                    <Lock className="h-5 w-5 text-gray-300 dark:text-gray-600" aria-hidden="true" />
                   )}
                 </div>
 
