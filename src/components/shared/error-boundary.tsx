@@ -132,16 +132,11 @@ class ErrorBoundaryInner extends React.Component<
   };
 
   private handleRetry = async () => {
-    const { retryCount } = this.state;
-    const delay = this.getExponentialBackoffDelay(retryCount);
-
     this.setState({ isRetrying: true });
 
     try {
-      // Wait before retrying
-      await new Promise((resolve) => setTimeout(resolve, delay));
-
       // Reset error state to retry rendering children
+      const { retryCount } = this.state;
       this.setState({
         hasError: false,
         error: null,
@@ -214,7 +209,7 @@ class ErrorBoundaryInner extends React.Component<
 
       // Default error UI
       return (
-        <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
+        <div className="flex flex-col items-center justify-center py-16 px-4 text-center" role="alert">
           <div className="flex h-16 w-16 items-center justify-center rounded-full bg-red-100 mb-4">
             <AlertTriangle className="h-8 w-8 text-red-500" />
           </div>
@@ -222,7 +217,7 @@ class ErrorBoundaryInner extends React.Component<
             Something went wrong
           </h2>
           <p className="text-sm text-gray-600 max-w-md mb-2">
-            {error?.message || "An unexpected error occurred."}
+            We could not render this section. Try again or reload the page.
           </p>
           {retryCount > 0 && (
             <p className="text-xs text-gray-500 mb-6">
@@ -260,6 +255,7 @@ class ErrorBoundaryInner extends React.Component<
                 typeof window !== "undefined" && window.location.reload()
               }
               variant="outline"
+              aria-label="Reload the current page"
             >
               Reload Page
             </Button>
