@@ -10,11 +10,13 @@ import type {
  */
 export async function getQuiz(
   courseId: string,
-  jwt?: string
+  jwt?: string,
+  signal?: AbortSignal
 ): Promise<Quiz> {
   const response = await apiClient.get<Quiz>(
     `/courses/${courseId}/quiz`,
-    jwt
+    jwt,
+    signal
   );
   return response.data;
 }
@@ -24,12 +26,14 @@ export async function getQuiz(
  */
 export async function submitQuiz(
   submission: QuizSubmission,
-  jwt: string
+  jwt: string,
+  signal?: AbortSignal
 ): Promise<QuizAttempt> {
   const response = await apiClient.post<QuizAttempt>(
     `/quizzes/${submission.quizId}/submit`,
     submission,
-    jwt
+    jwt,
+    signal
   );
   return response.data;
 }
@@ -39,11 +43,13 @@ export async function submitQuiz(
  */
 export async function getQuizAttempts(
   quizId: string,
-  jwt: string
+  jwt: string,
+  signal?: AbortSignal
 ): Promise<QuizAttempt[]> {
   const response = await apiClient.get<QuizAttempt[]>(
     `/quizzes/${quizId}/attempts`,
-    jwt
+    jwt,
+    signal
   );
   return response.data;
 }

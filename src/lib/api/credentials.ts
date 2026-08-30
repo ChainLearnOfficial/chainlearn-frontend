@@ -5,11 +5,13 @@ import type { CredentialNFT, CredentialMetadata } from "@/types/stellar";
  * Fetch all credentials for the authenticated user.
  */
 export async function getCredentials(
-  jwt: string
+  jwt: string,
+  signal?: AbortSignal
 ): Promise<CredentialNFT[]> {
   const response = await apiClient.get<CredentialNFT[]>(
     "/credentials",
-    jwt
+    jwt,
+    signal
   );
   return response.data;
 }
@@ -19,11 +21,13 @@ export async function getCredentials(
  */
 export async function getCredential(
   credentialId: string,
-  jwt?: string
+  jwt?: string,
+  signal?: AbortSignal
 ): Promise<CredentialNFT> {
   const response = await apiClient.get<CredentialNFT>(
     `/credentials/${credentialId}`,
-    jwt
+    jwt,
+    signal
   );
   return response.data;
 }
@@ -32,7 +36,8 @@ export async function getCredential(
  * Verify a credential publicly (no auth required).
  */
 export async function verifyCredential(
-  credentialId: string
+  credentialId: string,
+  signal?: AbortSignal
 ): Promise<{
   valid: boolean;
   metadata: CredentialMetadata;
@@ -42,7 +47,7 @@ export async function verifyCredential(
     valid: boolean;
     metadata: CredentialMetadata;
     verifiedAt: string;
-  }>(`/credentials/${credentialId}/verify`);
+  }>(`/credentials/${credentialId}/verify`, undefined, signal);
   return response.data;
 }
 
@@ -51,12 +56,14 @@ export async function verifyCredential(
  */
 export async function mintCredential(
   courseId: string,
-  jwt: string
+  jwt: string,
+  signal?: AbortSignal
 ): Promise<CredentialNFT> {
   const response = await apiClient.post<CredentialNFT>(
     "/credentials/mint",
     { courseId },
-    jwt
+    jwt,
+    signal
   );
   return response.data;
 }

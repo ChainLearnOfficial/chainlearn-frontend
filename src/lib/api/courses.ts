@@ -5,12 +5,15 @@ import type { Course, CourseEnrollment, Module, RecommendedCourse } from "@/type
 /**
  * Fetch the course catalog with optional filters.
  */
-export async function getCourses(params?: {
-  category?: string;
-  difficulty?: string;
-  page?: number;
-  pageSize?: number;
-}): Promise<PaginatedResponse<Course>> {
+export async function getCourses(
+  params?: {
+    category?: string;
+    difficulty?: string;
+    page?: number;
+    pageSize?: number;
+  },
+  signal?: AbortSignal
+): Promise<PaginatedResponse<Course>> {
   const searchParams = new URLSearchParams();
   if (params?.category) searchParams.set("category", params.category);
   if (params?.difficulty) searchParams.set("difficulty", params.difficulty);
@@ -19,7 +22,9 @@ export async function getCourses(params?: {
 
   const query = searchParams.toString();
   const response = await apiClient.get<PaginatedResponse<Course>>(
-    `/courses${query ? `?${query}` : ""}`
+    `/courses${query ? `?${query}` : ""}`,
+    undefined,
+    signal
   );
   return response.data;
 }
@@ -29,9 +34,10 @@ export async function getCourses(params?: {
  */
 export async function getCourse(
   courseId: string,
-  jwt?: string
+  jwt?: string,
+  signal?: AbortSignal
 ): Promise<Course> {
-  const response = await apiClient.get<Course>(`/courses/${courseId}`, jwt);
+  const response = await apiClient.get<Course>(`/courses/${courseId}`, jwt, signal);
   return response.data;
 }
 
@@ -40,12 +46,14 @@ export async function getCourse(
  */
 export async function enrollInCourse(
   courseId: string,
-  jwt: string
+  jwt: string,
+  signal?: AbortSignal
 ): Promise<CourseEnrollment> {
   const response = await apiClient.post<CourseEnrollment>(
     `/courses/${courseId}/enroll`,
     {},
-    jwt
+    jwt,
+    signal
   );
   return response.data;
 }
@@ -56,11 +64,13 @@ export async function enrollInCourse(
 export async function getModule(
   courseId: string,
   moduleId: string,
-  jwt?: string
+  jwt?: string,
+  signal?: AbortSignal
 ): Promise<Module> {
   const response = await apiClient.get<Module>(
     `/courses/${courseId}/modules/${moduleId}`,
-    jwt
+    jwt,
+    signal
   );
   return response.data;
 }
@@ -71,12 +81,14 @@ export async function getModule(
 export async function markModuleComplete(
   courseId: string,
   moduleId: string,
-  jwt: string
+  jwt: string,
+  signal?: AbortSignal
 ): Promise<{ success: boolean }> {
   const response = await apiClient.post<{ success: boolean }>(
     `/courses/${courseId}/modules/${moduleId}/complete`,
     {},
-    jwt
+    jwt,
+    signal
   );
   return response.data;
 }
@@ -85,11 +97,13 @@ export async function markModuleComplete(
  * Fetch the user's enrolled courses.
  */
 export async function getEnrollments(
-  jwt: string
+  jwt: string,
+  signal?: AbortSignal
 ): Promise<CourseEnrollment[]> {
   const response = await apiClient.get<CourseEnrollment[]>(
     "/courses/enrollments",
-    jwt
+    jwt,
+    signal
   );
   return response.data;
 }
@@ -98,11 +112,13 @@ export async function getEnrollments(
  * Fetch recommended courses for the authenticated user.
  */
 export async function getRecommendedCourses(
-  jwt: string
+  jwt: string,
+  signal?: AbortSignal
 ): Promise<RecommendedCourse[]> {
   const response = await apiClient.get<RecommendedCourse[]>(
     "/courses/recommended",
-    jwt
+    jwt,
+    signal
   );
   return response.data;
 }

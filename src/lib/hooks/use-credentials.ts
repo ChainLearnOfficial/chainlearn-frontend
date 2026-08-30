@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useAuthStore } from "@/store/auth-store";
 import {
   getCredentials,
@@ -8,6 +8,7 @@ import {
   verifyCredential,
   mintCredential,
 } from "@/lib/api/credentials";
+import { isAbortError } from "@/lib/api/client";
 import type { CredentialNFT, CredentialMetadata } from "@/types/stellar";
 
 export function useCredentials() {
@@ -15,18 +16,22 @@ export function useCredentials() {
   const [credentials, setCredentials] = useState<CredentialNFT[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
 
   const fetchCredentials = useCallback(async () => {
     if (!jwt) {
       setLoading(false);
       return;
     }
+    const controller = new AbortController();
+    abortRef.current = controller;
     setLoading(true);
     setError(null);
     try {
-      const data = await getCredentials(jwt);
+      const data = await getCredentials(jwt, controller.signal);
       setCredentials(data);
     } catch (err) {
+      if (isAbortError(err)) return;
       const message = err instanceof Error ? err.message : "Failed to fetch credentials";
       setError(message);
       console.error("Failed to fetch credentials:", err);
@@ -54,6 +59,7 @@ export function useCredentials() {
 
   useEffect(() => {
     fetchCredentials();
+    return () => abortRef.current?.abort();
   }, [fetchCredentials]);
 
   return { credentials, loading, error, mint, refetch: fetchCredentials };
@@ -70,16 +76,19 @@ export function useCredentialDetail(credentialId: string) {
       setLoading(false);
       return;
     }
+    const controller = new AbortController();
     setLoading(true);
     setError(null);
-    getCredential(credentialId, jwt ?? undefined)
+    getCredential(credentialId, jwt ?? undefined, controller.signal)
       .then(setCredential)
       .catch((err) => {
+        if (isAbortError(err)) return;
         const message = err instanceof Error ? err.message : "Failed to load credential";
         setError(message);
         console.error(message, err);
       })
       .finally(() => setLoading(false));
+    return () => controller.abort();
   }, [credentialId, jwt]);
 
   return { credential, loading, error };
@@ -96,15 +105,18 @@ export function useVerifyCredential(credentialId: string) {
 
   useEffect(() => {
     if (!credentialId) return;
+    const controller = new AbortController();
     setLoading(true);
-    verifyCredential(credentialId)
+    verifyCredential(credentialId, controller.signal)
       .then(setVerification)
-      .catch((err) =>
+      .catch((err) => {
+        if (isAbortError(err)) return;
         setError(
           err instanceof Error ? err.message : "Verification failed"
-        )
-      )
+        );
+      })
       .finally(() => setLoading(false));
+    return () => controller.abort();
   }, [credentialId]);
 
   return { verification, loading, error };

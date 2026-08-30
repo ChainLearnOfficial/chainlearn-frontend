@@ -8,6 +8,7 @@ import {
   claimReward,
   getClaimables,
 } from "@/lib/api/rewards";
+import { isAbortError } from "@/lib/api/client";
 import type { RewardClaim, TokenBalance } from "@/types/stellar";
 
 const CACHE_TTL_MS = 60_000;
@@ -22,7 +23,7 @@ interface RewardsCache {
 const rewardsCache = new Map<string, RewardsCache>();
 const inFlight = new Map<string, Promise<void>>();
 
-async function loadRewards(jwt: string): Promise<void> {
+async function loadRewards(jwt: string, signal?: AbortSignal): Promise<void> {
   const cached = rewardsCache.get(jwt);
   if (cached && Date.now() - cached.fetchedAt < CACHE_TTL_MS) return;
 
@@ -32,18 +33,18 @@ async function loadRewards(jwt: string): Promise<void> {
     return;
   }
 
-  const request = loadFromApi(jwt).finally(() => {
+  const request = loadFromApi(jwt, signal).finally(() => {
     inFlight.delete(jwt);
   });
   inFlight.set(jwt, request);
   await request;
 }
 
-async function loadFromApi(jwt: string): Promise<void> {
+async function loadFromApi(jwt: string, signal?: AbortSignal): Promise<void> {
   const [bal, hist, claim] = await Promise.all([
-    getTokenBalances(jwt),
-    getRewardHistory(jwt),
-    getClaimables(jwt),
+    getTokenBalances(jwt, signal),
+    getRewardHistory(jwt, signal),
+    getClaimables(jwt, signal),
   ]);
   rewardsCache.set(jwt, {
     balances: bal,
@@ -69,6 +70,7 @@ export function useRewards() {
   const [loading, setLoading] = useState(true);
   const [claiming, setClaiming] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
 
   const fetchAll = useCallback(async () => {
     const token = jwtRef.current;
@@ -76,9 +78,11 @@ export function useRewards() {
       setLoading(false);
       return;
     }
+    const controller = new AbortController();
+    abortRef.current = controller;
     setLoading(true);
     try {
-      await loadRewards(token);
+      await loadRewards(token, controller.signal);
       const cached = rewardsCache.get(token);
       if (cached) {
         setBalances(cached.balances);
@@ -86,6 +90,7 @@ export function useRewards() {
         setClaimables(cached.claimables);
       }
     } catch (e) {
+      if (isAbortError(e)) return;
       console.error("Failed to fetch rewards:", e);
     } finally {
       setLoading(false);
@@ -123,6 +128,7 @@ export function useRewards() {
 
   useEffect(() => {
     fetchAll();
+    return () => abortRef.current?.abort();
   }, [fetchAll]);
 
   return {
