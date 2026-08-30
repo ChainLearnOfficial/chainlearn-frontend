@@ -26,7 +26,7 @@ describe("ErrorBoundary", () => {
       </ErrorBoundary>
     );
     expect(screen.getByText("Something went wrong")).toBeInTheDocument();
-    expect(screen.getByText("Boom!")).toBeInTheDocument();
+    expect(screen.getByText(/could not render this section/i)).toBeInTheDocument();
   });
 
   it("renders a custom fallback when provided", () => {
