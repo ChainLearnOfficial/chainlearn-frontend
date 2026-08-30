@@ -75,7 +75,7 @@ describe("apiClient abort support", () => {
     abortableFetch();
     const controller = new AbortController();
 
-    // get() is configured with 2 retries; an external abort must never retry.
+    // get() is configured with 3 retries; an external abort must never retry.
     const request = apiClient.get("/courses", undefined, controller.signal);
     controller.abort();
 
@@ -127,6 +127,6 @@ describe("apiClient abort support", () => {
     await vi.runAllTimersAsync();
     await assertion;
 
-    expect(fetchMock).toHaveBeenCalledTimes(3); // initial + 2 retries
+    expect(fetchMock).toHaveBeenCalledTimes(4); // initial + 3 retries
   });
 });
