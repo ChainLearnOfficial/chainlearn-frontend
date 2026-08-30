@@ -22,15 +22,16 @@ export function MobileNav() {
             <Link
               key={link.href}
               href={link.href}
+              aria-label={link.label}
               aria-current={isActive ? "page" : undefined}
               className={cn(
-                "flex flex-col items-center gap-0.5 rounded-lg px-1.5 py-1.5 text-[10px] font-medium transition-colors min-w-0 sm:px-3 sm:py-2 sm:text-xs",
+                "flex min-h-11 min-w-11 flex-col items-center gap-0.5 rounded-lg px-1.5 py-1.5 text-[10px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 sm:px-3 sm:py-2 sm:text-xs",
                 isActive
                   ? "text-primary-600"
                   : "text-gray-500 hover:text-gray-900"
               )}
             >
-              <link.icon className="h-5 w-5 shrink-0" />
+              <link.icon className="h-5 w-5 shrink-0" aria-hidden="true" />
               <span className="max-sm:hidden">{link.label}</span>
             </Link>
           );

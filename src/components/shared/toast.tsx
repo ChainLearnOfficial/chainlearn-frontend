@@ -44,6 +44,14 @@ const variantIcons = {
 };
 
 const SWIPE_DISMISS_THRESHOLD = 80;
+const MAX_VISIBLE_TOASTS = 4;
+
+function createToastId() {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+    return crypto.randomUUID();
+  }
+  return Math.random().toString(36).slice(2);
+}
 
 export function Toast({
   message,
@@ -167,17 +175,21 @@ export function useToast() {
     (message: string, options: ToastVariant | AddToastOptions = "info") => {
       const opts: AddToastOptions =
         typeof options === "string" ? { variant: options } : options;
-      const id = Math.random().toString(36).slice(2);
-      setToasts((prev) => [
-        ...prev,
-        {
-          id,
-          message,
-          variant: opts.variant ?? "info",
-          autoClose: opts.autoClose,
-          action: opts.action,
-        },
-      ]);
+      setToasts((prev) => {
+        const withoutDuplicate = prev.filter(
+          (toast) => toast.message !== message || toast.variant !== (opts.variant ?? "info")
+        );
+        return [
+          ...withoutDuplicate,
+          {
+            id: createToastId(),
+            message,
+            variant: opts.variant ?? "info",
+            autoClose: opts.autoClose,
+            action: opts.action,
+          },
+        ].slice(-MAX_VISIBLE_TOASTS);
+      });
     },
     []
   );
@@ -224,17 +236,22 @@ export function ToastContextProvider({ children }: { children: ReactNode }) {
     (message: string, options: ToastVariant | AddToastOptions = "info") => {
       const opts: AddToastOptions =
         typeof options === "string" ? { variant: options } : options;
-      const id = Math.random().toString(36).slice(2);
-      setToasts((prev) => [
-        ...prev,
-        {
-          id,
-          message,
-          variant: opts.variant ?? "info",
-          autoClose: opts.autoClose,
-          action: opts.action,
-        },
-      ]);
+      setToasts((prev) => {
+        const variant = opts.variant ?? "info";
+        const withoutDuplicate = prev.filter(
+          (toast) => toast.message !== message || toast.variant !== variant
+        );
+        return [
+          ...withoutDuplicate,
+          {
+            id: createToastId(),
+            message,
+            variant,
+            autoClose: opts.autoClose,
+            action: opts.action,
+          },
+        ].slice(-MAX_VISIBLE_TOASTS);
+      });
     },
     []
   );
@@ -246,17 +263,19 @@ export function ToastContextProvider({ children }: { children: ReactNode }) {
   return (
     <ToastContext.Provider value={{ addToast }}>
       {children}
-      {toasts.map((toast, index) => (
-        <Toast
-          key={toast.id}
-          message={toast.message}
-          variant={toast.variant}
-          autoClose={toast.autoClose}
-          action={toast.action}
-          onClose={() => removeToast(toast.id)}
-          index={index}
-        />
-      ))}
+      <div aria-live="polite" aria-relevant="additions text">
+        {toasts.map((toast, index) => (
+          <Toast
+            key={toast.id}
+            message={toast.message}
+            variant={toast.variant}
+            autoClose={toast.autoClose}
+            action={toast.action}
+            onClose={() => removeToast(toast.id)}
+            index={index}
+          />
+        ))}
+      </div>
     </ToastContext.Provider>
   );
 }
