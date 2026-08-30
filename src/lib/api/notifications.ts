@@ -5,11 +5,13 @@ import type { AppNotification } from "@/types/notification";
  * Fetch the authenticated user's notifications, newest first.
  */
 export async function getNotifications(
-  jwt: string
+  jwt: string,
+  signal?: AbortSignal
 ): Promise<AppNotification[]> {
   const response = await apiClient.get<AppNotification[]>(
     "/notifications",
-    jwt
+    jwt,
+    signal
   );
   return response.data;
 }
@@ -19,16 +21,18 @@ export async function getNotifications(
  */
 export async function markNotificationAsRead(
   id: string,
-  jwt: string
+  jwt: string,
+  signal?: AbortSignal
 ): Promise<void> {
-  await apiClient.post<void>(`/notifications/${id}/read`, {}, jwt);
+  await apiClient.post<void>(`/notifications/${id}/read`, {}, jwt, signal);
 }
 
 /**
  * Mark every notification as read.
  */
 export async function markAllNotificationsAsRead(
-  jwt: string
+  jwt: string,
+  signal?: AbortSignal
 ): Promise<void> {
-  await apiClient.post<void>("/notifications/read-all", {}, jwt);
+  await apiClient.post<void>("/notifications/read-all", {}, jwt, signal);
 }

@@ -7,6 +7,7 @@ import {
   markAllNotificationsAsRead,
   markNotificationAsRead,
 } from "@/lib/api/notifications";
+import { isAbortError } from "@/lib/api/client";
 import type { AppNotification } from "@/types/notification";
 
 export function useNotifications() {
@@ -17,6 +18,7 @@ export function useNotifications() {
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
 
   const refetch = useCallback(async () => {
     const token = jwtRef.current;
@@ -25,12 +27,15 @@ export function useNotifications() {
       setLoading(false);
       return;
     }
+    const controller = new AbortController();
+    abortRef.current = controller;
     setLoading(true);
     setError(null);
     try {
-      const items = await getNotifications(token);
+      const items = await getNotifications(token, controller.signal);
       setNotifications(items);
     } catch (e) {
+      if (isAbortError(e)) return;
       console.error("Failed to fetch notifications:", e);
       setError(e instanceof Error ? e.message : "Failed to load notifications");
     } finally {
@@ -73,6 +78,7 @@ export function useNotifications() {
 
   useEffect(() => {
     refetch();
+    return () => abortRef.current?.abort();
   }, [refetch]);
 
   const unreadCount = notifications.filter((n) => !n.read).length;

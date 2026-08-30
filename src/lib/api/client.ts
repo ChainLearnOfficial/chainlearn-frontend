@@ -11,6 +11,30 @@ function delay(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+/**
+ * Builds the error `fetch` throws when its signal fires, so callers can detect
+ * a manually cancelled request via `error.name === "AbortError"` and skip any
+ * state updates.
+ */
+function createAbortError(): Error {
+  return new DOMException("The request was aborted.", "AbortError");
+}
+
+/**
+ * Returns true when the error was caused by an AbortController signal firing,
+ * either internally (timeout) or externally (manual cancellation).
+ *
+ * `fetch` rejects with a DOMException named "AbortError", which is not an
+ * `instanceof Error`, so the check inspects the `name` rather than the type.
+ */
+export function isAbortError(error: unknown): boolean {
+  return (
+    error !== null &&
+    typeof error === "object" &&
+    (error as { name?: unknown }).name === "AbortError"
+  );
+}
+
 class ApiClient {
   private baseUrl: string;
 
@@ -64,21 +88,40 @@ class ApiClient {
    * failures (connection drop, DNS failure, timeout). Retries are skipped
    * for POST since a failed connection doesn't guarantee the server never
    * received the request, and POST is generally not idempotent.
+   *
+   * An optional external signal (typically an AbortController created by a
+   * hook's cleanup) cancels the in-flight request immediately. External
+   * aborts never retry and surface an AbortError so callers can ignore the
+   * result after unmounting.
    */
   private async fetchWithRetry(
     url: string,
     init: RequestInit,
-    retries: number
+    retries: number,
+    signal?: AbortSignal
   ): Promise<Response> {
     for (let attempt = 0; ; attempt++) {
+      if (signal?.aborted) {
+        throw createAbortError();
+      }
+
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+      const onExternalAbort = () => controller.abort();
+      signal?.addEventListener("abort", onExternalAbort);
 
       try {
-        const response = await fetch(url, { ...init, signal: controller.signal });
+        const response = await fetch(url, {
+          ...init,
+          signal: controller.signal,
+        });
         return response;
       } catch (error) {
-        const isTimeout = error instanceof DOMException && error.name === "AbortError";
+        if (signal?.aborted) {
+          throw createAbortError();
+        }
+
+        const isTimeout = isAbortError(error);
         const isNetworkError = error instanceof TypeError;
 
         if (!isTimeout && !isNetworkError) {
@@ -96,6 +139,7 @@ class ApiClient {
         await delay(RETRY_BASE_DELAY_MS * 2 ** attempt);
       } finally {
         clearTimeout(timeoutId);
+        signal?.removeEventListener("abort", onExternalAbort);
       }
     }
   }
@@ -105,12 +149,17 @@ class ApiClient {
     useErrorStore.getState().setError(error, isTransient);
   }
 
-  async get<T>(path: string, jwt?: string): Promise<ApiResponse<T>> {
+  async get<T>(
+    path: string,
+    jwt?: string,
+    signal?: AbortSignal
+  ): Promise<ApiResponse<T>> {
     try {
       const response = await this.fetchWithRetry(
         `${this.baseUrl}${path}`,
         { method: "GET", headers: this.getHeaders(jwt) },
-        2
+        2,
+        signal
       );
       return this.handleResponse<ApiResponse<T>>(response);
     } catch (error) {
@@ -124,7 +173,8 @@ class ApiClient {
   async post<T>(
     path: string,
     body: unknown,
-    jwt?: string
+    jwt?: string,
+    signal?: AbortSignal
   ): Promise<ApiResponse<T>> {
     try {
       const response = await this.fetchWithRetry(
@@ -134,7 +184,8 @@ class ApiClient {
           headers: this.getHeaders(jwt),
           body: JSON.stringify(body),
         },
-        0
+        0,
+        signal
       );
       return this.handleResponse<ApiResponse<T>>(response);
     } catch (error) {
@@ -148,7 +199,8 @@ class ApiClient {
   async put<T>(
     path: string,
     body: unknown,
-    jwt?: string
+    jwt?: string,
+    signal?: AbortSignal
   ): Promise<ApiResponse<T>> {
     try {
       const response = await this.fetchWithRetry(
@@ -158,7 +210,8 @@ class ApiClient {
           headers: this.getHeaders(jwt),
           body: JSON.stringify(body),
         },
-        2
+        2,
+        signal
       );
       return this.handleResponse<ApiResponse<T>>(response);
     } catch (error) {
@@ -169,12 +222,17 @@ class ApiClient {
     }
   }
 
-  async delete<T>(path: string, jwt?: string): Promise<ApiResponse<T>> {
+  async delete<T>(
+    path: string,
+    jwt?: string,
+    signal?: AbortSignal
+  ): Promise<ApiResponse<T>> {
     try {
       const response = await this.fetchWithRetry(
         `${this.baseUrl}${path}`,
         { method: "DELETE", headers: this.getHeaders(jwt) },
-        2
+        2,
+        signal
       );
       return this.handleResponse<ApiResponse<T>>(response);
     } catch (error) {

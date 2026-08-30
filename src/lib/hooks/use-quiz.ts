@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useAuthStore } from "@/store/auth-store";
 import { getQuiz } from "@/lib/api/quizzes";
+import { isAbortError } from "@/lib/api/client";
 import type { Quiz } from "@/types/quiz";
 
 export function useQuiz(courseId: string) {
@@ -16,13 +17,16 @@ export function useQuiz(courseId: string) {
       setLoading(false);
       return;
     }
+    const controller = new AbortController();
     setLoading(true);
-    getQuiz(courseId, jwt ?? undefined)
+    getQuiz(courseId, jwt ?? undefined, controller.signal)
       .then(setQuiz)
-      .catch((err) =>
-        setError(err instanceof Error ? err.message : "Failed to load quiz")
-      )
+      .catch((err) => {
+        if (isAbortError(err)) return;
+        setError(err instanceof Error ? err.message : "Failed to load quiz");
+      })
       .finally(() => setLoading(false));
+    return () => controller.abort();
   }, [courseId, jwt]);
 
   return {
