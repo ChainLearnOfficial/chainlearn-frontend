@@ -5,7 +5,18 @@ import { useErrorStore } from "@/store/error-store";
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
 
 const REQUEST_TIMEOUT_MS = 15000;
-const RETRY_BASE_DELAY_MS = 300;
+const RETRY_BASE_DELAY_MS = 1000;
+const MAX_RETRIES = 3;
+
+const CACHE_TTL_MS = 60_000;
+const CACHE_MAX_SIZE = 100;
+
+type CacheEntry = {
+  value: unknown;
+  expiresAt: number;
+};
+
+const responseCache = new Map<string, CacheEntry>();
 
 function delay(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -84,10 +95,11 @@ class ApiClient {
   }
 
   /**
-   * Runs fetch with a request timeout and retries on transient network
-   * failures (connection drop, DNS failure, timeout). Retries are skipped
-   * for POST since a failed connection doesn't guarantee the server never
-   * received the request, and POST is generally not idempotent.
+   * Runs fetch with a request timeout and retries on transient failures with
+   * exponential backoff (1s, 2s, 4s) up to `retries` attempts. GET retries on
+   * 5xx responses and network errors; 4xx responses are never retried.
+   * Mutations pass 0 retries since a failed connection doesn't guarantee the
+   * server never received the request, and writes are generally not idempotent.
    *
    * An optional external signal (typically an AbortController created by a
    * hook's cleanup) cancels the in-flight request immediately. External
@@ -115,7 +127,15 @@ class ApiClient {
           ...init,
           signal: controller.signal,
         });
-        return response;
+
+        if (response.status < 500 || attempt >= retries) {
+          return response;
+        }
+
+        console.warn(
+          `API request to ${url} returned ${response.status}; retrying (${attempt + 1}/${retries})`
+        );
+        await delay(RETRY_BASE_DELAY_MS * 2 ** attempt);
       } catch (error) {
         if (signal?.aborted) {
           throw createAbortError();
@@ -136,6 +156,9 @@ class ApiClient {
                 "NETWORK_ERROR"
               );
         }
+        console.warn(
+          `API request to ${url} failed; retrying (${attempt + 1}/${retries})`
+        );
         await delay(RETRY_BASE_DELAY_MS * 2 ** attempt);
       } finally {
         clearTimeout(timeoutId);
@@ -149,19 +172,62 @@ class ApiClient {
     useErrorStore.getState().setError(error, isTransient);
   }
 
+  private cacheKey(url: string, jwt?: string): string {
+    return jwt ? `${url}|${jwt}` : url;
+  }
+
+  private getCached<T>(key: string): T | undefined {
+    const entry = responseCache.get(key);
+    if (!entry) return undefined;
+    if (Date.now() > entry.expiresAt) {
+      responseCache.delete(key);
+      return undefined;
+    }
+    return entry.value as T;
+  }
+
+  private setCached<T>(key: string, value: T): void {
+    if (responseCache.size >= CACHE_MAX_SIZE) {
+      const oldest = responseCache.keys().next().value;
+      if (oldest !== undefined) {
+        responseCache.delete(oldest);
+      }
+    }
+    responseCache.set(key, { value, expiresAt: Date.now() + CACHE_TTL_MS });
+  }
+
+  private invalidateCache(): void {
+    responseCache.clear();
+  }
+
   async get<T>(
     path: string,
     jwt?: string,
-    signal?: AbortSignal
+    signal?: AbortSignal,
+    options?: { bypassCache?: boolean }
   ): Promise<ApiResponse<T>> {
+    const url = `${this.baseUrl}${path}`;
+    const key = this.cacheKey(url, jwt);
+
+    if (!options?.bypassCache) {
+      const cached = this.getCached<ApiResponse<T>>(key);
+      if (cached !== undefined) {
+        return cached;
+      }
+    }
+
     try {
       const response = await this.fetchWithRetry(
-        `${this.baseUrl}${path}`,
+        url,
         { method: "GET", headers: this.getHeaders(jwt) },
-        2,
+        MAX_RETRIES,
         signal
       );
-      return this.handleResponse<ApiResponse<T>>(response);
+      const data = await this.handleResponse<ApiResponse<T>>(response);
+      if (!options?.bypassCache) {
+        this.setCached(key, data);
+      }
+      return data;
     } catch (error) {
       if (error instanceof ApiError) {
         this.handleApiError(error);
@@ -187,7 +253,9 @@ class ApiClient {
         0,
         signal
       );
-      return this.handleResponse<ApiResponse<T>>(response);
+      const data = await this.handleResponse<ApiResponse<T>>(response);
+      this.invalidateCache();
+      return data;
     } catch (error) {
       if (error instanceof ApiError) {
         this.handleApiError(error);
@@ -210,10 +278,12 @@ class ApiClient {
           headers: this.getHeaders(jwt),
           body: JSON.stringify(body),
         },
-        2,
+        0,
         signal
       );
-      return this.handleResponse<ApiResponse<T>>(response);
+      const data = await this.handleResponse<ApiResponse<T>>(response);
+      this.invalidateCache();
+      return data;
     } catch (error) {
       if (error instanceof ApiError) {
         this.handleApiError(error);
@@ -231,10 +301,12 @@ class ApiClient {
       const response = await this.fetchWithRetry(
         `${this.baseUrl}${path}`,
         { method: "DELETE", headers: this.getHeaders(jwt) },
-        2,
+        0,
         signal
       );
-      return this.handleResponse<ApiResponse<T>>(response);
+      const data = await this.handleResponse<ApiResponse<T>>(response);
+      this.invalidateCache();
+      return data;
     } catch (error) {
       if (error instanceof ApiError) {
         this.handleApiError(error);
