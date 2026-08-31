@@ -130,3 +130,68 @@ describe("apiClient abort support", () => {
     expect(fetchMock).toHaveBeenCalledTimes(4); // initial + 3 retries
   });
 });
+
+function jsonResponse(body: unknown, status = 200): Response {
+  return {
+    ok: status >= 200 && status < 300,
+    status,
+    statusText: "OK",
+    json: async () => body,
+    text: async () => JSON.stringify(body),
+  } as unknown as Response;
+}
+
+describe("apiClient request deduplication", () => {
+  it("shares one in-flight request across concurrent callers", async () => {
+    let resolveFetch!: (r: Response) => void;
+    fetchMock.mockImplementation(
+      () => new Promise<Response>((resolve) => { resolveFetch = resolve; })
+    );
+
+    const a = apiClient.get("/dedupe/a");
+    const b = apiClient.get("/dedupe/a");
+    resolveFetch(jsonResponse({ data: "shared" }));
+
+    await expect(a).resolves.toEqual({ data: "shared" });
+    await expect(b).resolves.toEqual({ data: "shared" });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not share requests for different URLs", async () => {
+    fetchMock.mockResolvedValue(jsonResponse({ data: "x" }));
+
+    await Promise.all([
+      apiClient.get("/dedupe/b"),
+      apiClient.get("/dedupe/c"),
+    ]);
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("issues a fresh request once the shared one has completed", async () => {
+    fetchMock.mockResolvedValue(jsonResponse({ data: "y" }));
+
+    await apiClient.get("/dedupe/d", undefined, undefined, { bypassCache: true });
+    await apiClient.get("/dedupe/d", undefined, undefined, { bypassCache: true });
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("keeps the shared request alive when one of several callers aborts", async () => {
+    let resolveFetch!: (r: Response) => void;
+    fetchMock.mockImplementation(
+      () => new Promise<Response>((resolve) => { resolveFetch = resolve; })
+    );
+
+    const controller = new AbortController();
+    const aborted = apiClient.get("/dedupe/e", undefined, controller.signal);
+    const kept = apiClient.get("/dedupe/e");
+
+    controller.abort();
+    await expect(aborted).rejects.toMatchObject({ name: "AbortError" });
+
+    resolveFetch(jsonResponse({ data: "still-here" }));
+    await expect(kept).resolves.toEqual({ data: "still-here" });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+});

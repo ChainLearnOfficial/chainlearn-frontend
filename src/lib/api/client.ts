@@ -18,8 +18,49 @@ type CacheEntry = {
 
 const responseCache = new Map<string, CacheEntry>();
 
+/**
+ * In-flight GET requests keyed by cache key. Concurrent callers asking for the
+ * same resource share one network request (and its retries) instead of each
+ * firing their own. The shared request is owned by an internal AbortController
+ * that is aborted only once every caller has detached, so no single consumer
+ * unmounting can cancel a request others are still waiting on.
+ */
+type InFlightEntry = {
+  promise: Promise<unknown>;
+  controller: AbortController;
+  refs: number;
+  settled: boolean;
+};
+
+const inFlightGets = new Map<string, InFlightEntry>();
+
 function delay(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/**
+ * Rejects with an AbortError as soon as `signal` fires, otherwise settles with
+ * `promise`. Lets a caller stop awaiting a shared request without cancelling
+ * the underlying request for other callers.
+ */
+function withAbort<T>(promise: Promise<T>, signal?: AbortSignal): Promise<T> {
+  if (!signal) return promise;
+  if (signal.aborted) return Promise.reject(createAbortError());
+  return new Promise<T>((resolve, reject) => {
+    const onAbort = () => reject(createAbortError());
+    signal.addEventListener("abort", onAbort, { once: true });
+    const cleanup = () => signal.removeEventListener("abort", onAbort);
+    promise.then(
+      (value) => {
+        cleanup();
+        resolve(value);
+      },
+      (error) => {
+        cleanup();
+        reject(error);
+      }
+    );
+  });
 }
 
 /**
@@ -198,6 +239,9 @@ class ApiClient {
 
   private invalidateCache(): void {
     responseCache.clear();
+    // Stop new callers from joining requests that started before this
+    // mutation; those already in flight still resolve for their awaiters.
+    inFlightGets.clear();
   }
 
   async get<T>(
@@ -216,6 +260,55 @@ class ApiClient {
       }
     }
 
+    if (signal?.aborted) {
+      throw createAbortError();
+    }
+
+    // A `bypassCache` read is deliberately never shared: the caller wants its
+    // own fresh round-trip and owns cancellation directly.
+    if (options?.bypassCache) {
+      return this.executeGet<T>(url, key, jwt, true, signal);
+    }
+
+    let entry = inFlightGets.get(key);
+    if (!entry) {
+      const controller = new AbortController();
+      const created: InFlightEntry = {
+        controller,
+        refs: 0,
+        settled: false,
+        promise: this.executeGet<T>(url, key, jwt, false, controller.signal),
+      };
+      const settle = () => {
+        created.settled = true;
+        if (inFlightGets.get(key) === created) {
+          inFlightGets.delete(key);
+        }
+      };
+      created.promise.then(settle, settle);
+      inFlightGets.set(key, created);
+      entry = created;
+    }
+
+    entry.refs++;
+    try {
+      return (await withAbort(entry.promise, signal)) as ApiResponse<T>;
+    } finally {
+      entry.refs--;
+      // Last caller gone before the request finished — cancel it for real.
+      if (entry.refs <= 0 && !entry.settled) {
+        entry.controller.abort();
+      }
+    }
+  }
+
+  private async executeGet<T>(
+    url: string,
+    key: string,
+    jwt: string | undefined,
+    bypassCache: boolean,
+    signal?: AbortSignal
+  ): Promise<ApiResponse<T>> {
     try {
       const response = await this.fetchWithRetry(
         url,
@@ -224,7 +317,7 @@ class ApiClient {
         signal
       );
       const data = await this.handleResponse<ApiResponse<T>>(response);
-      if (!options?.bypassCache) {
+      if (!bypassCache) {
         this.setCached(key, data);
       }
       return data;
