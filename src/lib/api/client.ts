@@ -87,11 +87,74 @@ export function isAbortError(error: unknown): boolean {
   );
 }
 
+export type ResponseInterceptor = {
+  /**
+   * Pre-processing interceptor running before `handleResponse`.
+   * Can inspect or transform the raw fetch `Response`.
+   */
+  onResponse?: (response: Response) => Response | Promise<Response>;
+  /**
+   * Post-processing interceptor running after `handleResponse`.
+   * Can inspect or transform the parsed response data.
+   */
+  onSuccess?: <T>(data: ApiResponse<T>) => ApiResponse<T> | Promise<ApiResponse<T>>;
+  /**
+   * Error interceptor running whenever an error is encountered during a request.
+   * Can be used for global error logging or analytics events.
+   */
+  onError?: (error: unknown) => void | Promise<void>;
+};
+
 class ApiClient {
   private baseUrl: string;
+  private responseInterceptors: ResponseInterceptor[] = [];
 
   constructor(baseUrl: string) {
     this.baseUrl = baseUrl;
+  }
+
+  /**
+   * Register a response interceptor for pre-processing, post-processing,
+   * error logging, or analytics. Returns an unsubscribe function to remove the interceptor.
+   */
+  addResponseInterceptor(interceptor: ResponseInterceptor): () => void {
+    this.responseInterceptors.push(interceptor);
+    return () => {
+      this.responseInterceptors = this.responseInterceptors.filter(
+        (entry) => entry !== interceptor
+      );
+    };
+  }
+
+  private async processResponse<T>(response: Response): Promise<ApiResponse<T>> {
+    let currentResponse = response;
+    for (const interceptor of this.responseInterceptors) {
+      if (interceptor.onResponse) {
+        currentResponse = await interceptor.onResponse(currentResponse);
+      }
+    }
+
+    let data = await this.handleResponse<ApiResponse<T>>(currentResponse);
+
+    for (const interceptor of this.responseInterceptors) {
+      if (interceptor.onSuccess) {
+        data = await interceptor.onSuccess(data);
+      }
+    }
+
+    return data;
+  }
+
+  private async notifyErrorInterceptors(error: unknown): Promise<void> {
+    for (const interceptor of this.responseInterceptors) {
+      if (interceptor.onError) {
+        try {
+          await interceptor.onError(error);
+        } catch {
+          // Prevent interceptor failure from hiding underlying request error
+        }
+      }
+    }
   }
 
   private getHeaders(jwt?: string): HeadersInit {
@@ -319,12 +382,13 @@ class ApiClient {
         signal,
         timeout
       );
-      const data = await this.handleResponse<ApiResponse<T>>(response);
+      const data = await this.processResponse<T>(response);
       if (!bypassCache) {
         this.setCached(key, data);
       }
       return data;
     } catch (error) {
+      await this.notifyErrorInterceptors(error);
       if (error instanceof ApiError) {
         this.handleApiError(error);
       }
@@ -351,10 +415,11 @@ class ApiClient {
         signal,
         timeout
       );
-      const data = await this.handleResponse<ApiResponse<T>>(response);
+      const data = await this.processResponse<T>(response);
       this.invalidateCache();
       return data;
     } catch (error) {
+      await this.notifyErrorInterceptors(error);
       if (error instanceof ApiError) {
         this.handleApiError(error);
       }
@@ -381,10 +446,11 @@ class ApiClient {
         signal,
         timeout
       );
-      const data = await this.handleResponse<ApiResponse<T>>(response);
+      const data = await this.processResponse<T>(response);
       this.invalidateCache();
       return data;
     } catch (error) {
+      await this.notifyErrorInterceptors(error);
       if (error instanceof ApiError) {
         this.handleApiError(error);
       }
@@ -406,16 +472,49 @@ class ApiClient {
         signal,
         timeout
       );
-      const data = await this.handleResponse<ApiResponse<T>>(response);
+      const data = await this.processResponse<T>(response);
       this.invalidateCache();
       return data;
     } catch (error) {
+      await this.notifyErrorInterceptors(error);
       if (error instanceof ApiError) {
         this.handleApiError(error);
       }
       throw error;
     }
   }
+}
+
+/**
+ * Creates an error logging interceptor for ApiClient.
+ */
+export function createLoggingInterceptor(
+  logFn: (message: string, ...args: unknown[]) => void = console.error
+): ResponseInterceptor {
+  return {
+    onError: (error) => {
+      logFn("[ApiClient Error Interceptor]:", error);
+    },
+  };
+}
+
+/**
+ * Creates an analytics event interceptor for ApiClient.
+ */
+export function createAnalyticsInterceptor(
+  trackEvent: (eventName: string, metadata?: Record<string, unknown>) => void
+): ResponseInterceptor {
+  return {
+    onSuccess: (data) => {
+      trackEvent("api_response_success", { success: (data as { success?: boolean })?.success });
+      return data;
+    },
+    onError: (error) => {
+      trackEvent("api_response_error", {
+        error: error instanceof Error ? error.message : String(error),
+      });
+    },
+  };
 }
 
 export const apiClient = new ApiClient(BASE_URL);
