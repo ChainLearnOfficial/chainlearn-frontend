@@ -195,3 +195,57 @@ describe("apiClient request deduplication", () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 });
+
+describe("apiClient response interceptors", () => {
+  it("runs onResponse and onSuccess and can transform responses", async () => {
+    fetchMock.mockResolvedValue(jsonResponse({ success: true, data: { value: 10 } }));
+
+    const remove = apiClient.addResponseInterceptor({
+      onSuccess: async (res) => {
+        return {
+          ...res,
+          data: { ...(res.data as { value: number }), transformed: true },
+        };
+      },
+    });
+
+    try {
+      const result = await apiClient.get<{ value: number; transformed?: boolean }>(
+        "/interceptor-test",
+        undefined,
+        undefined,
+        { bypassCache: true }
+      );
+      expect((result.data as { transformed?: boolean }).transformed).toBe(true);
+    } finally {
+      remove();
+    }
+  });
+
+  it("calls onError interceptor on request failure for error logging", async () => {
+    fetchMock.mockResolvedValue({
+      ok: false,
+      status: 500,
+      statusText: "Internal Server Error",
+      json: async () => ({ message: "Server error" }),
+      text: async () => JSON.stringify({ message: "Server error" }),
+    } as unknown as Response);
+
+    const loggedErrors: unknown[] = [];
+    const remove = apiClient.addResponseInterceptor({
+      onError: (err) => {
+        loggedErrors.push(err);
+      },
+    });
+
+    try {
+      await expect(
+        apiClient.get("/error-test", undefined, undefined, { bypassCache: true })
+      ).rejects.toThrow();
+      expect(loggedErrors.length).toBeGreaterThan(0);
+    } finally {
+      remove();
+    }
+  });
+});
+

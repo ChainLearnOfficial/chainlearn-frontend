@@ -10,6 +10,18 @@ export interface PaginatedResponse<T> {
   page: number;
   pageSize: number;
   hasMore: boolean;
+  nextCursor?: string | null;
+}
+
+export interface UserSession {
+  id: string;
+  device: string;
+  browser?: string;
+  os?: string;
+  ipAddress?: string;
+  lastActive: string;
+  createdAt: string;
+  isCurrent?: boolean;
 }
 
 export class ApiError extends Error {

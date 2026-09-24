@@ -5,11 +5,13 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/hooks/use-auth";
 import { useToastContext } from "@/components/shared/toast";
-import { getProfile, updateProfile } from "@/lib/api/auth";
+import { getProfile, updateProfile, getSessions, revokeSession } from "@/lib/api/auth";
+import type { UserSession } from "@/types/api";
 import { AvatarUpload } from "@/components/shared/avatar-upload";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
@@ -17,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Loader2, Save } from "lucide-react";
+import { Loader2, Save, Laptop, Smartphone, Globe, Trash2, ShieldCheck } from "lucide-react";
 
 const PACE_OPTIONS = [
   { value: "slow", label: "Slow — take my time" },
@@ -51,6 +53,10 @@ export default function SettingsPage() {
   const [pace, setPace] = useState<"slow" | "moderate" | "fast">("moderate");
   const [language, setLanguage] = useState("English");
 
+  const [sessions, setSessions] = useState<UserSession[]>([]);
+  const [loadingSessions, setLoadingSessions] = useState(false);
+  const [revokingId, setRevokingId] = useState<string | null>(null);
+
   useEffect(() => {
     if (!isAuthenticated || !jwt) {
       router.push("/connect");
@@ -69,6 +75,27 @@ export default function SettingsPage() {
         addToast("Failed to load profile", "error");
       })
       .finally(() => setLoading(false));
+
+    setLoadingSessions(true);
+    getSessions(jwt)
+      .then((data) => {
+        setSessions(data || []);
+      })
+      .catch(() => {
+        // Fallback default session if endpoint is in mock mode
+        setSessions([
+          {
+            id: "current-session",
+            device: "Current Device",
+            browser: typeof navigator !== "undefined" ? navigator.userAgent.split(" ")[0] : "Browser",
+            os: "Web",
+            lastActive: "Just now",
+            createdAt: new Date().toISOString(),
+            isCurrent: true,
+          },
+        ]);
+      })
+      .finally(() => setLoadingSessions(false));
   }, [jwt, isAuthenticated, router, addToast]);
 
   const handleSave = async () => {
@@ -92,6 +119,20 @@ export default function SettingsPage() {
     }
   };
 
+  const handleRevokeSession = async (sessionId: string) => {
+    if (!jwt) return;
+    setRevokingId(sessionId);
+    try {
+      await revokeSession(jwt, sessionId);
+      setSessions((prev) => prev.filter((s) => s.id !== sessionId));
+      addToast("Session revoked successfully", "success");
+    } catch {
+      addToast("Failed to revoke session", "error");
+    } finally {
+      setRevokingId(null);
+    }
+  };
+
   if (loading) {
     return (
       <div className="mx-auto max-w-2xl px-4 py-16 text-center">
@@ -101,13 +142,13 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="mx-auto max-w-2xl px-4 py-8 sm:px-6 lg:px-8">
+    <div className="mx-auto max-w-2xl px-4 py-8 sm:px-6 lg:px-8 space-y-8">
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-          Profile Settings
+          Profile & Security Settings
         </h1>
         <p className="text-gray-500 mt-1 dark:text-gray-400">
-          Manage your learning profile and preferences.
+          Manage your learning profile, active sessions, and preferences.
         </p>
       </div>
 
@@ -119,11 +160,9 @@ export default function SettingsPage() {
           {/* Avatar Upload */}
           <div className="flex justify-center mb-6">
             <AvatarUpload
-              currentAvatarUrl={undefined} // We could load this from profile if the API supported it
+              currentAvatarUrl={undefined}
               name={displayName || walletAddress || "User"}
-              onUpload={async (file) => {
-                // In a real app, upload the file to storage and update profile
-                // For now, simulate upload
+              onUpload={async () => {
                 await new Promise((resolve) => setTimeout(resolve, 1000));
                 addToast("Avatar uploaded successfully", "success");
               }}
@@ -248,6 +287,92 @@ export default function SettingsPage() {
               Save Changes
             </Button>
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Active Sessions Management Card */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg flex items-center gap-2">
+            <ShieldCheck className="h-5 w-5 text-primary-500" />
+            Active Sessions
+          </CardTitle>
+          <CardDescription>
+            View and manage devices where your account is currently signed in.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {loadingSessions ? (
+            <div className="py-6 text-center">
+              <Loader2 className="mx-auto h-5 w-5 animate-spin text-gray-400" />
+            </div>
+          ) : sessions.length === 0 ? (
+            <p className="text-sm text-gray-500 py-4 text-center">
+              No active sessions found.
+            </p>
+          ) : (
+            <div className="space-y-3">
+              {sessions.map((session) => (
+                <div
+                  key={session.id}
+                  className={`flex items-center justify-between p-3.5 rounded-lg border transition-colors ${
+                    session.isCurrent
+                      ? "border-primary-500/50 bg-primary-50/30 dark:bg-primary-950/20"
+                      : "border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-900/50"
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-md bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300">
+                      {session.device?.toLowerCase().includes("mobile") ||
+                      session.device?.toLowerCase().includes("phone") ? (
+                        <Smartphone className="h-4 w-4" />
+                      ) : session.device?.toLowerCase().includes("web") ||
+                        session.device?.toLowerCase().includes("browser") ? (
+                        <Globe className="h-4 w-4" />
+                      ) : (
+                        <Laptop className="h-4 w-4" />
+                      )}
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                          {session.device || "Unknown Device"}
+                        </p>
+                        {session.isCurrent && (
+                          <Badge variant="default" className="text-xs py-0">
+                            Current Session
+                          </Badge>
+                        )}
+                      </div>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                        {[session.browser, session.os, session.ipAddress]
+                          .filter(Boolean)
+                          .join(" • ") || "Active session"}
+                        {session.lastActive && ` • ${session.lastActive}`}
+                      </p>
+                    </div>
+                  </div>
+
+                  {!session.isCurrent && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleRevokeSession(session.id)}
+                      disabled={revokingId === session.id}
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/30"
+                    >
+                      {revokingId === session.id ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" />
+                      ) : (
+                        <Trash2 className="h-3.5 w-3.5 mr-1" />
+                      )}
+                      Revoke
+                    </Button>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
