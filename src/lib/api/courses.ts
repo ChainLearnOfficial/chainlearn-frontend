@@ -2,23 +2,29 @@ import { apiClient } from "./client";
 import type { PaginatedResponse } from "@/types/api";
 import type { Course, CourseEnrollment, Module, RecommendedCourse } from "@/types/course";
 
+export interface GetCoursesParams {
+  category?: string;
+  difficulty?: string;
+  page?: number;
+  limit?: number;
+  pageSize?: number;
+  cursor?: string;
+}
+
 /**
- * Fetch the course catalog with optional filters.
+ * Fetch the course catalog with optional filters and pagination parameters.
  */
 export async function getCourses(
-  params?: {
-    category?: string;
-    difficulty?: string;
-    page?: number;
-    pageSize?: number;
-  },
+  params?: GetCoursesParams,
   signal?: AbortSignal
 ): Promise<PaginatedResponse<Course>> {
   const searchParams = new URLSearchParams();
   if (params?.category) searchParams.set("category", params.category);
   if (params?.difficulty) searchParams.set("difficulty", params.difficulty);
-  if (params?.page) searchParams.set("page", String(params.page));
-  if (params?.pageSize) searchParams.set("pageSize", String(params.pageSize));
+  if (params?.page !== undefined) searchParams.set("page", String(params.page));
+  if (params?.limit !== undefined) searchParams.set("limit", String(params.limit));
+  if (params?.pageSize !== undefined) searchParams.set("pageSize", String(params.pageSize));
+  if (params?.cursor) searchParams.set("cursor", params.cursor);
 
   const query = searchParams.toString();
   const response = await apiClient.get<PaginatedResponse<Course>>(

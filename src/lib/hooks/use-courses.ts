@@ -266,6 +266,7 @@ export function useInfiniteCourses(filters: {
             category: category === "All" ? undefined : category,
             difficulty: difficulty === "All" ? undefined : difficulty,
             page: nextPage,
+            limit: INFINITE_PAGE_SIZE,
             pageSize: INFINITE_PAGE_SIZE,
           },
           controller.signal
