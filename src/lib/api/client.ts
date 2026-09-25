@@ -88,6 +88,12 @@ export function isAbortError(error: unknown): boolean {
   );
 }
 
+/**
+ * ResponseInterceptor (#314):
+ * - onResponse: pre-processing before handleResponse (transform raw Response)
+ * - onSuccess: post-processing after handleResponse (transform parsed data)
+ * - onError: error handler for logging/analytics
+ */
 export type ResponseInterceptor = {
   /**
    * Pre-processing interceptor running before `handleResponse`.
@@ -115,8 +121,9 @@ class ApiClient {
   }
 
   /**
-   * Register a response interceptor for pre-processing, post-processing,
-   * error logging, or analytics. Returns an unsubscribe function to remove the interceptor.
+   * Register a response interceptor (#314).
+   * Runs onResponse/onSuccess for every response, onError for every error.
+   * Returns unsubscribe function.
    */
   addResponseInterceptor(interceptor: ResponseInterceptor): () => void {
     this.responseInterceptors.push(interceptor);
@@ -127,6 +134,11 @@ class ApiClient {
     };
   }
 
+  /**
+   * Process response through interceptors (#314).
+   * Runs onResponse interceptors (pre-processing) then handleResponse,
+   * then onSuccess interceptors (post-processing).
+   */
   private async processResponse<T>(response: Response): Promise<ApiResponse<T>> {
     let currentResponse = response;
     for (const interceptor of this.responseInterceptors) {
@@ -146,6 +158,11 @@ class ApiClient {
     return data;
   }
 
+  /**
+   * Notify error interceptors (#314).
+   * Calls onError for each registered interceptor, catching failures
+   * to prevent hiding the original request error.
+   */
   private async notifyErrorInterceptors(error: unknown): Promise<void> {
     for (const interceptor of this.responseInterceptors) {
       if (interceptor.onError) {
@@ -383,12 +400,14 @@ class ApiClient {
         signal,
         timeout
       );
+      // #314: run response interceptors (onResponse -> handleResponse -> onSuccess)
       const data = await this.processResponse<T>(response);
       if (!bypassCache) {
         this.setCached(key, data);
       }
       return data;
     } catch (error) {
+      // #314: notify error interceptors (onError)
       await this.notifyErrorInterceptors(error);
       if (error instanceof ApiError) {
         this.handleApiError(error);
@@ -416,6 +435,7 @@ class ApiClient {
         signal,
         timeout
       );
+      // #314: run response interceptors (onResponse -> handleResponse -> onSuccess)
       const data = await this.processResponse<T>(response);
       this.invalidateCache();
       return data;
