@@ -21,8 +21,8 @@ export function RouteError({ error, reset }: RouteErrorProps) {
       aria-live="polite"
       aria-atomic="true"
     >
-      <div className="flex h-16 w-16 items-center justify-center rounded-full bg-red-100 mb-4 animate-shake">
-        <AlertTriangle className="h-8 w-8 text-red-500" />
+      <div className="flex h-16 w-16 items-center justify-center rounded-full bg-error-100 mb-4 animate-shake">
+        <AlertTriangle className="h-8 w-8 text-error-500" />
       </div>
       <h2 className="text-lg font-semibold text-gray-900 mb-2">
         Something went wrong
