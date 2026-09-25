@@ -249,3 +249,74 @@ describe("apiClient response interceptors", () => {
   });
 });
 
+// ── Issue #312: LRU + per-call TTL + cached-response cloning ─────────────────
+
+describe("apiClient cache behaviour (issue #312)", () => {
+  it("returns a structured clone on a cache hit so callers cannot mutate cached state", async () => {
+    // Populate the cache with a single value.
+    fetchMock.mockResolvedValueOnce(jsonResponse({ data: { count: 1, tags: ["a"] } }));
+    const first = await apiClient.get<{ count: number; tags: string[] }>("/clone");
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+
+    // Mutate the value the caller was handed back. Without deep cloning on
+    // hit, the mutation would poison the cached entry.
+    (first as { data: { count: number; tags: string[] } }).data.count = 999;
+    (first as { data: { count: number; tags: string[] } }).data.tags.push("mutated");
+
+    // Second call must not hit the network AND must not observe the caller's
+    // mutations.
+    const second = await apiClient.get<{ count: number; tags: string[] }>("/clone");
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(second).toEqual({ data: { count: 1, tags: ["a"] } });
+  });
+
+  it("respects a per-call ttl override so a caller can shorten the window", async () => {
+    vi.useFakeTimers();
+
+    fetchMock.mockResolvedValueOnce(jsonResponse({ data: "fresh" }));
+    await apiClient.get("/ttl", undefined, undefined, { ttl: 500 });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+
+    // Inside the 500 ms window: cache hit, no network.
+    vi.setSystemTime(new Date(Date.now() + 100));
+    await apiClient.get("/ttl");
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+
+    // Past the 500 ms window: cache miss, refetch. Second network call fires.
+    vi.setSystemTime(new Date(Date.now() + 500));
+    fetchMock.mockResolvedValueOnce(jsonResponse({ data: "refetched" }));
+    await apiClient.get("/ttl");
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("evicts the least recently used entry once the cache is full", async () => {
+    // Fill the cache to its 100-entry cap, then verify the eviction order
+    // depends on read recency, not insertion order.
+    for (let i = 0; i < 100; i++) {
+      fetchMock.mockResolvedValueOnce(jsonResponse({ data: i }));
+      await apiClient.get(`/lru/${i}`);
+    }
+    expect(fetchMock).toHaveBeenCalledTimes(100);
+
+    // Read the very first entry so its recency is now the newest. In a
+    // pure-FIFO cache this would still be first-out; in true LRU it survives.
+    await apiClient.get("/lru/0");
+    expect(fetchMock).toHaveBeenCalledTimes(100);
+
+    // Insert a 101st entry, which forces one eviction.
+    fetchMock.mockResolvedValueOnce(jsonResponse({ data: 100 }));
+    await apiClient.get("/lru/100");
+    expect(fetchMock).toHaveBeenCalledTimes(101);
+
+    // /lru/0 was re-inserted before the eviction, so it should still hit.
+    // /lru/1 was the second-oldest and never touched again, so it should be
+    // the one that got evicted and now needs a network refetch.
+    await apiClient.get("/lru/0");
+    expect(fetchMock).toHaveBeenCalledTimes(101);
+
+    fetchMock.mockResolvedValueOnce(jsonResponse({ data: 1 }));
+    await apiClient.get("/lru/1");
+    expect(fetchMock).toHaveBeenCalledTimes(102);
+  });
+});
+

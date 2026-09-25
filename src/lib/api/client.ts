@@ -309,6 +309,18 @@ class ApiClient {
     return jwt ? `${url}|${jwt}` : url;
   }
 
+  /**
+   * Read a cached entry, returning `undefined` if absent or expired.
+   *
+   * Issue #312 semantics:
+   * - On a hit, the entry is re-inserted into the Map so its key moves to the
+   *   tail of iteration order. That converts the FIFO eviction below into
+   *   true LRU: a hot entry that is read frequently drifts to the back and
+   *   survives, a cold entry sits at the head and is evicted first.
+   * - The value is `structuredClone`-d before it is handed out so callers
+   *   cannot mutate cached state. Without this, a component that mutates
+   *   its API response corrupts every subsequent cache hit for the same key.
+   */
   private getCached<T>(key: string): T | undefined {
     const entry = responseCache.get(key);
     if (!entry) return undefined;
@@ -316,17 +328,36 @@ class ApiClient {
       responseCache.delete(key);
       return undefined;
     }
-    return entry.value as T;
+    // Re-insert to bump recency (LRU).
+    responseCache.delete(key);
+    responseCache.set(key, entry);
+    return structuredClone(entry.value) as T;
   }
 
-  private setCached<T>(key: string, value: T): void {
+  /**
+   * Store a value in the cache with a specific TTL. The default TTL
+   * (`CACHE_TTL_MS`) applies when the caller does not override, matching
+   * pre-#312 behaviour for existing callers.
+   *
+   * The value is `structuredClone`-d on the way in so the cache owns a
+   * private snapshot. Combined with the clone on read (`getCached`), this
+   * means neither the initial fetcher nor any later cache-hit consumer can
+   * mutate cached state.
+   */
+  private setCached<T>(key: string, value: T, ttlMs?: number): void {
     if (responseCache.size >= CACHE_MAX_SIZE) {
+      // The oldest key by insertion order is now the least recently *used*,
+      // since `getCached` re-inserts on hit (see LRU note above).
       const oldest = responseCache.keys().next().value;
       if (oldest !== undefined) {
         responseCache.delete(oldest);
       }
     }
-    responseCache.set(key, { value, expiresAt: Date.now() + CACHE_TTL_MS });
+    const effectiveTtl = ttlMs ?? CACHE_TTL_MS;
+    responseCache.set(key, {
+      value: structuredClone(value),
+      expiresAt: Date.now() + effectiveTtl,
+    });
   }
 
   private invalidateCache(): void {
@@ -340,7 +371,7 @@ class ApiClient {
     path: string,
     jwt?: string,
     signal?: AbortSignal,
-    options?: { bypassCache?: boolean; timeout?: number }
+    options?: { bypassCache?: boolean; timeout?: number; ttl?: number }
   ): Promise<ApiResponse<T>> {
     const url = `${this.baseUrl}${path}`;
     const key = this.cacheKey(url, jwt);
@@ -359,7 +390,7 @@ class ApiClient {
     // A `bypassCache` read is deliberately never shared: the caller wants its
     // own fresh round-trip and owns cancellation directly.
     if (options?.bypassCache) {
-      return this.executeGet<T>(url, key, jwt, true, signal, options?.timeout);
+      return this.executeGet<T>(url, key, jwt, true, signal, options?.timeout, options?.ttl);
     }
 
     let entry = inFlightGets.get(key);
@@ -369,7 +400,15 @@ class ApiClient {
         controller,
         refs: 0,
         settled: false,
-        promise: this.executeGet<T>(url, key, jwt, false, controller.signal, options?.timeout),
+        promise: this.executeGet<T>(
+          url,
+          key,
+          jwt,
+          false,
+          controller.signal,
+          options?.timeout,
+          options?.ttl,
+        ),
       };
       const settle = () => {
         created.settled = true;
@@ -405,7 +444,8 @@ class ApiClient {
     jwt: string | undefined,
     bypassCache: boolean,
     signal?: AbortSignal,
-    timeout?: number
+    timeout?: number,
+    ttl?: number,
   ): Promise<ApiResponse<T>> {
     try {
       const response = await this.fetchWithRetry(
@@ -418,7 +458,9 @@ class ApiClient {
       // #314: run response interceptors (onResponse -> handleResponse -> onSuccess)
       const data = await this.processResponse<T>(response);
       if (!bypassCache) {
-        this.setCached(key, data);
+        // Issue #312: honour a caller-supplied TTL so pages that want a
+        // longer or shorter cache window than the default can opt in.
+        this.setCached(key, data, ttl);
       }
       return data;
     } catch (error) {
