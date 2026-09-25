@@ -1,4 +1,25 @@
 import { apiClient } from "./client";
+import { ApiError } from "@/types/api";
+import type { CredentialNFT } from "@/types/stellar";
+
+/** Reason a public credential verification did not succeed (issue #309). */
+export type VerifyCredentialError = "not_found" | "invalid";
+
+/**
+ * Public credential verification result. `valid` is the authoritative
+ * yes/no; on success `credential` and `verifiedAt` are populated, on
+ * failure `error` names the reason.
+ *
+ * Kept as an object with optional fields (rather than a strict discriminated
+ * union) so callers already reading `result.credential?.metadata` compile
+ * with just a `?.` change.
+ */
+export interface VerifyCredentialResult {
+  valid: boolean;
+  credential?: CredentialNFT;
+  verifiedAt?: string;
+  error?: VerifyCredentialError;
+}
 import { getValidToken } from "./auth";
 import type { CredentialNFT, CredentialMetadata } from "@/types/stellar";
 
@@ -37,21 +58,32 @@ export async function getCredential(
 
 /**
  * Verify a credential publicly (no auth required).
+ *
+ * Calls `GET /credentials/verify/:id` and returns a typed
+ * `VerifyCredentialResult`. A 404 for a nonexistent credential is folded
+ * into `{ valid: false, error: "not_found" }` so callers do not have to
+ * distinguish "the server said this credential is invalid" from "the
+ * server has no record of it" via exception handling (issue #309).
+ * Other statuses (5xx, network) still throw so callers can render a
+ * retryable state.
  */
 export async function verifyCredential(
   credentialId: string,
   signal?: AbortSignal
-): Promise<{
-  valid: boolean;
-  metadata: CredentialMetadata;
-  verifiedAt: string;
-}> {
-  const response = await apiClient.get<{
-    valid: boolean;
-    metadata: CredentialMetadata;
-    verifiedAt: string;
-  }>(`/credentials/${credentialId}/verify`, undefined, signal);
-  return response.data;
+): Promise<VerifyCredentialResult> {
+  try {
+    const response = await apiClient.get<VerifyCredentialResult>(
+      `/credentials/verify/${credentialId}`,
+      undefined,
+      signal
+    );
+    return response.data;
+  } catch (err) {
+    if (err instanceof ApiError && err.status === 404) {
+      return { valid: false, error: "not_found" };
+    }
+    throw err;
+  }
 }
 
 /**
