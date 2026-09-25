@@ -9,6 +9,11 @@ import { isFreighterInstalled } from "@/lib/stellar/wallet";
 import { useEffect, useState } from "react";
 import { useToastContext } from "@/components/shared/toast";
 
+/**
+ * ConnectPage component handles the Freighter wallet connection flow.
+ * Checks for Freighter installation, initiates connection, signs a challenge,
+ * and redirects to onboarding or dashboard upon success.
+ */
 export default function ConnectPage() {
   const router = useRouter();
   const { isAuthenticated, isConnecting, connectWallet, error } = useAuth();
