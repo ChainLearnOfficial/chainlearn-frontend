@@ -440,6 +440,7 @@ class ApiClient {
       this.invalidateCache();
       return data;
     } catch (error) {
+      // #314: notify error interceptors (onError)
       await this.notifyErrorInterceptors(error);
       if (error instanceof ApiError) {
         this.handleApiError(error);
@@ -467,10 +468,12 @@ class ApiClient {
         signal,
         timeout
       );
+      // #314: run response interceptors (onResponse -> handleResponse -> onSuccess)
       const data = await this.processResponse<T>(response);
       this.invalidateCache();
       return data;
     } catch (error) {
+      // #314: notify error interceptors (onError)
       await this.notifyErrorInterceptors(error);
       if (error instanceof ApiError) {
         this.handleApiError(error);
@@ -493,10 +496,12 @@ class ApiClient {
         signal,
         timeout
       );
+      // #314: run response interceptors (onResponse -> handleResponse -> onSuccess)
       const data = await this.processResponse<T>(response);
       this.invalidateCache();
       return data;
     } catch (error) {
+      // #314: notify error interceptors (onError)
       await this.notifyErrorInterceptors(error);
       if (error instanceof ApiError) {
         this.handleApiError(error);
