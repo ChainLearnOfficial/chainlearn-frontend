@@ -30,6 +30,33 @@ export async function getQuiz(
 }
 
 /**
+ * Generate a quiz for a module via the AI service.
+ * 
+ * @param moduleId - The module ID to generate the quiz for
+ * @param jwt - JWT token for authenticated user
+ * @param signal - Optional AbortSignal for request cancellation
+ * @returns Generated Quiz with questions
+ * 
+ * @throws {ApiError} When the request fails
+ * @throws {Error} When user is not authenticated
+ */
+export async function generateQuiz(
+  moduleId: string,
+  jwt: string,
+  signal?: AbortSignal
+): Promise<Quiz> {
+  const validToken = await getValidToken();
+  const token = validToken || jwt;
+  const response = await apiClient.post<Quiz>(
+    "/quizzes/generate",
+    { moduleId },
+    token,
+    signal
+  );
+  return response.data;
+}
+
+/**
  * Submit quiz answers and receive a score with feedback.
  * 
  * @param submission - Quiz submission with answers
