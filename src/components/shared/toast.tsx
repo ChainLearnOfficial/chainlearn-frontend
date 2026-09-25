@@ -131,7 +131,7 @@ export function Toast({
       onPointerCancel={handlePointerUp}
       className={cn(
         "fixed right-4 z-[100] flex flex-col gap-0 rounded-lg border shadow-lg transition-all touch-pan-y overflow-hidden",
-        visible ? "opacity-100" : "translate-y-2 opacity-0",
+        visible ? "animate-slideUp opacity-100" : "animate-slideDown opacity-0",
         variantStyles[variant],
         className
       )}
