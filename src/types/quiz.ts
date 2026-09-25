@@ -33,6 +33,7 @@ export interface QuizAttempt {
   startedAt: string;
   completedAt: string;
   rewardClaimed: boolean;
+  feedback?: string;
 }
 
 export interface QuizAnswer {
