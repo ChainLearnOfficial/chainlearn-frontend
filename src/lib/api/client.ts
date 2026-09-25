@@ -21,9 +21,10 @@ const responseCache = new Map<string, CacheEntry>();
 /**
  * In-flight GET requests keyed by cache key. Concurrent callers asking for the
  * same resource share one network request (and its retries) instead of each
- * firing their own. The shared request is owned by an internal AbortController
- * that is aborted only once every caller has detached, so no single consumer
- * unmounting can cancel a request others are still waiting on.
+ * firing their own (request deduplication, #313). The shared request is owned
+ * by an internal AbortController that is aborted only once every caller has
+ * detached, so no single consumer unmounting can cancel a request others are
+ * still waiting on.
  */
 type InFlightEntry = {
   promise: Promise<unknown>;
