@@ -1,4 +1,5 @@
 import { apiClient } from "./client";
+import { getValidToken } from "./auth";
 import type { AppNotification } from "@/types/notification";
 
 /**
@@ -8,9 +9,11 @@ export async function getNotifications(
   jwt: string,
   signal?: AbortSignal
 ): Promise<AppNotification[]> {
+  const validToken = await getValidToken();
+  const token = validToken || jwt;
   const response = await apiClient.get<AppNotification[]>(
     "/notifications",
-    jwt,
+    token,
     signal
   );
   return response.data;
@@ -24,7 +27,9 @@ export async function markNotificationAsRead(
   jwt: string,
   signal?: AbortSignal
 ): Promise<void> {
-  await apiClient.post<void>(`/notifications/${id}/read`, {}, jwt, signal);
+  const validToken = await getValidToken();
+  const token = validToken || jwt;
+  await apiClient.post<void>(`/notifications/${id}/read`, {}, token, signal);
 }
 
 /**
@@ -34,5 +39,7 @@ export async function markAllNotificationsAsRead(
   jwt: string,
   signal?: AbortSignal
 ): Promise<void> {
-  await apiClient.post<void>("/notifications/read-all", {}, jwt, signal);
+  const validToken = await getValidToken();
+  const token = validToken || jwt;
+  await apiClient.post<void>("/notifications/read-all", {}, token, signal);
 }

@@ -233,6 +233,9 @@ function dedupeCourses(list: Course[]): Course[] {
  * Loads the course catalog page-by-page as the user scrolls, instead of
  * fetching the entire catalog up front. Search is applied client-side over
  * the already-loaded pages.
+ * 
+ * Supports both offset-based pagination (page/limit) and cursor-based pagination.
+ * Automatically deduplicates courses to handle potential overlaps.
  */
 export function useInfiniteCourses(filters: {
   category?: string;
@@ -243,6 +246,8 @@ export function useInfiniteCourses(filters: {
 
   const [courses, setCourses] = useState<Course[]>([]);
   const [page, setPage] = useState(1);
+  const [cursor, setCursor] = useState<string | null>(null);
+  const [total, setTotal] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -268,6 +273,7 @@ export function useInfiniteCourses(filters: {
             page: nextPage,
             limit: INFINITE_PAGE_SIZE,
             pageSize: INFINITE_PAGE_SIZE,
+            cursor: replace ? undefined : cursor || undefined,
           },
           controller.signal
         );
@@ -276,6 +282,8 @@ export function useInfiniteCourses(filters: {
           replace ? result.data : dedupeCourses([...prev, ...result.data])
         );
         setHasMore(result.hasMore);
+        setTotal(result.total);
+        setCursor(result.nextCursor || null);
         setPage(nextPage);
       } catch (err) {
         if (id !== requestId.current || isAbortError(err)) return;
@@ -289,7 +297,7 @@ export function useInfiniteCourses(filters: {
         }
       }
     },
-    [category, difficulty]
+    [category, difficulty, cursor]
   );
 
   // Reset and refetch from the first page whenever filters change.
@@ -303,7 +311,7 @@ export function useInfiniteCourses(filters: {
     load(page + 1, false);
   }, [hasMore, loadingMore, loading, page, load]);
 
-  return { courses, hasMore, loading, loadingMore, error, loadMore };
+  return { courses, hasMore, loading, loadingMore, error, loadMore, total };
 }
 
 export function useCourseDetail(courseId: string) {

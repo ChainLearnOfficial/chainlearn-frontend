@@ -50,7 +50,9 @@ export async function getProfile(
   jwt: string,
   signal?: AbortSignal
 ): Promise<UserProfile> {
-  const response = await apiClient.get<UserProfile>("/auth/profile", jwt, signal);
+  const validToken = await getValidToken();
+  const token = validToken || jwt;
+  const response = await apiClient.get<UserProfile>("/auth/profile", token, signal);
   return response.data;
 }
 
@@ -62,10 +64,12 @@ export async function updateProfile(
   profile: Partial<UserProfile>,
   signal?: AbortSignal
 ): Promise<UserProfile> {
+  const validToken = await getValidToken();
+  const token = validToken || jwt;
   const response = await apiClient.put<UserProfile>(
     "/auth/profile",
     profile,
-    jwt,
+    token,
     signal
   );
   return response.data;
@@ -172,7 +176,9 @@ export async function getSessions(
   jwt: string,
   signal?: AbortSignal
 ): Promise<UserSession[]> {
-  const response = await apiClient.get<UserSession[]>("/auth/sessions", jwt, signal);
+  const validToken = await getValidToken();
+  const token = validToken || jwt;
+  const response = await apiClient.get<UserSession[]>("/auth/sessions", token, signal);
   return response.data;
 }
 
@@ -184,9 +190,11 @@ export async function revokeSession(
   sessionId: string,
   signal?: AbortSignal
 ): Promise<{ success: boolean }> {
+  const validToken = await getValidToken();
+  const token = validToken || jwt;
   const response = await apiClient.delete<{ success: boolean }>(
     `/auth/sessions/${sessionId}`,
-    jwt,
+    token,
     signal
   );
   return response.data;

@@ -4,9 +4,9 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/hooks/use-auth";
+import { useSessions } from "@/lib/hooks/use-sessions";
 import { useToastContext } from "@/components/shared/toast";
-import { getProfile, updateProfile, getSessions, revokeSession } from "@/lib/api/auth";
-import type { UserSession } from "@/types/api";
+import { getProfile, updateProfile } from "@/lib/api/auth";
 import { AvatarUpload } from "@/components/shared/avatar-upload";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -44,6 +44,7 @@ export default function SettingsPage() {
   const { jwt, isAuthenticated, walletAddress } = useAuth();
   const { addToast } = useToastContext();
   const router = useRouter();
+  const { sessions, loading: loadingSessions, revokingId, revoke } = useSessions();
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -52,10 +53,6 @@ export default function SettingsPage() {
   const [learningGoals, setLearningGoals] = useState("");
   const [pace, setPace] = useState<"slow" | "moderate" | "fast">("moderate");
   const [language, setLanguage] = useState("English");
-
-  const [sessions, setSessions] = useState<UserSession[]>([]);
-  const [loadingSessions, setLoadingSessions] = useState(false);
-  const [revokingId, setRevokingId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isAuthenticated || !jwt) {
@@ -75,27 +72,6 @@ export default function SettingsPage() {
         addToast("Failed to load profile", "error");
       })
       .finally(() => setLoading(false));
-
-    setLoadingSessions(true);
-    getSessions(jwt)
-      .then((data) => {
-        setSessions(data || []);
-      })
-      .catch(() => {
-        // Fallback default session if endpoint is in mock mode
-        setSessions([
-          {
-            id: "current-session",
-            device: "Current Device",
-            browser: typeof navigator !== "undefined" ? navigator.userAgent.split(" ")[0] : "Browser",
-            os: "Web",
-            lastActive: "Just now",
-            createdAt: new Date().toISOString(),
-            isCurrent: true,
-          },
-        ]);
-      })
-      .finally(() => setLoadingSessions(false));
   }, [jwt, isAuthenticated, router, addToast]);
 
   const handleSave = async () => {
@@ -120,16 +96,11 @@ export default function SettingsPage() {
   };
 
   const handleRevokeSession = async (sessionId: string) => {
-    if (!jwt) return;
-    setRevokingId(sessionId);
     try {
-      await revokeSession(jwt, sessionId);
-      setSessions((prev) => prev.filter((s) => s.id !== sessionId));
+      await revoke(sessionId);
       addToast("Session revoked successfully", "success");
     } catch {
       addToast("Failed to revoke session", "error");
-    } finally {
-      setRevokingId(null);
     }
   };
 
