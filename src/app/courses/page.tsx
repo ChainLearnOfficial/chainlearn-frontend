@@ -43,6 +43,7 @@ export default function CoursesPage() {
     loadingMore,
     error,
     loadMore,
+    total,
   } = useInfiniteCourses({ category, difficulty });
 
   const enrolledIds = useMemo(
@@ -87,6 +88,7 @@ export default function CoursesPage() {
         </h1>
         <p className="text-gray-500 mt-1 dark:text-gray-400">
           Browse courses and start earning tokens and credentials.
+          {!loading && total > 0 && ` ${total} course${total !== 1 ? 's' : ''} available.`}
         </p>
       </div>
 

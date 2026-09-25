@@ -20,6 +20,8 @@ export interface VerifyCredentialResult {
   verifiedAt?: string;
   error?: VerifyCredentialError;
 }
+import { getValidToken } from "./auth";
+import type { CredentialNFT, CredentialMetadata } from "@/types/stellar";
 
 /**
  * Fetch all credentials for the authenticated user.
@@ -28,9 +30,11 @@ export async function getCredentials(
   jwt: string,
   signal?: AbortSignal
 ): Promise<CredentialNFT[]> {
+  const validToken = await getValidToken();
+  const token = validToken || jwt;
   const response = await apiClient.get<CredentialNFT[]>(
     "/credentials",
-    jwt,
+    token,
     signal
   );
   return response.data;
@@ -90,10 +94,12 @@ export async function mintCredential(
   jwt: string,
   signal?: AbortSignal
 ): Promise<CredentialNFT> {
+  const validToken = await getValidToken();
+  const token = validToken || jwt;
   const response = await apiClient.post<CredentialNFT>(
     "/credentials/mint",
     { courseId },
-    jwt,
+    token,
     signal
   );
   return response.data;
