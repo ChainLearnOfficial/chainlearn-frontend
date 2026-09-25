@@ -14,6 +14,11 @@ const config: Config = {
         "card-padding": "24px",
       },
       colors: {
+        background: "var(--background)",
+        foreground: "var(--foreground)",
+        text: "var(--text)",
+        border: "var(--border)",
+        surface: "var(--surface)",
         primary: {
           50: "#faf5ff",
           100: "#f3e8ff",
