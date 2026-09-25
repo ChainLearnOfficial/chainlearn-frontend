@@ -13,6 +13,24 @@ export interface PaginatedResponse<T> {
   nextCursor?: string | null;
 }
 
+export interface ApiErrorResponse {
+  error: string;
+  code?: string;
+  details?: unknown;
+}
+
+export interface RequestConfig extends Omit<RequestInit, 'body'> {
+  body?: unknown;
+  timeout?: number;
+  params?: Record<string, string | number | boolean | undefined>;
+  retries?: number;
+}
+
+export interface ResponseInterceptor {
+  onSuccess?: <T>(response: T) => T | Promise<T>;
+  onError?: (error: unknown) => never | Promise<never>;
+}
+
 export interface UserSession {
   id: string;
   device: string;
