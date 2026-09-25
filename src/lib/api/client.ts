@@ -9,6 +9,12 @@ import { useErrorStore } from "@/store/error-store";
  * - withAbort wraps shared GET requests for per-caller cancellation
  * - isAbortError / createAbortError utilities
  * - AbortError skipped in error handlers (no state updates on abort)
+ *
+ * Request timeout (#316):
+ * - Default 30s (REQUEST_TIMEOUT_MS)
+ * - Configurable via timeout parameter on all methods
+ * - Internal AbortController with setTimeout in fetchWithRetry
+ * - Timeout error → ApiError with "TIMEOUT" code
  */
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
