@@ -2,6 +2,15 @@ import { ApiError, ApiResponse } from "@/types/api";
 import { useAuthStore } from "@/store/auth-store";
 import { useErrorStore } from "@/store/error-store";
 
+/**
+ * AbortController support (#315):
+ * - signal parameter on all methods (get, post, put, delete)
+ * - fetchWithRetry accepts external signal, aborts immediately on signal
+ * - withAbort wraps shared GET requests for per-caller cancellation
+ * - isAbortError / createAbortError utilities
+ * - AbortError skipped in error handlers (no state updates on abort)
+ */
+
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
 
 const REQUEST_TIMEOUT_MS = 30_000;
@@ -217,17 +226,12 @@ class ApiClient {
   }
 
   /**
-   * Runs fetch with a request timeout and retries on transient failures with
-   * exponential backoff (1s, 2s, 4s) up to `retries` attempts. GET retries on
-   * 5xx responses and network errors; 4xx responses are never retried.
-   * Mutations pass 0 retries since a failed connection doesn't guarantee the
-   * server never received the request, and writes are generally not idempotent.
-   *
-   * An optional external signal (typically an AbortController created by a
-   * hook's cleanup) cancels the in-flight request immediately. External
-   * aborts never retry and surface an AbortError so callers can ignore the
-   * result after unmounting.
-   */
+    * fetchWithRetry with AbortController support (#315).
+    * - Creates internal AbortController for timeout
+    * - Links external signal to abort internal controller
+    * - External abort throws AbortError immediately, no retry
+    * - Timeout abort throws AbortError
+    */
   private async fetchWithRetry(
     url: string,
     init: RequestInit,
@@ -384,6 +388,11 @@ class ApiClient {
     }
   }
 
+  /**
+   * Execute GET with abort support (#315).
+   * Uses withAbort to allow external signal to cancel wait without
+   * aborting the underlying shared request for other callers.
+   */
   private async executeGet<T>(
     url: string,
     key: string,
@@ -407,6 +416,10 @@ class ApiClient {
       }
       return data;
     } catch (error) {
+      // #315: AbortError is deliberate cancellation, skip error handling
+      if (isAbortError(error)) {
+        throw error;
+      }
       // #314: notify error interceptors (onError)
       await this.notifyErrorInterceptors(error);
       if (error instanceof ApiError) {
@@ -440,6 +453,10 @@ class ApiClient {
       this.invalidateCache();
       return data;
     } catch (error) {
+      // #315: AbortError is deliberate cancellation, skip error handling
+      if (isAbortError(error)) {
+        throw error;
+      }
       // #314: notify error interceptors (onError)
       await this.notifyErrorInterceptors(error);
       if (error instanceof ApiError) {
@@ -473,6 +490,10 @@ class ApiClient {
       this.invalidateCache();
       return data;
     } catch (error) {
+      // #315: AbortError is deliberate cancellation, skip error handling
+      if (isAbortError(error)) {
+        throw error;
+      }
       // #314: notify error interceptors (onError)
       await this.notifyErrorInterceptors(error);
       if (error instanceof ApiError) {
@@ -501,6 +522,10 @@ class ApiClient {
       this.invalidateCache();
       return data;
     } catch (error) {
+      // #315: AbortError is deliberate cancellation, skip error handling
+      if (isAbortError(error)) {
+        throw error;
+      }
       // #314: notify error interceptors (onError)
       await this.notifyErrorInterceptors(error);
       if (error instanceof ApiError) {
