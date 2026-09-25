@@ -2,6 +2,7 @@ import { apiClient } from "./client";
 import type {
   Quiz,
   QuizAttempt,
+  QuizResult,
   QuizSubmission,
 } from "@/types/quiz";
 
@@ -23,13 +24,18 @@ export async function getQuiz(
 
 /**
  * Submit quiz answers and receive a score.
+ *
+ * The response is a fully populated attempt record. The declared return
+ * type is `QuizResult` (alias for `QuizAttempt`) so call sites read as
+ * "the outcome of a submission" rather than "a past attempt record".
+ * Issue #310.
  */
 export async function submitQuiz(
   submission: QuizSubmission,
   jwt: string,
   signal?: AbortSignal
-): Promise<QuizAttempt> {
-  const response = await apiClient.post<QuizAttempt>(
+): Promise<QuizResult> {
+  const response = await apiClient.post<QuizResult>(
     `/quizzes/${submission.quizId}/submit`,
     submission,
     jwt,
