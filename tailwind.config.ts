@@ -8,6 +8,11 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      spacing: {
+        section: "120px",
+        container: "1600px",
+        "card-padding": "24px",
+      },
       colors: {
         primary: {
           50: "#faf5ff",
