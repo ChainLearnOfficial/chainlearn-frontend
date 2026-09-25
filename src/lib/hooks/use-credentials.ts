@@ -7,9 +7,10 @@ import {
   getCredential,
   verifyCredential,
   mintCredential,
+  type VerifyCredentialResult,
 } from "@/lib/api/credentials";
 import { isAbortError } from "@/lib/api/client";
-import type { CredentialNFT, CredentialMetadata } from "@/types/stellar";
+import type { CredentialNFT } from "@/types/stellar";
 
 export function useCredentials() {
   const jwt = useAuthStore((s) => s.jwt);
@@ -95,11 +96,7 @@ export function useCredentialDetail(credentialId: string) {
 }
 
 export function useVerifyCredential(credentialId: string) {
-  const [verification, setVerification] = useState<{
-    valid: boolean;
-    metadata: CredentialMetadata;
-    verifiedAt: string;
-  } | null>(null);
+  const [verification, setVerification] = useState<VerifyCredentialResult | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 

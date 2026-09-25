@@ -32,6 +32,21 @@ export default function VerifyCredentialPage({
     );
   }
 
+  // Issue #309: a 404 for a nonexistent credential is delivered as
+  // `verification.valid === false` with `error: "not_found"`, no throw.
+  // Treat the failure branch as either an actual thrown error or a
+  // valid-false verification result.
+  const credential = verification?.credential;
+  const showFailure =
+    !!error || !verification || !verification.valid || !credential;
+  const failureReason = error
+    ? error
+    : verification?.error === "not_found"
+      ? "This credential could not be found."
+      : verification?.error === "invalid"
+        ? "This credential is not valid."
+        : "Unable to verify this credential.";
+
   return (
     <div className="mx-auto max-w-lg px-4 py-16">
       {/* Header */}
@@ -45,16 +60,14 @@ export default function VerifyCredentialPage({
         </p>
       </div>
 
-      {error || !verification ? (
+      {showFailure || !credential ? (
         <Card role="alert" aria-live="polite">
           <CardContent className="py-12 text-center">
             <XCircle className="mx-auto h-12 w-12 text-red-400 mb-4" />
             <h2 className="text-lg font-semibold text-gray-900 mb-2">
               Verification Failed
             </h2>
-            <p className="text-sm text-gray-500">
-              {error || "Unable to verify this credential."}
-            </p>
+            <p className="text-sm text-gray-500">{failureReason}</p>
           </CardContent>
         </Card>
       ) : (
@@ -62,8 +75,8 @@ export default function VerifyCredentialPage({
           <CardHeader className="text-center">
             <div className="mx-auto mb-4">
               <CredentialBadge
-                courseTitle={verification.metadata.courseTitle}
-                issuedAt={verification.metadata.completionDate}
+                courseTitle={credential.metadata.courseTitle}
+                issuedAt={credential.metadata.completionDate}
                 verified={verification.valid}
                 size="md"
               />
@@ -93,7 +106,7 @@ export default function VerifyCredentialPage({
                 <div>
                   <p className="text-gray-500">Course</p>
                   <p className="font-medium">
-                    {verification.metadata.courseTitle}
+                    {credential.metadata.courseTitle}
                   </p>
                 </div>
               </div>
@@ -102,7 +115,7 @@ export default function VerifyCredentialPage({
                 <div>
                   <p className="text-gray-500">Completed</p>
                   <p className="font-medium">
-                    {formatDate(verification.metadata.completionDate)}
+                    {formatDate(credential.metadata.completionDate)}
                   </p>
                 </div>
               </div>
@@ -113,18 +126,18 @@ export default function VerifyCredentialPage({
                 <User className="h-4 w-4 text-gray-400" />
                 <span className="text-gray-500">Learner:</span>
                 <span className="font-mono text-xs">
-                  {truncateAddress(verification.metadata.learnerAddress, 8)}
+                  {truncateAddress(credential.metadata.learnerAddress, 8)}
                 </span>
               </div>
             </div>
 
-            {verification.metadata.skills.length > 0 && (
+            {credential.metadata.skills.length > 0 && (
               <div>
                 <p className="text-sm text-gray-500 mb-2">
                   Skills Demonstrated
                 </p>
                 <div className="flex flex-wrap gap-2">
-                  {verification.metadata.skills.map((skill) => (
+                  {credential.metadata.skills.map((skill) => (
                     <Badge key={skill} variant="secondary">
                       {skill}
                     </Badge>
@@ -133,18 +146,20 @@ export default function VerifyCredentialPage({
               </div>
             )}
 
-            {verification.metadata.score !== undefined && (
+            {credential.metadata.score !== undefined && (
               <div className="rounded-lg bg-green-50 border border-green-200 p-3 text-center">
                 <Award className="mx-auto h-5 w-5 text-green-600 mb-1" />
                 <p className="text-sm font-medium text-green-700">
-                  Score: {verification.metadata.score}%
+                  Score: {credential.metadata.score}%
                 </p>
               </div>
             )}
 
-            <p className="text-xs text-gray-400 text-center pt-2">
-              Verified at {formatDate(verification.verifiedAt)}
-            </p>
+            {verification.verifiedAt && (
+              <p className="text-xs text-gray-400 text-center pt-2">
+                Verified at {formatDate(verification.verifiedAt)}
+              </p>
+            )}
           </CardContent>
         </Card>
       )}
