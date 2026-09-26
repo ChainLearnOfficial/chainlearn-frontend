@@ -1,6 +1,12 @@
-import freighterApi from "@stellar/freighter-api";
+import freighterApi, { WatchWalletChanges } from "@stellar/freighter-api";
 
 export type NetworkType = "testnet" | "public";
+
+export interface WalletChange {
+  address: string;
+  network: string;
+  networkPassphrase: string;
+}
 
 /**
  * Check if Freighter wallet extension is installed.
@@ -79,4 +85,27 @@ export function getRpcUrl(network: NetworkType): string {
     return "https://soroban-rpc.mainnet.stellar.gateway.fm";
   }
   return "https://soroban-rpc.testnet.stellar.gateway.fm";
+}
+
+/** Freighter reports networks as "TESTNET" / "PUBLIC" (and others); map to our two supported values. */
+export function normalizeNetwork(network: string): NetworkType {
+  return network.toUpperCase() === "PUBLIC" ? "public" : "testnet";
+}
+
+/**
+ * Start polling Freighter for account or network changes.
+ *
+ * Freighter has no push-based event API — `WatchWalletChanges` polls
+ * `getAddress`/`getNetwork` on an interval and only invokes the callback when
+ * a value actually changes, so this is cheap to leave running for the life of
+ * the app. Returns a `stop` function; callers must call it on unmount to
+ * avoid leaking the poller.
+ */
+export function watchWalletChanges(
+  onChange: (change: WalletChange) => void,
+  intervalMs = 3000
+): () => void {
+  const watcher = new WatchWalletChanges(intervalMs);
+  watcher.watch(onChange);
+  return () => watcher.stop();
 }
