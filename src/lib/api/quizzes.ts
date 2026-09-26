@@ -3,6 +3,7 @@ import { getValidToken } from "./auth";
 import type {
   Quiz,
   QuizAttempt,
+  QuizResult,
   QuizSubmission,
 } from "@/types/quiz";
 
@@ -57,6 +58,12 @@ export async function generateQuiz(
 }
 
 /**
+ * Submit quiz answers and receive a score.
+ *
+ * The response is a fully populated attempt record. The declared return
+ * type is `QuizResult` (alias for `QuizAttempt`) so call sites read as
+ * "the outcome of a submission" rather than "a past attempt record".
+ * Issue #310.
  * Submit quiz answers and receive a score with feedback.
  * 
  * @param submission - Quiz submission with answers
@@ -71,6 +78,8 @@ export async function submitQuiz(
   submission: QuizSubmission,
   jwt: string,
   signal?: AbortSignal
+): Promise<QuizResult> {
+  const response = await apiClient.post<QuizResult>(
 ): Promise<QuizAttempt> {
   const validToken = await getValidToken();
   const token = validToken || jwt;

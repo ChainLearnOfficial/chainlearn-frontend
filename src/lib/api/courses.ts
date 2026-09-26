@@ -3,6 +3,14 @@ import { getValidToken } from "./auth";
 import type { PaginatedResponse } from "@/types/api";
 import type { Course, CourseEnrollment, Module, RecommendedCourse } from "@/types/course";
 import { getQuiz, submitQuiz } from "./quizzes";
+import type {
+  Course,
+  CourseEnrollment,
+  Module,
+  ModuleCompletionResult,
+  ModuleContent,
+  RecommendedCourse,
+} from "@/types/course";
 
 export interface GetCoursesParams {
   category?: string;
@@ -126,12 +134,18 @@ export const getModuleContent = getModule;
 
 /**
  * Mark a module as completed.
+ *
+ * Returns a named `ModuleCompletionResult` (Issue #310, "all API responses
+ * have types") instead of an inline `{ success: boolean }` so the shape is
+ * importable from anywhere the response is handled.
  */
 export async function markModuleComplete(
   courseId: string,
   moduleId: string,
   jwt: string,
   signal?: AbortSignal
+): Promise<ModuleCompletionResult> {
+  const response = await apiClient.post<ModuleCompletionResult>(
 ): Promise<{ success: boolean }> {
   const validToken = await getValidToken();
   const token = validToken || jwt;
@@ -179,6 +193,27 @@ export async function getRecommendedCourses(
 }
 
 /**
+ * Promote a `Module`'s raw `{ contentType, content }` pair into the
+ * structured `ModuleContent` discriminated union so consumers can narrow
+ * on `type` instead of switching on the stringly typed `contentType`.
+ * Issue #310.
+ *
+ * The wire format is preserved: the API still sends `content` as an opaque
+ * string. For `type: "video"` the string is treated as a URL, for
+ * `type: "interactive"` as a challenge identifier, and for `type: "text"`
+ * as the body itself. If the API adopts a structured payload later, only
+ * this helper needs to change.
+ */
+export function parseModuleContent(module: Module): ModuleContent {
+  switch (module.contentType) {
+    case "video":
+      return { type: "video", url: module.content };
+    case "interactive":
+      return { type: "interactive", challengeId: module.content };
+    case "text":
+    default:
+      return { type: "text", body: module.content };
+  }
  * Fetch all modules for a course in order.
  * This is a convenience function that fetches the course and returns sorted modules.
  * 
