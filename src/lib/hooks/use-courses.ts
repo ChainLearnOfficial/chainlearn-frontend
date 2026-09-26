@@ -326,6 +326,7 @@ export function useCourseDetail(courseId: string) {
     if (!courseId) return;
     const controller = new AbortController();
     setLoading(true);
+    setError(null);
     getCourse(courseId, jwtRef.current ?? undefined, controller.signal)
       .then(setCourse)
       .catch((err) => {
@@ -355,6 +356,7 @@ export function useModule(courseId: string, moduleId: string) {
     if (!courseId || !moduleId) return;
     const controller = new AbortController();
     setLoading(true);
+    setError(null);
     getModule(courseId, moduleId, jwtRef.current ?? undefined, controller.signal)
       .then(setModule)
       .catch((err) => {

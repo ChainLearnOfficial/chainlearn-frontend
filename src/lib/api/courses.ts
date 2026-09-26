@@ -1,7 +1,6 @@
 import { apiClient } from "./client";
 import { getValidToken } from "./auth";
 import type { PaginatedResponse } from "@/types/api";
-import type { Course, CourseEnrollment, Module, RecommendedCourse } from "@/types/course";
 import { getQuiz, submitQuiz } from "./quizzes";
 import type {
   Course,
