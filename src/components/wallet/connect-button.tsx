@@ -5,6 +5,7 @@ import { useAuthStore } from "@/store/auth-store";
 import { Button } from "@/components/ui/button";
 import { Wallet, LogOut, Loader2, Copy, Check, Globe, RefreshCw } from "lucide-react";
 import { truncateAddress } from "@/lib/utils/format";
+import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { useState, useRef, useEffect, useCallback } from "react";
 
 export function ConnectButton() {
@@ -13,6 +14,7 @@ export function ConnectButton() {
   const { network, setNetwork } = useAuthStore();
   const [showDropdown, setShowDropdown] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [showMainnetConfirm, setShowMainnetConfirm] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
 
@@ -53,8 +55,20 @@ export function ConnectButton() {
   };
 
   const handleToggleNetwork = () => {
-    const nextNetwork = network === "testnet" ? "public" : "testnet";
-    setNetwork(nextNetwork);
+    if (network === "testnet") {
+      // Switching to mainnet changes contract addresses and the RPC node and
+      // involves real funds, so require explicit confirmation (#443).
+      setShowDropdown(false);
+      setShowMainnetConfirm(true);
+      return;
+    }
+    // Switching back to testnet is low risk and needs no confirmation.
+    setNetwork("testnet");
+  };
+
+  const handleConfirmMainnet = () => {
+    setNetwork("public");
+    setShowMainnetConfirm(false);
   };
 
   if (isAuthenticated && walletAddress) {
@@ -149,6 +163,16 @@ export function ConnectButton() {
             </div>
           </div>
         )}
+
+        <ConfirmDialog
+          open={showMainnetConfirm}
+          onOpenChange={setShowMainnetConfirm}
+          title="Switch to Mainnet?"
+          description="Mainnet uses real funds and different contract addresses. Balances you see on testnet will not carry over, and any transaction you submit will be sent to the live Stellar network and cannot be reversed. Only continue if you intend to use mainnet."
+          confirmLabel="Switch to Mainnet"
+          onConfirm={handleConfirmMainnet}
+          destructive
+        />
       </div>
     );
   }
