@@ -25,42 +25,88 @@ export function formatTokenBalance(
 }
 
 /**
- * Format a date string to a human-readable format.
+ * Format a date string or Date to a human-readable format, e.g. "Jan 15, 2024".
  */
-export function formatDate(dateStr: string): string {
-  const date = new Date(dateStr);
-  return date.toLocaleDateString("en-US", {
+export function formatDate(
+  date: string | number | Date,
+  options?: { timeZone?: string; locale?: string }
+): string {
+  const d = date instanceof Date ? date : new Date(date);
+  if (isNaN(d.getTime())) return "";
+  return new Intl.DateTimeFormat(options?.locale ?? "en-US", {
     year: "numeric",
     month: "short",
     day: "numeric",
-  });
+    timeZone: options?.timeZone,
+  }).format(d);
 }
 
 /**
- * Format a timestamp as a relative time (e.g. "5m ago", "2h ago"), falling
- * back to the full date for anything older than a week.
+ * Format a date string or Date to a human-readable date + time, e.g.
+ * "Jan 15, 2024, 2:30 PM".
  */
-export function formatRelativeTime(dateStr: string): string {
-  const date = new Date(dateStr);
-  if (isNaN(date.getTime())) return "";
-  const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
-  if (seconds < 60) return "Just now";
-  const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return `${minutes}m ago`;
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
-  const days = Math.floor(hours / 24);
-  if (days < 7) return `${days}d ago`;
-  return formatDate(dateStr);
+export function formatDateTime(
+  date: string | number | Date,
+  options?: { timeZone?: string; locale?: string }
+): string {
+  const d = date instanceof Date ? date : new Date(date);
+  if (isNaN(d.getTime())) return "";
+  return new Intl.DateTimeFormat(options?.locale ?? "en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    timeZone: options?.timeZone,
+  }).format(d);
 }
 
 /**
- * Format minutes into a human-readable duration string.
+ * Format a timestamp as a relative time (e.g. "5 minutes ago", "in 3 days"),
+ * falling back to the full date for anything older than a week.
+ */
+export function formatRelativeTime(
+  date: string | number | Date,
+  options?: { locale?: string }
+): string {
+  const d = date instanceof Date ? date : new Date(date);
+  if (isNaN(d.getTime())) return "";
+
+  const seconds = Math.round((d.getTime() - Date.now()) / 1000);
+  const absSeconds = Math.abs(seconds);
+
+  if (absSeconds < 60) return "Just now";
+
+  const rtf = new Intl.RelativeTimeFormat(options?.locale ?? "en-US", {
+    numeric: "auto",
+  });
+
+  const divisions: { amount: number; unit: Intl.RelativeTimeFormatUnit }[] = [
+    { amount: 60, unit: "seconds" },
+    { amount: 60, unit: "minutes" },
+    { amount: 24, unit: "hours" },
+    { amount: 7, unit: "days" },
+  ];
+
+  let duration = seconds;
+  for (const division of divisions) {
+    if (Math.abs(duration) < division.amount) {
+      return rtf.format(Math.round(duration), division.unit);
+    }
+    duration /= division.amount;
+  }
+
+  return formatDate(d);
+}
+
+/**
+ * Format minutes into a human-readable duration string, e.g. "2h 15m".
  */
 export function formatDuration(minutes: number): string {
-  if (minutes < 60) return `${minutes}m`;
+  if (!isFinite(minutes) || minutes < 0) return "0m";
+  if (minutes < 60) return `${Math.round(minutes)}m`;
   const hours = Math.floor(minutes / 60);
-  const remaining = minutes % 60;
+  const remaining = Math.round(minutes % 60);
   return remaining > 0 ? `${hours}h ${remaining}m` : `${hours}h`;
 }
 
@@ -77,4 +123,79 @@ export function formatNumber(num: number): string {
 export function capitalize(str: string): string {
   if (!str) return str;
   return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+/**
+ * Truncate text to a maximum length, appending an ellipsis when truncated.
+ */
+export function truncate(text: string, maxLength: number, suffix = "..."): string {
+  if (!text) return "";
+  if (maxLength <= 0) return "";
+  if (text.length <= maxLength) return text;
+  return `${text.slice(0, maxLength - suffix.length).trimEnd()}${suffix}`;
+}
+
+/**
+ * Pluralize a word based on a count, e.g. pluralize(1, "item") -> "1 item",
+ * pluralize(3, "item") -> "3 items". Accepts an optional explicit plural form
+ * for irregular words.
+ */
+export function pluralize(count: number, singular: string, plural?: string): string {
+  const word = count === 1 ? singular : plural ?? `${singular}s`;
+  return `${formatNumber(count)} ${word}`;
+}
+
+/**
+ * Convert a string into a URL-friendly slug, e.g. "Hello, World!" -> "hello-world".
+ */
+export function slugify(text: string): string {
+  if (!text) return "";
+  return text
+    .toString()
+    .normalize("NFKD")
+    .replace(/[̀-ͯ]/g, "")
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+/**
+ * Format a numeric value as USD currency, e.g. formatUSD(1234.5) -> "$1,234.50".
+ */
+export function formatUSD(value: number, options?: { locale?: string }): string {
+  return formatCurrency(value, "USD", options);
+}
+
+/**
+ * Format a numeric value as currency in the given ISO 4217 currency code.
+ */
+export function formatCurrency(
+  value: number,
+  currency = "USD",
+  options?: { locale?: string; minimumFractionDigits?: number; maximumFractionDigits?: number }
+): string {
+  if (!isFinite(value)) return "";
+  return new Intl.NumberFormat(options?.locale ?? "en-US", {
+    style: "currency",
+    currency,
+    minimumFractionDigits: options?.minimumFractionDigits,
+    maximumFractionDigits: options?.maximumFractionDigits,
+  }).format(value);
+}
+
+/**
+ * Format a price value, using more decimal places for very small amounts
+ * (e.g. sub-cent token prices) and standard currency formatting otherwise.
+ */
+export function formatPrice(value: number, currency = "USD", options?: { locale?: string }): string {
+  if (!isFinite(value)) return "";
+  if (value > 0 && value < 0.01) {
+    return formatCurrency(value, currency, {
+      ...options,
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 6,
+    });
+  }
+  return formatCurrency(value, currency, options);
 }
