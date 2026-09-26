@@ -1,6 +1,14 @@
 import { apiClient } from "./client";
 import { getValidToken } from "./auth";
+import type { PaginatedResponse } from "@/types/api";
 import type { RewardClaim, TokenBalance } from "@/types/stellar";
+
+export interface GetRewardHistoryParams {
+  page?: number;
+  limit?: number;
+  startDate?: string;
+  endDate?: string;
+}
 
 /**
  * Fetch the user's token balances.
@@ -24,12 +32,21 @@ export async function getTokenBalances(
  */
 export async function getRewardHistory(
   jwt: string,
+  params?: GetRewardHistoryParams,
   signal?: AbortSignal
-): Promise<RewardClaim[]> {
+): Promise<PaginatedResponse<RewardClaim>> {
   const validToken = await getValidToken();
   const token = validToken || jwt;
-  const response = await apiClient.get<RewardClaim[]>(
-    "/rewards/history",
+  
+  const searchParams = new URLSearchParams();
+  if (params?.page !== undefined) searchParams.set("page", String(params.page));
+  if (params?.limit !== undefined) searchParams.set("limit", String(params.limit));
+  if (params?.startDate) searchParams.set("startDate", params.startDate);
+  if (params?.endDate) searchParams.set("endDate", params.endDate);
+  
+  const query = searchParams.toString();
+  const response = await apiClient.get<PaginatedResponse<RewardClaim>>(
+    `/rewards/history${query ? `?${query}` : ""}`,
     token,
     signal
   );
