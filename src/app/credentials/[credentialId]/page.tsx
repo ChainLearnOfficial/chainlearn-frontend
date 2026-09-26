@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCredentialDetail } from "@/lib/hooks/use-credentials";
+import { useCredentialDetail, useVerifyCredential } from "@/lib/hooks/use-credentials";
 import { CredentialBadge } from "@/components/credentials/credential-badge";
 import { QrCode } from "@/components/credentials/qr-code";
 import { BackButton } from "@/components/shared/back-button";
@@ -18,9 +18,11 @@ import {
   CheckCircle,
   Download,
   ShieldCheck,
+  ShieldAlert,
   Award,
   Hash,
   Key,
+  Loader2,
 } from "lucide-react";
 import { useState, useCallback } from "react";
 import { ShareButton } from "@/components/shared/share-button";
@@ -32,6 +34,7 @@ export default function CredentialDetailPage({
 }) {
   const { credentialId } = params;
   const { credential, loading, error } = useCredentialDetail(credentialId);
+  const { verification, loading: verificationLoading } = useVerifyCredential(credentialId);
   const [copied, setCopied] = useState(false);
 
   const verificationUrl = typeof window !== "undefined"
@@ -210,14 +213,24 @@ export default function CredentialDetailPage({
           </div>
 
           {/* On-chain Verification */}
-          <div className="rounded-lg bg-green-50 border border-green-200 p-3">
+          <div className={`rounded-lg border p-3 ${verification?.isValid ? "bg-green-50 border-green-200" : verificationLoading ? "bg-gray-50 border-gray-200" : "bg-red-50 border-red-200"}`}>
             <div className="flex items-center gap-2 text-sm">
-              <ShieldCheck className="h-4 w-4 text-green-600" />
+              {verificationLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin text-gray-500" />
+              ) : verification?.isValid ? (
+                <ShieldCheck className="h-4 w-4 text-green-600" />
+              ) : (
+                <ShieldAlert className="h-4 w-4 text-red-600" />
+              )}
               <div>
-                <p className="font-medium text-green-700">On-Chain Verified</p>
-                <p className="text-xs text-green-600 font-mono">
-                  Contract: {truncateAddress(credential.contractAddress, 8)}
+                <p className={`font-medium ${verification?.isValid ? "text-green-700" : verificationLoading ? "text-gray-700" : "text-red-700"}`}>
+                  {verificationLoading ? "Verifying On-Chain..." : verification?.isValid ? "On-Chain Verified" : "Verification Failed"}
                 </p>
+                {credential.contractAddress && (
+                  <p className={`text-xs font-mono ${verification?.isValid ? "text-green-600" : verificationLoading ? "text-gray-500" : "text-red-600"}`}>
+                    Contract: {truncateAddress(credential.contractAddress, 8)}
+                  </p>
+                )}
               </div>
             </div>
           </div>
