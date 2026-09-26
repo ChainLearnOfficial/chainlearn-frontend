@@ -155,6 +155,24 @@ export default function VerifyCredentialPage({
               </div>
             )}
 
+            {/* Issuer Contact Info */}
+            <div className="rounded-lg bg-gray-50 p-3 mt-4 border border-gray-200">
+              <p className="text-sm font-medium text-gray-900 mb-1">Issuer Information</p>
+              <div className="flex items-center gap-2 text-sm text-gray-500">
+                <Shield className="h-4 w-4" />
+                <span>ChainLearn Official</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm mt-1 text-gray-500">
+                <span>Address:</span>
+                <span className="font-mono text-xs text-gray-600">
+                  {credential.metadata.issuerAddress ? truncateAddress(credential.metadata.issuerAddress, 8) : "N/A"}
+                </span>
+              </div>
+              <p className="text-xs text-gray-400 mt-2">
+                For verification inquiries, please contact support@chainlearn.org
+              </p>
+            </div>
+
             {verification.verifiedAt && (
               <p className="text-xs text-gray-400 text-center pt-2">
                 Verified at {formatDate(verification.verifiedAt)}
