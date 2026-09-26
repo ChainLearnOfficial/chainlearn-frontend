@@ -2,6 +2,21 @@ import { ApiError, ApiResponse } from "@/types/api";
 import { useAuthStore } from "@/store/auth-store";
 import { useErrorStore } from "@/store/error-store";
 
+/**
+ * AbortController support (#315):
+ * - signal parameter on all methods (get, post, put, delete)
+ * - fetchWithRetry accepts external signal, aborts immediately on signal
+ * - withAbort wraps shared GET requests for per-caller cancellation
+ * - isAbortError / createAbortError utilities
+ * - AbortError skipped in error handlers (no state updates on abort)
+ *
+ * Request timeout (#316):
+ * - Default 30s (REQUEST_TIMEOUT_MS)
+ * - Configurable via timeout parameter on all methods
+ * - Internal AbortController with setTimeout in fetchWithRetry
+ * - Timeout error → ApiError with "TIMEOUT" code
+ */
+
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
 
 const REQUEST_TIMEOUT_MS = 30_000;
@@ -21,9 +36,10 @@ const responseCache = new Map<string, CacheEntry>();
 /**
  * In-flight GET requests keyed by cache key. Concurrent callers asking for the
  * same resource share one network request (and its retries) instead of each
- * firing their own. The shared request is owned by an internal AbortController
- * that is aborted only once every caller has detached, so no single consumer
- * unmounting can cancel a request others are still waiting on.
+ * firing their own (request deduplication, #313). The shared request is owned
+ * by an internal AbortController that is aborted only once every caller has
+ * detached, so no single consumer unmounting can cancel a request others are
+ * still waiting on.
  */
 type InFlightEntry = {
   promise: Promise<unknown>;
@@ -87,6 +103,12 @@ export function isAbortError(error: unknown): boolean {
   );
 }
 
+/**
+ * ResponseInterceptor (#314):
+ * - onResponse: pre-processing before handleResponse (transform raw Response)
+ * - onSuccess: post-processing after handleResponse (transform parsed data)
+ * - onError: error handler for logging/analytics
+ */
 export type ResponseInterceptor = {
   /**
    * Pre-processing interceptor running before `handleResponse`.
@@ -114,8 +136,9 @@ class ApiClient {
   }
 
   /**
-   * Register a response interceptor for pre-processing, post-processing,
-   * error logging, or analytics. Returns an unsubscribe function to remove the interceptor.
+   * Register a response interceptor (#314).
+   * Runs onResponse/onSuccess for every response, onError for every error.
+   * Returns unsubscribe function.
    */
   addResponseInterceptor(interceptor: ResponseInterceptor): () => void {
     this.responseInterceptors.push(interceptor);
@@ -126,6 +149,11 @@ class ApiClient {
     };
   }
 
+  /**
+   * Process response through interceptors (#314).
+   * Runs onResponse interceptors (pre-processing) then handleResponse,
+   * then onSuccess interceptors (post-processing).
+   */
   private async processResponse<T>(response: Response): Promise<ApiResponse<T>> {
     let currentResponse = response;
     for (const interceptor of this.responseInterceptors) {
@@ -145,6 +173,11 @@ class ApiClient {
     return data;
   }
 
+  /**
+   * Notify error interceptors (#314).
+   * Calls onError for each registered interceptor, catching failures
+   * to prevent hiding the original request error.
+   */
   private async notifyErrorInterceptors(error: unknown): Promise<void> {
     for (const interceptor of this.responseInterceptors) {
       if (interceptor.onError) {
@@ -199,17 +232,12 @@ class ApiClient {
   }
 
   /**
-   * Runs fetch with a request timeout and retries on transient failures with
-   * exponential backoff (1s, 2s, 4s) up to `retries` attempts. GET retries on
-   * 5xx responses and network errors; 4xx responses are never retried.
-   * Mutations pass 0 retries since a failed connection doesn't guarantee the
-   * server never received the request, and writes are generally not idempotent.
-   *
-   * An optional external signal (typically an AbortController created by a
-   * hook's cleanup) cancels the in-flight request immediately. External
-   * aborts never retry and surface an AbortError so callers can ignore the
-   * result after unmounting.
-   */
+    * fetchWithRetry with AbortController support (#315).
+    * - Creates internal AbortController for timeout
+    * - Links external signal to abort internal controller
+    * - External abort throws AbortError immediately, no retry
+    * - Timeout abort throws AbortError
+    */
   private async fetchWithRetry(
     url: string,
     init: RequestInit,
@@ -366,6 +394,11 @@ class ApiClient {
     }
   }
 
+  /**
+   * Execute GET with abort support (#315).
+   * Uses withAbort to allow external signal to cancel wait without
+   * aborting the underlying shared request for other callers.
+   */
   private async executeGet<T>(
     url: string,
     key: string,
@@ -382,12 +415,18 @@ class ApiClient {
         signal,
         timeout
       );
+      // #314: run response interceptors (onResponse -> handleResponse -> onSuccess)
       const data = await this.processResponse<T>(response);
       if (!bypassCache) {
         this.setCached(key, data);
       }
       return data;
     } catch (error) {
+      // #315: AbortError is deliberate cancellation, skip error handling
+      if (isAbortError(error)) {
+        throw error;
+      }
+      // #314: notify error interceptors (onError)
       await this.notifyErrorInterceptors(error);
       if (error instanceof ApiError) {
         this.handleApiError(error);
@@ -415,10 +454,16 @@ class ApiClient {
         signal,
         timeout
       );
+      // #314: run response interceptors (onResponse -> handleResponse -> onSuccess)
       const data = await this.processResponse<T>(response);
       this.invalidateCache();
       return data;
     } catch (error) {
+      // #315: AbortError is deliberate cancellation, skip error handling
+      if (isAbortError(error)) {
+        throw error;
+      }
+      // #314: notify error interceptors (onError)
       await this.notifyErrorInterceptors(error);
       if (error instanceof ApiError) {
         this.handleApiError(error);
@@ -446,10 +491,16 @@ class ApiClient {
         signal,
         timeout
       );
+      // #314: run response interceptors (onResponse -> handleResponse -> onSuccess)
       const data = await this.processResponse<T>(response);
       this.invalidateCache();
       return data;
     } catch (error) {
+      // #315: AbortError is deliberate cancellation, skip error handling
+      if (isAbortError(error)) {
+        throw error;
+      }
+      // #314: notify error interceptors (onError)
       await this.notifyErrorInterceptors(error);
       if (error instanceof ApiError) {
         this.handleApiError(error);
@@ -472,10 +523,16 @@ class ApiClient {
         signal,
         timeout
       );
+      // #314: run response interceptors (onResponse -> handleResponse -> onSuccess)
       const data = await this.processResponse<T>(response);
       this.invalidateCache();
       return data;
     } catch (error) {
+      // #315: AbortError is deliberate cancellation, skip error handling
+      if (isAbortError(error)) {
+        throw error;
+      }
+      // #314: notify error interceptors (onError)
       await this.notifyErrorInterceptors(error);
       if (error instanceof ApiError) {
         this.handleApiError(error);

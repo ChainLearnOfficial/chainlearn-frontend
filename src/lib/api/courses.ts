@@ -1,4 +1,5 @@
 import { apiClient } from "./client";
+import { getValidToken } from "./auth";
 import type { PaginatedResponse } from "@/types/api";
 import type {
   Course,
@@ -12,14 +13,39 @@ import type {
 export interface GetCoursesParams {
   category?: string;
   difficulty?: string;
+  /** Page number for offset-based pagination (1-indexed) */
   page?: number;
+  /** Number of items per page (alias for pageSize) */
   limit?: number;
+  /** Number of items per page */
   pageSize?: number;
+  /** Cursor for cursor-based pagination (used for infinite scroll) */
   cursor?: string;
 }
 
 /**
  * Fetch the course catalog with optional filters and pagination parameters.
+ * 
+ * Supports two pagination strategies:
+ * 1. **Offset-based**: Use `page` and `limit`/`pageSize` parameters
+ * 2. **Cursor-based**: Use `cursor` parameter (for infinite scroll)
+ * 
+ * @example
+ * // Offset-based pagination
+ * const page1 = await getCourses({ page: 1, limit: 10 });
+ * const page2 = await getCourses({ page: 2, limit: 10 });
+ * 
+ * @example
+ * // Cursor-based pagination (infinite scroll)
+ * const first = await getCourses({ limit: 10 });
+ * const next = await getCourses({ cursor: first.nextCursor, limit: 10 });
+ * 
+ * @returns PaginatedResponse with:
+ * - `data`: Array of courses
+ * - `total`: Total number of courses matching filters
+ * - `hasMore`: Boolean indicating if more data exists
+ * - `nextCursor`: Cursor for next page (cursor-based pagination)
+ * - `page`, `pageSize`: Current page info (offset-based pagination)
  */
 export async function getCourses(
   params?: GetCoursesParams,
@@ -62,17 +88,27 @@ export async function enrollInCourse(
   jwt: string,
   signal?: AbortSignal
 ): Promise<CourseEnrollment> {
+  const validToken = await getValidToken();
+  const token = validToken || jwt;
   const response = await apiClient.post<CourseEnrollment>(
     `/courses/${courseId}/enroll`,
     {},
-    jwt,
+    token,
     signal
   );
   return response.data;
 }
 
 /**
- * Fetch a single module within a course.
+ * Fetch a single module's content within a course.
+ * 
+ * @param courseId - The course ID
+ * @param moduleId - The module ID
+ * @param jwt - Optional JWT token for authenticated requests
+ * @param signal - Optional AbortSignal for request cancellation
+ * @returns Module with full content including lessons and material
+ * 
+ * @throws {ApiError} When the request fails or module is not found
  */
 export async function getModule(
   courseId: string,
@@ -89,6 +125,12 @@ export async function getModule(
 }
 
 /**
+ * Alias for getModule - fetches complete module content for the course viewer.
+ * This provides a more explicit function name for clarity.
+ */
+export const getModuleContent = getModule;
+
+/**
  * Mark a module as completed.
  *
  * Returns a named `ModuleCompletionResult` (Issue #310, "all API responses
@@ -102,9 +144,13 @@ export async function markModuleComplete(
   signal?: AbortSignal
 ): Promise<ModuleCompletionResult> {
   const response = await apiClient.post<ModuleCompletionResult>(
+): Promise<{ success: boolean }> {
+  const validToken = await getValidToken();
+  const token = validToken || jwt;
+  const response = await apiClient.post<{ success: boolean }>(
     `/courses/${courseId}/modules/${moduleId}/complete`,
     {},
-    jwt,
+    token,
     signal
   );
   return response.data;
@@ -117,9 +163,11 @@ export async function getEnrollments(
   jwt: string,
   signal?: AbortSignal
 ): Promise<CourseEnrollment[]> {
+  const validToken = await getValidToken();
+  const token = validToken || jwt;
   const response = await apiClient.get<CourseEnrollment[]>(
     "/courses/enrollments",
-    jwt,
+    token,
     signal
   );
   return response.data;
@@ -132,9 +180,11 @@ export async function getRecommendedCourses(
   jwt: string,
   signal?: AbortSignal
 ): Promise<RecommendedCourse[]> {
+  const validToken = await getValidToken();
+  const token = validToken || jwt;
   const response = await apiClient.get<RecommendedCourse[]>(
     "/courses/recommended",
-    jwt,
+    token,
     signal
   );
   return response.data;
@@ -162,4 +212,45 @@ export function parseModuleContent(module: Module): ModuleContent {
     default:
       return { type: "text", body: module.content };
   }
+ * Fetch all modules for a course in order.
+ * This is a convenience function that fetches the course and returns sorted modules.
+ * 
+ * @param courseId - The course ID
+ * @param jwt - Optional JWT token for authenticated requests
+ * @param signal - Optional AbortSignal for request cancellation
+ * @returns Array of modules sorted by order
+ * 
+ * @throws {ApiError} When the request fails or course is not found
+ */
+export async function getCourseModules(
+  courseId: string,
+  jwt?: string,
+  signal?: AbortSignal
+): Promise<Module[]> {
+  const course = await getCourse(courseId, jwt, signal);
+  return [...course.modules].sort((a, b) => a.order - b.order);
+}
+
+/**
+ * Fetch multiple modules in a single batch.
+ * Useful for preloading content or displaying multiple modules at once.
+ * 
+ * @param courseId - The course ID
+ * @param moduleIds - Array of module IDs to fetch
+ * @param jwt - Optional JWT token for authenticated requests
+ * @param signal - Optional AbortSignal for request cancellation
+ * @returns Array of modules in the same order as moduleIds
+ * 
+ * @throws {ApiError} When any request fails
+ */
+export async function getModuleBatch(
+  courseId: string,
+  moduleIds: string[],
+  jwt?: string,
+  signal?: AbortSignal
+): Promise<Module[]> {
+  const modules = await Promise.all(
+    moduleIds.map((moduleId) => getModule(courseId, moduleId, jwt, signal))
+  );
+  return modules;
 }
