@@ -3,48 +3,48 @@ import { simulateContractCall, signAndSubmitTransaction } from "./transactions";
 import type { TransactionResult } from "@/types/stellar";
 import { xdr, scValToNative } from "@stellar/stellar-sdk";
 
-// Validate required environment variables at startup
-function validateEnvironmentVariables() {
-  const requiredVars = [
-    "NEXT_PUBLIC_REWARDS_CONTRACT_TESTNET",
-    "NEXT_PUBLIC_CREDENTIALS_CONTRACT_TESTNET",
-    "NEXT_PUBLIC_REWARDS_CONTRACT_MAINNET",
-    "NEXT_PUBLIC_CREDENTIALS_CONTRACT_MAINNET",
-  ];
-
-  const missing = requiredVars.filter((varName) => !process.env[varName]);
-  if (missing.length > 0) {
-    throw new Error(
-      `Missing required environment variables: ${missing.join(", ")}`
-    );
-  }
+/**
+ * Contract addresses (configurable per network), resolved lazily.
+ *
+ * These were previously read and validated at module import time, so merely
+ * importing this file (in a build, a test, or a page that never touches a
+ * contract) threw whenever any of the four env vars was unset. Resolution now
+ * happens on first use, and only the network actually being called into is
+ * validated.
+ *
+ * The `process.env.NEXT_PUBLIC_*` reads below must stay literal property
+ * accesses: Next.js only inlines public env vars into the client bundle for
+ * literal references, not for `process.env[name]`.
+ */
+function readContractAddresses(): Record<NetworkType, Record<string, string | undefined>> {
+  return {
+    testnet: {
+      rewards: process.env.NEXT_PUBLIC_REWARDS_CONTRACT_TESTNET,
+      credentials: process.env.NEXT_PUBLIC_CREDENTIALS_CONTRACT_TESTNET,
+    },
+    public: {
+      rewards: process.env.NEXT_PUBLIC_REWARDS_CONTRACT_MAINNET,
+      credentials: process.env.NEXT_PUBLIC_CREDENTIALS_CONTRACT_MAINNET,
+    },
+  };
 }
-
-// Contract addresses (configurable per network)
-const CONTRACT_ADDRESSES: Record<NetworkType, Record<string, string>> = {
-  testnet: {
-    rewards: process.env.NEXT_PUBLIC_REWARDS_CONTRACT_TESTNET!,
-    credentials: process.env.NEXT_PUBLIC_CREDENTIALS_CONTRACT_TESTNET!,
-  },
-  public: {
-    rewards: process.env.NEXT_PUBLIC_REWARDS_CONTRACT_MAINNET!,
-    credentials: process.env.NEXT_PUBLIC_CREDENTIALS_CONTRACT_MAINNET!,
-  },
-};
-
-validateEnvironmentVariables();
 
 /**
  * Get a contract address for the current network.
+ *
+ * Throws a descriptive error at call time if the address for this
+ * contract/network pair isn't configured.
  */
 export function getContractAddress(
   contractName: string,
   network: NetworkType
 ): string {
-  const addr = CONTRACT_ADDRESSES[network]?.[contractName];
+  const addr = readContractAddresses()[network]?.[contractName];
   if (!addr) {
     throw new Error(
-      `Contract "${contractName}" not configured for ${network}`
+      `Contract "${contractName}" not configured for ${network} ` +
+        `(set the matching NEXT_PUBLIC_${contractName.toUpperCase()}_CONTRACT_` +
+        `${network === "public" ? "MAINNET" : "TESTNET"} environment variable)`
     );
   }
   return addr;
