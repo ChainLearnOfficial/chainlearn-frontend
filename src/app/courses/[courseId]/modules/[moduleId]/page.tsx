@@ -2,6 +2,7 @@
 
 import DOMPurify from "dompurify";
 import { useModule, useCourseDetail } from "@/lib/hooks/use-courses";
+import { parseModuleContent } from "@/lib/api/courses";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { LoadingSkeleton } from "@/components/shared/loading-skeleton";
@@ -14,6 +15,7 @@ import {
   ArrowRight,
   CheckCircle,
   Loader2,
+  PlayCircle,
 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
@@ -102,8 +104,26 @@ export default function ModulePage({
           <p className="text-gray-500 mb-6 dark:text-gray-400">{module.description}</p>
 
           <div className="prose prose-gray max-w-none dark:prose-invert">
-            {/* Render module content. In production, use a proper MD renderer. */}
-            <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(module.content) }} />
+            {module.contentType === "video" ? (
+              <div className="aspect-video w-full bg-black rounded-lg overflow-hidden flex items-center justify-center mb-6">
+                {(parseModuleContent(module) as any).url ? (
+                  <video src={(parseModuleContent(module) as any).url} controls className="w-full h-full object-cover" />
+                ) : (
+                  <div className="text-gray-500 flex flex-col items-center">
+                    <PlayCircle className="h-12 w-12 mb-2 opacity-50" />
+                    Video Content
+                  </div>
+                )}
+              </div>
+            ) : module.contentType === "interactive" ? (
+              <div className="p-8 border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-lg text-center mb-6">
+                <CheckCircle className="h-12 w-12 mx-auto text-blue-500 mb-4" />
+                <h3 className="text-lg font-semibold mb-2">Interactive Challenge</h3>
+                <p className="text-gray-500 dark:text-gray-400">Complete the interactive task to proceed.</p>
+              </div>
+            ) : (
+              <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize((parseModuleContent(module) as any).body || module.content as string) }} />
+            )}
           </div>
         </CardContent>
       </Card>
@@ -136,10 +156,10 @@ export default function ModulePage({
                 </Button>
               </Link>
             ) : (
-              <Link href={`/courses/${courseId}`}>
-                <Button className="gap-1">
+              <Link href={`/courses/${courseId}/quiz`}>
+                <Button className="gap-1 bg-stellar-purple hover:bg-stellar-purple/90">
                   <CheckCircle className="h-4 w-4" />
-                  Continue
+                  Take Quiz
                   <ArrowRight className="h-4 w-4" />
                 </Button>
               </Link>

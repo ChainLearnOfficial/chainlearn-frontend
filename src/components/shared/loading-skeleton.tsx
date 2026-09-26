@@ -35,7 +35,7 @@ export function LoadingSkeleton({
 
   return (
     <div
-      className={cn("space-y-3", className)}
+      className={cn("space-y-3 animate-fadeIn", className)}
       role="status"
       aria-live="polite"
       aria-busy="true"
@@ -71,7 +71,7 @@ export function CourseCardSkeleton() {
 export function CourseGridSkeleton({ count = 6 }: { count?: number }) {
   return (
     <div
-      className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3"
+      className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 animate-fadeIn"
       role="status"
       aria-busy="true"
     >

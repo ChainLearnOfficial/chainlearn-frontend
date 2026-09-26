@@ -4,16 +4,23 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --background: #ffffff;
+    --foreground: #111827;
+    --text: #111827;
+    --border: #e5e7eb;
+    --surface: #f9fafb;
+  }
+
+  .dark {
+    --background: #030712;
+    --foreground: #f9fafb;
+    --text: #f9fafb;
+    --border: #374151;
+    --surface: #111827;
   }
 
   body {
-    @apply text-gray-900 antialiased;
-  }
-
-  .dark body {
-    @apply text-gray-100;
+    @apply bg-background text-text antialiased;
   }
 }
 

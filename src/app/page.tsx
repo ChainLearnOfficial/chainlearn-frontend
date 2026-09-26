@@ -45,7 +45,7 @@ export default function LandingPage() {
       {/* Hero Section */}
       <section className="relative overflow-hidden bg-gradient-to-br from-gray-50 via-white to-primary-50">
         <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))]" />
-        <div className="relative mx-auto max-w-7xl px-4 py-24 sm:px-6 sm:py-32 lg:px-8 lg:py-40">
+        <div className="relative mx-auto max-w-container px-4 py-section sm:px-6 sm:py-32 lg:px-8 lg:py-40">
           <div className="max-w-3xl">
             <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-stellar-purple/10 px-4 py-1.5 text-sm font-medium text-stellar-purple">
               <Zap className="h-4 w-4" />
@@ -68,8 +68,8 @@ export default function LandingPage() {
       </section>
 
       {/* Features Section */}
-      <section className="py-24 bg-white">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <section className="py-section bg-white">
+        <div className="mx-auto max-w-container px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-bold text-gray-900 sm:text-4xl">
               Why ChainLearn?
@@ -83,7 +83,7 @@ export default function LandingPage() {
             {features.map((feature) => (
               <div
                 key={feature.title}
-                className="rounded-xl border border-gray-200 p-6 hover:shadow-md transition-shadow"
+                className="rounded-xl border border-gray-200 p-card-padding hover:shadow-md transition-shadow"
               >
                 <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-stellar-purple/10 mb-4">
                   <feature.icon className="h-6 w-6 text-stellar-purple" />
@@ -101,8 +101,8 @@ export default function LandingPage() {
       <Separator />
 
       {/* How It Works Section */}
-      <section className="py-24 bg-gray-50">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <section className="py-section bg-gray-50">
+        <div className="mx-auto max-w-container px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-bold text-gray-900 sm:text-4xl">
               How It Works
@@ -150,7 +150,7 @@ export default function LandingPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-24 bg-gradient-to-r from-stellar-purple to-stellar-blue">
+      <section className="py-section bg-gradient-to-r from-stellar-purple to-stellar-blue">
         <div className="mx-auto max-w-4xl px-4 text-center sm:px-6 lg:px-8">
           <h2 className="text-3xl font-bold text-white sm:text-4xl">
             Ready to Start Learning?

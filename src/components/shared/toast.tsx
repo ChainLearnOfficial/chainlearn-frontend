@@ -30,10 +30,10 @@ interface ToastProps {
 }
 
 const variantStyles = {
-  success: "border-green-200 bg-green-50 text-green-800",
-  error: "border-red-200 bg-red-50 text-red-800",
-  warning: "border-amber-200 bg-amber-50 text-amber-800",
-  info: "border-blue-200 bg-blue-50 text-blue-800",
+  success: "border-success-200 bg-success-50 text-success-800",
+  error: "border-error-200 bg-error-50 text-error-800",
+  warning: "border-warning-200 bg-warning-50 text-warning-800",
+  info: "border-secondary-200 bg-secondary-50 text-secondary-800",
 };
 
 const variantIcons = {
@@ -131,7 +131,7 @@ export function Toast({
       onPointerCancel={handlePointerUp}
       className={cn(
         "fixed right-4 z-[100] flex flex-col gap-0 rounded-lg border shadow-lg transition-all touch-pan-y overflow-hidden",
-        visible ? "opacity-100" : "translate-y-2 opacity-0",
+        visible ? "animate-slideUp opacity-100" : "animate-slideDown opacity-0",
         variantStyles[variant],
         className
       )}
