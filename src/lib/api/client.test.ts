@@ -249,6 +249,74 @@ describe("apiClient response interceptors", () => {
   });
 });
 
+// ── Issue #311: retry jitter and structured retry logging ────────────────────
+
+describe("apiClient retry backoff (issue #311)", () => {
+  it("adds jitter to the retry delay so bursts do not resonate", async () => {
+    vi.useFakeTimers();
+    // Deterministic jitter: Math.random() = 0.5 → floor(0.5 * 250) = 125 ms.
+    const randomSpy = vi.spyOn(Math, "random").mockReturnValue(0.5);
+
+    // Sequence: 500 → 200. On the second attempt the client returns success.
+    fetchMock
+      .mockResolvedValueOnce(jsonResponse({}, 500))
+      .mockResolvedValueOnce(jsonResponse({ data: "ok" }));
+
+    const request = apiClient.get("/retry-jitter", undefined, undefined, {
+      bypassCache: true,
+    });
+
+    // First attempt has already returned 500 by the time the timer starts;
+    // the retry is scheduled at base(1000) + jitter(125) = 1125 ms. At
+    // 1100 ms the second fetch must NOT have fired yet.
+    await vi.advanceTimersByTimeAsync(1100);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+
+    // Advance the remaining 25 ms to the jittered wake-up and resolve.
+    await vi.advanceTimersByTimeAsync(50);
+    await expect(request).resolves.toEqual({ data: "ok" });
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+
+    randomSpy.mockRestore();
+  });
+
+  it("emits a structured retry log with attempt / status / delayMs fields", async () => {
+    vi.useFakeTimers();
+    vi.spyOn(Math, "random").mockReturnValue(0); // jitter = 0 for a stable delay
+
+    fetchMock
+      .mockResolvedValueOnce(jsonResponse({}, 500))
+      .mockResolvedValueOnce(jsonResponse({ data: "ok" }));
+    const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+    const request = apiClient.get("/retry-log", undefined, undefined, {
+      bypassCache: true,
+    });
+    await vi.runAllTimersAsync();
+    await request;
+
+    // The first arg is the human-readable prefix; the second is the
+    // structured payload log aggregators can consume verbatim.
+    const call = warnSpy.mock.calls.find(
+      (c) => typeof c[0] === "string" && (c[0] as string).includes("ApiClient retry"),
+    );
+    expect(call).toBeDefined();
+    const payload = call![1] as {
+      url: string;
+      method: string;
+      attempt: number;
+      retries: number;
+      status: number | null;
+      delayMs: number;
+    };
+    expect(payload.url).toContain("/retry-log");
+    expect(payload.method).toBe("GET");
+    expect(payload.attempt).toBe(1);
+    expect(payload.retries).toBe(3);
+    expect(payload.status).toBe(500);
+    expect(payload.delayMs).toBe(1000);
+
+    warnSpy.mockRestore();
 // ── Issue #312: LRU + per-call TTL + cached-response cloning ─────────────────
 
 describe("apiClient cache behaviour (issue #312)", () => {

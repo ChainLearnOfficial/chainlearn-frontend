@@ -22,6 +22,42 @@ const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
 const REQUEST_TIMEOUT_MS = 30_000;
 const RETRY_BASE_DELAY_MS = 1000;
 const MAX_RETRIES = 3;
+/**
+ * Upper bound on the random jitter (ms) added to each retry delay
+ * (issue #311). Small enough that the effective backoff is still
+ * dominated by the exponential base, large enough that a burst of
+ * concurrent callers who all failed on the same 500 stop retrying in
+ * lockstep and stampede the origin.
+ */
+const RETRY_JITTER_MAX_MS = 250;
+
+/**
+ * Compute the delay before the next retry attempt (issue #311). Returns
+ * the exponential base (`RETRY_BASE_DELAY_MS * 2 ** attempt`) plus a
+ * uniform random jitter in `[0, RETRY_JITTER_MAX_MS)`. Callers that need
+ * a deterministic delay in tests can stub `Math.random`.
+ */
+function computeRetryDelayMs(attempt: number): number {
+  const base = RETRY_BASE_DELAY_MS * 2 ** attempt;
+  const jitter = Math.floor(Math.random() * RETRY_JITTER_MAX_MS);
+  return base + jitter;
+}
+
+/**
+ * Structured retry log (issue #311). Written to `console.warn` so an
+ * off-page aggregator that already collects `console.warn` gets the
+ * fields, and a dev watching devtools still sees a readable prefix.
+ */
+function logRetry(entry: {
+  url: string;
+  method: string;
+  attempt: number;
+  retries: number;
+  status: number | null;
+  delayMs: number;
+}): void {
+  console.warn("[ApiClient retry]", entry);
+}
 
 const CACHE_TTL_MS = 60_000;
 const CACHE_MAX_SIZE = 100;
@@ -265,10 +301,16 @@ class ApiClient {
           return response;
         }
 
-        console.warn(
-          `API request to ${url} returned ${response.status}; retrying (${attempt + 1}/${retries})`
-        );
-        await delay(RETRY_BASE_DELAY_MS * 2 ** attempt);
+        const delayMs = computeRetryDelayMs(attempt);
+        logRetry({
+          url,
+          method: init.method ?? "GET",
+          attempt: attempt + 1,
+          retries,
+          status: response.status,
+          delayMs,
+        });
+        await delay(delayMs);
       } catch (error) {
         if (signal?.aborted) {
           throw createAbortError();
@@ -289,10 +331,19 @@ class ApiClient {
                 "NETWORK_ERROR"
               );
         }
-        console.warn(
-          `API request to ${url} failed; retrying (${attempt + 1}/${retries})`
-        );
-        await delay(RETRY_BASE_DELAY_MS * 2 ** attempt);
+        const delayMs = computeRetryDelayMs(attempt);
+        logRetry({
+          url,
+          method: init.method ?? "GET",
+          attempt: attempt + 1,
+          retries,
+          // No HTTP status on a timeout / network failure — status is null
+          // to signal the caller (or a log aggregator) to inspect the log
+          // message rather than the field.
+          status: null,
+          delayMs,
+        });
+        await delay(delayMs);
       } finally {
         clearTimeout(timeoutId);
         signal?.removeEventListener("abort", onExternalAbort);
