@@ -50,21 +50,8 @@ export function getContractAddress(
   return addr;
 }
 
-/**
- * Read a user's reward token balance via the rewards contract.
- */
-export async function readRewardBalance(
-  userAddress: string,
-  network: NetworkType
-): Promise<string> {
-  const contractAddr = getContractAddress("rewards", network);
-  const simResult = await simulateContractCall(
-    contractAddr,
-    "balance",
-    [userAddress],
-    network
-  );
-
+/** Extract the first simulation result's decoded native value, or throw. */
+function decodeFirstSimResult(simResult: unknown): unknown {
   if (!simResult || typeof simResult !== "object") {
     throw new Error("Invalid simulation result");
   }
@@ -82,9 +69,91 @@ export async function readRewardBalance(
     throw new Error("Missing XDR in simulation result");
   }
 
-  const scVal = scValToNative(xdr.ScVal.fromXDR(result.xdr, "base64"));
-  const balance = scVal as unknown as bigint | number | string;
+  return scValToNative(xdr.ScVal.fromXDR(result.xdr, "base64"));
+}
+
+/**
+ * Read a balance from any deployed contract that exposes a `balance` method
+ * (e.g. the rewards token contract).
+ */
+export async function getContractBalance(
+  contractName: string,
+  userAddress: string,
+  network: NetworkType
+): Promise<string> {
+  const contractAddr = getContractAddress(contractName, network);
+  const simResult = await simulateContractCall(
+    contractAddr,
+    "balance",
+    [userAddress],
+    network
+  );
+  const balance = decodeFirstSimResult(simResult) as unknown as bigint | number | string;
   return String(balance);
+}
+
+/**
+ * Read a user's reward token balance via the rewards contract.
+ */
+export async function readRewardBalance(
+  userAddress: string,
+  network: NetworkType
+): Promise<string> {
+  return getContractBalance("rewards", userAddress, network);
+}
+
+/**
+ * Verify a credential NFT's authenticity directly against the credentials
+ * contract, independent of the backend's own verification endpoint — the
+ * on-chain call is the source of truth a third party could reproduce.
+ */
+export async function verifyCredentialOnChain(
+  tokenId: string,
+  network: NetworkType
+): Promise<{ valid: boolean; owner?: string; issuedAt?: number }> {
+  const contractAddr = getContractAddress("credentials", network);
+  const simResult = await simulateContractCall(
+    contractAddr,
+    "verify",
+    [tokenId],
+    network
+  );
+  const decoded = decodeFirstSimResult(simResult);
+  if (!decoded || typeof decoded !== "object") {
+    return { valid: false };
+  }
+  const record = decoded as Record<string, unknown>;
+  return {
+    valid: Boolean(record.valid ?? true),
+    owner: typeof record.owner === "string" ? record.owner : undefined,
+    issuedAt: typeof record.issued_at === "number" ? record.issued_at : undefined,
+  };
+}
+
+/**
+ * Read a learner's on-chain course progress.
+ *
+ * Progress is tracked as part of the credentials contract rather than a
+ * separate deployment — there is no dedicated progress contract/env var, and
+ * a credential's issuance is itself the on-chain record of course
+ * completion. `get_progress` returns the percentage complete (0-100) for the
+ * given course.
+ */
+export async function getProgressOnChain(
+  userAddress: string,
+  courseId: string,
+  network: NetworkType
+): Promise<number> {
+  const contractAddr = getContractAddress("credentials", network);
+  const simResult = await simulateContractCall(
+    contractAddr,
+    "get_progress",
+    [userAddress, courseId],
+    network
+  );
+  const decoded = decodeFirstSimResult(simResult);
+  const progress = Number(decoded);
+  return Number.isFinite(progress) ? progress : 0;
 }
 
 /**
