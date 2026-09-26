@@ -2,6 +2,7 @@
 
 import { memo } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { cn } from "@/lib/utils/cn";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge, difficultyVariant } from "@/components/ui/badge";
@@ -63,7 +64,17 @@ export const CourseCard = memo(function CourseCard({
       >
         {/* Image placeholder with enrolled badge */}
         <div className="h-40 rounded-t-xl bg-gradient-to-br from-stellar-purple/20 to-stellar-blue/20 flex items-center justify-center relative overflow-hidden">
-          <Star className="h-10 w-10 text-stellar-purple/40" />
+          {course.imageUrl ? (
+            <Image
+              src={course.imageUrl}
+              alt={course.title}
+              fill
+              className="object-cover"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            />
+          ) : (
+            <Star className="h-10 w-10 text-stellar-purple/40" />
+          )}
 
           {/* Enrolled badge */}
           {enrolled && (

@@ -32,6 +32,11 @@ const paces = [
   { value: "fast", label: "Intensive", description: "1+ hour per day" },
 ];
 
+/**
+ * OnboardingPage provides a multi-step setup flow for new users.
+ * Collects display name, learning background, goals, and preferred pace
+ * to personalize the user's learning path.
+ */
 export default function OnboardingPage() {
   const router = useRouter();
   const jwt = useAuthStore((s) => s.jwt);
