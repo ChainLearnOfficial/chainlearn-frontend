@@ -2,7 +2,7 @@
 
 import { useRewards } from "@/lib/hooks/use-rewards";
 import { useTokenPrice } from "@/lib/hooks/use-token-price";
-import { formatTokenBalance } from "@/lib/utils/format";
+import { formatTokenBalance, formatUSD } from "@/lib/utils/format";
 import { Coins, ExternalLink, Copy, Check, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -52,10 +52,7 @@ export function BalanceDisplay({ className, compact = false }: BalanceDisplayPro
     refetch();
   };
 
-  const usdValue =
-    usdRate !== null
-      ? (balanceVal * usdRate).toFixed(2)
-      : "0.00";
+  const usdValue = formatUSD(usdRate !== null ? balanceVal * usdRate : 0);
 
   if (loading || usdLoading) {
     return (
@@ -73,11 +70,11 @@ export function BalanceDisplay({ className, compact = false }: BalanceDisplayPro
             <Coins className="h-4 w-4 text-stellar-purple" />
             <span>{balanceStr}</span>
             <span className="text-gray-500">{tokenCode}</span>
-            <span className="text-xs text-gray-400">($ {usdValue})</span>
+            <span className="text-xs text-gray-400">({usdValue})</span>
           </div>
         </TooltipTrigger>
         <TooltipContent>
-          <p>Available {tokenCode} balance (${usdValue} USD)</p>
+          <p>Available {tokenCode} balance ({usdValue} USD)</p>
           <p className="text-gray-300">{tokenCode} decimals: {decimals}</p>
         </TooltipContent>
       </Tooltip>
@@ -111,7 +108,7 @@ export function BalanceDisplay({ className, compact = false }: BalanceDisplayPro
             <span className="text-sm font-semibold text-gray-500 dark:text-gray-400">{tokenCode}</span>
           </div>
           <div className="text-xs text-gray-500 dark:text-gray-400 font-medium mt-0.5">
-            ≈ ${usdValue} USD
+            ≈ {usdValue} USD
           </div>
           <div className="flex items-center gap-2 text-[11px] text-gray-400 mt-1">
             <span>{tokenCode} decimals: {decimals}</span>
