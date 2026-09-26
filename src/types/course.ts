@@ -13,12 +13,7 @@ export interface Course {
   createdAt: string;
 }
 
-export interface ModuleContent {
-  text?: string;
-  videoUrl?: string;
-  interactiveData?: Record<string, unknown>;
-  duration?: number;
-}
+
 
 export interface Module {
   id: string;
@@ -80,6 +75,7 @@ export interface CoursesListResponse {
   total: number;
   page: number;
   limit: number;
+}
 /**
  * Structured module content, discriminated by `type` to match the
  * `Module.contentType` field. The API currently sends `Module.content` as

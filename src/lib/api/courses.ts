@@ -145,11 +145,9 @@ export async function markModuleComplete(
   jwt: string,
   signal?: AbortSignal
 ): Promise<ModuleCompletionResult> {
-  const response = await apiClient.post<ModuleCompletionResult>(
-): Promise<{ success: boolean }> {
   const validToken = await getValidToken();
   const token = validToken || jwt;
-  const response = await apiClient.post<{ success: boolean }>(
+  const response = await apiClient.post<ModuleCompletionResult>(
     `/courses/${courseId}/modules/${moduleId}/complete`,
     {},
     token,
@@ -207,13 +205,16 @@ export async function getRecommendedCourses(
 export function parseModuleContent(module: Module): ModuleContent {
   switch (module.contentType) {
     case "video":
-      return { type: "video", url: module.content };
+      return { type: "video", url: module.content as string };
     case "interactive":
-      return { type: "interactive", challengeId: module.content };
+      return { type: "interactive", challengeId: module.content as string };
     case "text":
     default:
-      return { type: "text", body: module.content };
+      return { type: "text", body: module.content as string };
   }
+}
+
+/**
  * Fetch all modules for a course in order.
  * This is a convenience function that fetches the course and returns sorted modules.
  * 
