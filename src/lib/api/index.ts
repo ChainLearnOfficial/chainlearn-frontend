@@ -23,8 +23,10 @@ export {
 // Quiz-related APIs
 export {
   getQuiz,
+  generateQuiz,
   submitQuiz,
   getQuizAttempts,
+  type GenerateQuizParams,
 } from "./quizzes";
 
 // Auth-related APIs
@@ -53,6 +55,7 @@ export {
   getRewardHistory,
   claimReward,
   getClaimables,
+  type RewardHistoryParams,
 } from "./rewards";
 
 // Notification-related APIs
