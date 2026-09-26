@@ -11,6 +11,9 @@ import {
   formatUSD,
   formatCurrency,
   formatPrice,
+  formatNumber,
+  formatCompactNumber,
+  formatPercent,
 } from "../format";
 
 describe("formatDate", () => {
@@ -134,5 +137,43 @@ describe("formatPrice", () => {
 
   it("shows extra decimals for sub-cent values", () => {
     expect(formatPrice(0.0001234)).toBe("$0.000123");
+  });
+});
+
+describe("formatNumber", () => {
+  it("adds thousands separators", () => {
+    expect(formatNumber(1234567)).toBe("1,234,567");
+  });
+  it("respects maximumFractionDigits", () => {
+    expect(formatNumber(1.23456, { maximumFractionDigits: 2 })).toBe("1.23");
+  });
+  it("returns empty string for non-finite input", () => {
+    expect(formatNumber(NaN)).toBe("");
+    expect(formatNumber(Infinity)).toBe("");
+  });
+});
+
+describe("formatCompactNumber", () => {
+  it("compacts thousands and millions", () => {
+    expect(formatCompactNumber(1234)).toBe("1.2K");
+    expect(formatCompactNumber(2_500_000)).toBe("2.5M");
+  });
+  it("leaves small numbers alone", () => {
+    expect(formatCompactNumber(42)).toBe("42");
+  });
+  it("returns empty string for non-finite input", () => {
+    expect(formatCompactNumber(NaN)).toBe("");
+  });
+});
+
+describe("formatPercent", () => {
+  it("formats a ratio as a percentage", () => {
+    expect(formatPercent(0.256)).toBe("25.6%");
+  });
+  it("accepts values already in percent units", () => {
+    expect(formatPercent(25.6, { isPercentValue: true })).toBe("25.6%");
+  });
+  it("returns empty string for non-finite input", () => {
+    expect(formatPercent(NaN)).toBe("");
   });
 });
