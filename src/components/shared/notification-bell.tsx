@@ -35,11 +35,11 @@ const typeIcons: Record<NotificationType, LucideIcon> = {
 };
 
 const typeStyles: Record<NotificationType, string> = {
-  reward_claimed: "text-green-600 dark:text-green-400",
+  reward_claimed: "text-success-600 dark:text-success-400",
   course_completed: "text-primary-600 dark:text-primary-400",
   credential_minted: "text-stellar-purple",
-  announcement: "text-amber-600 dark:text-amber-400",
-  system: "text-gray-500 dark:text-gray-400",
+  announcement: "text-warning-600 dark:text-warning-400",
+  system: "text-neutral-500 dark:text-neutral-400",
 };
 
 export function NotificationBell() {
@@ -70,7 +70,7 @@ export function NotificationBell() {
         >
           <Bell className="h-5 w-5" aria-hidden="true" />
           {unreadCount > 0 && (
-            <span className="absolute top-0.5 right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-semibold text-white">
+            <span className="absolute top-0.5 right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-error-600 px-1 text-[10px] font-semibold text-white animate-scaleIn">
               {unreadCount > 9 ? "9+" : unreadCount}
             </span>
           )}
