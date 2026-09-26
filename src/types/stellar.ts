@@ -11,6 +11,13 @@ export interface TokenBalance {
   decimals: number;
 }
 
+export interface AssetBalance {
+  assetCode: string;
+  assetIssuer?: string;
+  balance: string;
+  assetType: "native" | "credit_alphanum4" | "credit_alphanum12";
+}
+
 export interface RewardClaim {
   id: string;
   txHash: string;
@@ -48,4 +55,18 @@ export interface TransactionResult {
   success: boolean;
   ledger?: number;
   error?: string;
+}
+
+export interface ContractCallResult<T = unknown> {
+  success: boolean;
+  result?: T;
+  error?: string;
+  txHash?: string;
+  gasUsed?: number;
+}
+
+export interface NetworkConfig {
+  network: "testnet" | "public";
+  horizonUrl: string;
+  networkPassphrase: string;
 }
