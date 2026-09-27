@@ -42,3 +42,58 @@ export function isValidContractId(contractId: string | null | undefined): Valida
   }
   return { valid: true };
 }
+
+// --- #368: Form Field Validators ---
+
+export function required(value: string | null | undefined, fieldName = "Field"): ValidationResult {
+  if (!value || value.trim() === "") {
+    return { valid: false, error: `${fieldName} is required` };
+  }
+  return { valid: true };
+}
+
+export function minLength(value: string, min: number, fieldName = "Field"): ValidationResult {
+  if (value.length < min) {
+    return { valid: false, error: `${fieldName} must be at least ${min} characters` };
+  }
+  return { valid: true };
+}
+
+export function maxLength(value: string, max: number, fieldName = "Field"): ValidationResult {
+  if (value.length > max) {
+    return { valid: false, error: `${fieldName} must be at most ${max} characters` };
+  }
+  return { valid: true };
+}
+
+export function stellarAddress(value: string | null | undefined): ValidationResult {
+  return isValidStellarAddress(value);
+}
+
+export function displayName(value: string | null | undefined): ValidationResult {
+  const req = required(value, "Display name");
+  if (!req.valid) return req;
+  
+  const val = value!;
+  const min = minLength(val, 2, "Display name");
+  if (!min.valid) return min;
+
+  const max = maxLength(val, 50, "Display name");
+  if (!max.valid) return max;
+
+  if (/[\r\n\t\0<>]/.test(val)) {
+    return { valid: false, error: "Display name contains invalid characters" };
+  }
+
+  return { valid: true };
+}
+
+export function composeValidators(...validators: Array<(val: string) => ValidationResult>): (val: string) => ValidationResult {
+  return (val: string) => {
+    for (const validator of validators) {
+      const result = validator(val);
+      if (!result.valid) return result;
+    }
+    return { valid: true };
+  };
+}
