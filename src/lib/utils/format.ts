@@ -113,8 +113,44 @@ export function formatDuration(minutes: number): string {
 /**
  * Format a number with commas (e.g. 1,234).
  */
-export function formatNumber(num: number): string {
-  return num.toLocaleString("en-US");
+export function formatNumber(
+  num: number,
+  options?: { locale?: string; maximumFractionDigits?: number }
+): string {
+  if (!isFinite(num)) return "";
+  return num.toLocaleString(options?.locale ?? "en-US", {
+    maximumFractionDigits: options?.maximumFractionDigits,
+  });
+}
+
+/**
+ * Format a number in compact notation, e.g. 1234 -> "1.2K", 2_500_000 -> "2.5M".
+ */
+export function formatCompactNumber(
+  num: number,
+  options?: { locale?: string; maximumFractionDigits?: number }
+): string {
+  if (!isFinite(num)) return "";
+  return new Intl.NumberFormat(options?.locale ?? "en-US", {
+    notation: "compact",
+    maximumFractionDigits: options?.maximumFractionDigits ?? 1,
+  }).format(num);
+}
+
+/**
+ * Format a ratio (0-1) as a percentage, e.g. 0.256 -> "25.6%". Pass
+ * `{ isPercentValue: true }` when the input is already in percent units.
+ */
+export function formatPercent(
+  value: number,
+  options?: { locale?: string; maximumFractionDigits?: number; isPercentValue?: boolean }
+): string {
+  if (!isFinite(value)) return "";
+  const ratio = options?.isPercentValue ? value / 100 : value;
+  return new Intl.NumberFormat(options?.locale ?? "en-US", {
+    style: "percent",
+    maximumFractionDigits: options?.maximumFractionDigits ?? 1,
+  }).format(ratio);
 }
 
 /**

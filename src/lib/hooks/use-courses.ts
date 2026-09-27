@@ -246,7 +246,9 @@ export function useInfiniteCourses(filters: {
 
   const [courses, setCourses] = useState<Course[]>([]);
   const [page, setPage] = useState(1);
-  const [cursor, setCursor] = useState<string | null>(null);
+  // Kept in a ref, not state: as a load() dependency it re-created the callback
+  // on every response, re-triggering the reset effect in an endless fetch loop (#429).
+  const cursorRef = useRef<string | null>(null);
   const [total, setTotal] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(true);
@@ -273,7 +275,7 @@ export function useInfiniteCourses(filters: {
             page: nextPage,
             limit: INFINITE_PAGE_SIZE,
             pageSize: INFINITE_PAGE_SIZE,
-            cursor: replace ? undefined : cursor || undefined,
+            cursor: replace ? undefined : cursorRef.current || undefined,
           },
           controller.signal
         );
@@ -283,7 +285,7 @@ export function useInfiniteCourses(filters: {
         );
         setHasMore(result.hasMore);
         setTotal(result.total);
-        setCursor(result.nextCursor || null);
+        cursorRef.current = result.nextCursor || null;
         setPage(nextPage);
       } catch (err) {
         if (id !== requestId.current || isAbortError(err)) return;
@@ -297,7 +299,7 @@ export function useInfiniteCourses(filters: {
         }
       }
     },
-    [category, difficulty, cursor]
+    [category, difficulty]
   );
 
   // Reset and refetch from the first page whenever filters change.
