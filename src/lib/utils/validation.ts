@@ -1,4 +1,5 @@
 import { StrKey } from "@stellar/stellar-sdk";
+import { z } from "zod";
 
 export interface ValidationResult {
   valid: boolean;
@@ -97,3 +98,72 @@ export function composeValidators(...validators: Array<(val: string) => Validati
     return { valid: true };
   };
 }
+
+// --- #370: Zod Schemas ---
+
+export const profileUpdateSchema = z.object({
+  displayName: z.string().superRefine((val, ctx) => {
+    const res = displayName(val);
+    if (!res.valid) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: res.error,
+      });
+    }
+  }),
+  background: z.string().min(1, "Background is required"),
+  learningGoals: z.array(z.string()).min(1, "Select at least one learning goal"),
+  preferredPace: z.enum(["slow", "moderate", "fast"], {
+    errorMap: () => ({ message: "Invalid preferred pace" }),
+  }),
+  stellarAddress: z.string().optional().superRefine((val, ctx) => {
+    if (val) {
+      const res = stellarAddress(val);
+      if (!res.valid) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: res.error,
+        });
+      }
+    }
+  }),
+});
+export type ProfileUpdate = z.infer<typeof profileUpdateSchema>;
+
+export const courseCreateSchema = z.object({
+  title: z.string().min(3, "Title must be at least 3 characters").max(100, "Title is too long"),
+  description: z.string().min(10, "Description must be at least 10 characters"),
+  difficulty: z.enum(["beginner", "intermediate", "advanced"], {
+    errorMap: () => ({ message: "Difficulty must be beginner, intermediate, or advanced" }),
+  }),
+  category: z.string().min(2, "Category is required"),
+  estimatedHours: z.number().positive("Estimated hours must be a positive number"),
+  rewardTokenAmount: z.number().nonnegative("Reward amount cannot be negative"),
+  imageUrl: z.string().url("Must be a valid URL").optional(),
+});
+export type CourseCreate = z.infer<typeof courseCreateSchema>;
+
+export const quizSubmitSchema = z.object({
+  quizId: z.string().min(1, "Quiz ID is required"),
+  userId: z.string().min(1, "User ID is required"),
+  answers: z.array(
+    z.object({
+      questionId: z.string().min(1, "Question ID is required"),
+      selectedOptionId: z.string().min(1, "Selected option is required"),
+    })
+  ).min(1, "At least one answer must be provided"),
+  timeTakenSeconds: z.number().nonnegative("Time taken cannot be negative").optional(),
+});
+export type QuizSubmit = z.infer<typeof quizSubmitSchema>;
+
+export const rewardClaimSchema = z.object({
+  id: z.string().min(1, "Claim ID is required"),
+  txHash: z.string().min(1, "Transaction hash is required"),
+  amount: z.string().min(1, "Amount is required"),
+  tokenCode: z.string().min(1, "Token code is required"),
+  decimals: z.number().nonnegative().optional(),
+  claimedAt: z.string().datetime("Must be a valid ISO date string"),
+  status: z.enum(["pending", "confirmed", "failed"]),
+  courseTitle: z.string().optional(),
+});
+export type RewardClaimType = z.infer<typeof rewardClaimSchema>;
