@@ -37,12 +37,17 @@ export function BalanceDisplay({ className, compact = false }: BalanceDisplayPro
   );
 
   const handleCopyContract = useCallback(
-    (e: React.MouseEvent) => {
+    async (e: React.MouseEvent) => {
       e.stopPropagation();
       if (!contractAddress) return;
-      navigator.clipboard.writeText(contractAddress);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      try {
+        await navigator.clipboard.writeText(contractAddress);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      } catch (err) {
+        // Don't report success when nothing was copied (#437).
+        console.error("Failed to copy contract address", err);
+      }
     },
     [contractAddress]
   );

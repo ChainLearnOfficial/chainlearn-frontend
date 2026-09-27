@@ -44,11 +44,16 @@ export function ConnectButton() {
     };
   }, [showDropdown, closeDropdown]);
 
-  const handleCopyAddress = () => {
-    if (walletAddress) {
-      navigator.clipboard.writeText(walletAddress);
+  const handleCopyAddress = async () => {
+    if (!walletAddress) return;
+    try {
+      await navigator.clipboard.writeText(walletAddress);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      // Clipboard can be unavailable (insecure context) or denied; don't
+      // report success when nothing was copied (#437).
+      console.error("Failed to copy address", err);
     }
   };
 
