@@ -7,6 +7,10 @@ export function truncateAddress(address: string, chars = 4): string {
   return `${address.slice(0, chars)}...${address.slice(-chars)}`;
 }
 
+export function formatAddress(address: string, chars = 4): string {
+  return truncateAddress(address, chars);
+}
+
 /**
  * Format a token balance string with the given number of decimal places.
  */
@@ -22,6 +26,26 @@ export function formatTokenBalance(
     minimumFractionDigits: 0,
     maximumFractionDigits: displayDecimals,
   });
+}
+
+export function formatTokenAmount(
+  amount: string | number,
+  tokenCode = "LEARN",
+  options?: {
+    locale?: string;
+    minimumFractionDigits?: number;
+    maximumFractionDigits?: number;
+  }
+): string {
+  const value = typeof amount === "string" ? Number(amount) : amount;
+  if (!Number.isFinite(value)) return "";
+
+  const formatted = new Intl.NumberFormat(options?.locale ?? "en-US", {
+    minimumFractionDigits: options?.minimumFractionDigits,
+    maximumFractionDigits: options?.maximumFractionDigits ?? 2,
+  }).format(value);
+
+  return tokenCode ? `${formatted} ${tokenCode}` : formatted;
 }
 
 /**
@@ -67,7 +91,7 @@ export function formatDateTime(
  */
 export function formatRelativeTime(
   date: string | number | Date,
-  options?: { locale?: string }
+  options?: { locale?: string; timeZone?: string }
 ): string {
   const d = date instanceof Date ? date : new Date(date);
   if (isNaN(d.getTime())) return "";
@@ -96,7 +120,7 @@ export function formatRelativeTime(
     duration /= division.amount;
   }
 
-  return formatDate(d);
+  return formatDate(d, options);
 }
 
 /**
@@ -104,10 +128,16 @@ export function formatRelativeTime(
  */
 export function formatDuration(minutes: number): string {
   if (!isFinite(minutes) || minutes < 0) return "0m";
-  if (minutes < 60) return `${Math.round(minutes)}m`;
-  const hours = Math.floor(minutes / 60);
-  const remaining = Math.round(minutes % 60);
-  return remaining > 0 ? `${hours}h ${remaining}m` : `${hours}h`;
+  const totalMinutes = Math.round(minutes);
+  const days = Math.floor(totalMinutes / 1440);
+  const hours = Math.floor((totalMinutes % 1440) / 60);
+  const remainingMinutes = totalMinutes % 60;
+  const parts = [
+    days > 0 ? `${days}d` : "",
+    hours > 0 ? `${hours}h` : "",
+    remainingMinutes > 0 ? `${remainingMinutes}m` : "",
+  ].filter(Boolean);
+  return parts.join(" ") || "0m";
 }
 
 /**
@@ -137,6 +167,13 @@ export function formatCompactNumber(
   }).format(num);
 }
 
+export function formatLargeNumber(
+  num: number,
+  options?: { locale?: string; maximumFractionDigits?: number }
+): string {
+  return formatCompactNumber(num, options);
+}
+
 /**
  * Format a ratio (0-1) as a percentage, e.g. 0.256 -> "25.6%". Pass
  * `{ isPercentValue: true }` when the input is already in percent units.
@@ -151,6 +188,18 @@ export function formatPercent(
     style: "percent",
     maximumFractionDigits: options?.maximumFractionDigits ?? 1,
   }).format(ratio);
+}
+
+export function formatPercentage(
+  value: number,
+  options?: {
+    locale?: string;
+    maximumFractionDigits?: number;
+    isPercentValue?: boolean;
+  }
+): string {
+  if (!Number.isFinite(value)) return "";
+  return formatPercent(value, options);
 }
 
 /**

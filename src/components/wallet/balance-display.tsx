@@ -2,7 +2,7 @@
 
 import { useRewards } from "@/lib/hooks/use-rewards";
 import { useTokenPrice } from "@/lib/hooks/use-token-price";
-import { formatTokenBalance, formatUSD } from "@/lib/utils/format";
+import { formatTokenAmount, formatUSD } from "@/lib/utils/format";
 import { Coins, ExternalLink, Copy, Check, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -24,7 +24,7 @@ export function BalanceDisplay({ className, compact = false }: BalanceDisplayPro
   const issuer = primaryBalance?.tokenIssuer;
   const rawBalance = primaryBalance ? parseFloat(primaryBalance.balance) : 0;
   const balanceVal = isNaN(rawBalance) ? 0 : rawBalance / Math.pow(10, decimals);
-  const balanceStr = formatTokenBalance(balanceVal, 0);
+  const balanceStr = formatTokenAmount(balanceVal, "", { maximumFractionDigits: 2 });
 
   // Derive the deployed address for the current network from the balance's
   // issuer when available, so users always have a copyable asset address.

@@ -1,18 +1,25 @@
-import { describe, it, expect, vi } from "vitest";
+import { beforeEach, describe, it, expect, vi } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import { WalletProvider, useWalletContext } from "@/components/wallet/wallet-provider";
 
-// Stub Freighter wallet calls to avoid real network/extension access
-vi.mock("@/lib/stellar/wallet", () => ({
-  getFreighterAddress: vi.fn().mockResolvedValue(null),
+const mocks = vi.hoisted(() => ({
+  getWalletAddress: vi.fn(),
+  disconnect: vi.fn(),
+  state: {
+    isAuthenticated: false,
+    walletProviderId: "freighter" as "freighter" | "lobstr" | "rabet",
+    network: "testnet" as "testnet" | "public",
+  },
 }));
 
-const disconnectMock = vi.fn();
+vi.mock("@/lib/stellar/wallet", () => ({
+  getWalletAddress: mocks.getWalletAddress,
+}));
 
 vi.mock("@/store/auth-store", () => ({
   useAuthStore: () => ({
-    isAuthenticated: false,
-    disconnect: disconnectMock,
+    ...mocks.state,
+    disconnect: mocks.disconnect,
   }),
 }));
 
@@ -23,6 +30,14 @@ function ContextProbe() {
 }
 
 describe("WalletProvider", () => {
+  beforeEach(() => {
+    mocks.state.isAuthenticated = false;
+    mocks.state.walletProviderId = "freighter";
+    mocks.state.network = "testnet";
+    mocks.getWalletAddress.mockReset().mockResolvedValue(null);
+    mocks.disconnect.mockReset();
+  });
+
   it("renders children", () => {
     render(
       <WalletProvider>
@@ -41,31 +56,19 @@ describe("WalletProvider", () => {
     expect(screen.getByTestId("ready").textContent).toBe("true");
   });
 
-  it("calls disconnect when Freighter returns no address for authenticated user", async () => {
-    const { getFreighterAddress } = await import("@/lib/stellar/wallet");
-    vi.mocked(getFreighterAddress).mockResolvedValueOnce(null);
+  it("disconnects when the selected provider no longer has the stored address", async () => {
+    mocks.state.isAuthenticated = true;
+    mocks.state.walletProviderId = "lobstr";
 
-    // Re-mock auth store as authenticated
-    vi.doMock("@/store/auth-store", () => ({
-      useAuthStore: () => ({
-        isAuthenticated: true,
-        disconnect: disconnectMock,
-      }),
-    }));
-
-    const { WalletProvider: WP } = await import("@/components/wallet/wallet-provider");
     render(
-      <WP>
+      <WalletProvider>
         <span>child</span>
-      </WP>
+      </WalletProvider>
     );
 
     await waitFor(() => {
-      // disconnect is called because getFreighterAddress returned null
-      // while isAuthenticated=true
-      // (the initial mock has isAuthenticated=false so disconnect won't
-      //  be called in this particular render — we verify the module loads)
-      expect(screen.getByText("child")).toBeInTheDocument();
+      expect(mocks.disconnect).toHaveBeenCalledOnce();
     });
+    expect(mocks.getWalletAddress).toHaveBeenCalledWith("lobstr", "testnet");
   });
 });
