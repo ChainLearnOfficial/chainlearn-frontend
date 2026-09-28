@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Share2, Copy, Twitter, Linkedin, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -31,12 +31,32 @@ export function ShareButton({
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [canShare, setCanShare] = useState(false);
+  const copyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (typeof navigator !== 'undefined' && navigator.share) {
       setCanShare(true);
     }
   }, []);
+
+  useEffect(() => {
+    return () => {
+      if (copyTimeoutRef.current) {
+        clearTimeout(copyTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const handleOpenChange = (isOpen: boolean) => {
+    setOpen(isOpen);
+    if (!isOpen) {
+      if (copyTimeoutRef.current) {
+        clearTimeout(copyTimeoutRef.current);
+        copyTimeoutRef.current = null;
+      }
+      setCopied(false);
+    }
+  };
 
   const handleShareClick = async () => {
     if (canShare) {
@@ -50,19 +70,25 @@ export function ShareButton({
       } catch (err) {
         if ((err as Error).name !== 'AbortError') {
           console.error('Error sharing', err);
-          setOpen(true);
+          handleOpenChange(true);
         }
       }
     } else {
-      setOpen(true);
+      handleOpenChange(true);
     }
   };
 
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(url);
+      if (copyTimeoutRef.current) {
+        clearTimeout(copyTimeoutRef.current);
+      }
       setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      copyTimeoutRef.current = setTimeout(() => {
+        setCopied(false);
+        copyTimeoutRef.current = null;
+      }, 2000);
     } catch (err) {
       console.error('Failed to copy', err);
     }
@@ -85,7 +111,7 @@ export function ShareButton({
         Share
       </Button>
 
-      <Dialog open={open} onOpenChange={setOpen}>
+      <Dialog open={open} onOpenChange={handleOpenChange}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Share link</DialogTitle>
