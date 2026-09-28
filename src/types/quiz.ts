@@ -61,18 +61,6 @@ export interface SubmitQuizRequest {
   timeTakenSeconds?: number;
 }
 
-export interface QuizResult {
-  quizId: string;
-  userId: string;
-  score: number;
-  passed: boolean;
-  totalQuestions: number;
-  correctAnswers: number;
-  timeTakenSeconds?: number;
-  answers: QuizAnswer[];
-  rewardEarned?: number;
-}
-
 export interface QuizFeedback {
   questionId: string;
   isCorrect: boolean;

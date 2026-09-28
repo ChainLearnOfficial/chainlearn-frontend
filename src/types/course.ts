@@ -27,15 +27,12 @@ export interface Module {
   isCompleted?: boolean;
 }
 
-export type EnrollmentStatus = "not_enrolled" | "active" | "completed" | "dropped";
-
 export interface CourseEnrollment {
   id: string;
   courseId: string;
   userId: string;
   enrolledAt: string;
   progress: number; // 0-100
-  status: EnrollmentStatus;
   completedModules: string[];
   lastAccessedAt: string;
   /**
