@@ -120,6 +120,8 @@ export function useAuth() {
   networkRef.current = network;
 
   const [walletError, setWalletError] = useState<WalletError | null>(null);
+  const walletErrorRef = useRef(walletError);
+  walletErrorRef.current = walletError;
   const [connectionStage, setConnectionStage] =
     useState<WalletConnectionStage>("idle");
 
@@ -173,7 +175,7 @@ export function useAuth() {
       return address;
     } catch (err) {
       // If we already set walletError (e.g. not_installed), don't re-classify
-      if (!walletError) {
+      if (!walletErrorRef.current) {
         const walletErr = classifyWalletError(err, networkRef.current);
         setWalletError(walletErr);
         setError(walletErr.message);
@@ -182,7 +184,7 @@ export function useAuth() {
     } finally {
       setIsConnecting(false);
     }
-  }, [connect, setIsConnecting, clearError, setError, walletError]);
+  }, [connect, setIsConnecting, clearError, setError]);
 
   const disconnect = useCallback(() => {
     storeDisconnect();
