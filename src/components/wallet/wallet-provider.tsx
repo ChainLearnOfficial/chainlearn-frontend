@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, type ReactNode } from "react";
 import { useAuthStore } from "@/store/auth-store";
-import { getFreighterAddress } from "@/lib/stellar/wallet";
+import { getWalletAddress } from "@/lib/stellar/wallet";
 
 interface WalletContextValue {
   isReady: boolean;
@@ -20,30 +20,28 @@ interface WalletProviderProps {
 
 /**
  * WalletProvider initializes the wallet connection state on mount.
- * It checks if Freighter is already connected and syncs with the store.
+ * It checks whether the selected provider is still connected.
  */
 export function WalletProvider({ children }: WalletProviderProps) {
-  const { isAuthenticated, disconnect } = useAuthStore();
+  const { isAuthenticated, walletProviderId, network, disconnect } = useAuthStore();
 
   useEffect(() => {
     async function checkConnection() {
       if (!isAuthenticated) return;
 
       try {
-        const address = await getFreighterAddress();
-        // If Freighter returns no address but store says we're connected,
-        // the user disconnected externally
+        const address = await getWalletAddress(walletProviderId ?? undefined, network);
         if (!address) {
           disconnect();
         }
       } catch (err) {
-        console.error("Freighter connection check failed:", err);
+        console.error("Wallet connection check failed:", err);
         disconnect();
       }
     }
 
     checkConnection();
-  }, [isAuthenticated, disconnect]);
+  }, [isAuthenticated, walletProviderId, network, disconnect]);
 
   return (
     <WalletContext.Provider value={{ isReady: true }}>

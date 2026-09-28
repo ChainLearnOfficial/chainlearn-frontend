@@ -8,9 +8,21 @@ import { truncateAddress } from "@/lib/utils/format";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { useState, useRef, useEffect, useCallback } from "react";
 
+const WALLET_LABELS = {
+  freighter: "Freighter",
+  lobstr: "LOBSTR",
+  rabet: "Rabet",
+} as const;
+
 export function ConnectButton() {
-  const { isAuthenticated, walletAddress, isConnecting, connectWallet, disconnect } =
-    useAuth();
+  const {
+    isAuthenticated,
+    walletAddress,
+    walletProviderId,
+    isConnecting,
+    connectWallet,
+    disconnect,
+  } = useAuth();
   const { network, setNetwork } = useAuthStore();
   const [showDropdown, setShowDropdown] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -89,7 +101,9 @@ export function ConnectButton() {
           className="gap-2 font-mono"
         >
           <span className="flex items-center gap-1.5 font-sans text-xs text-gray-500 dark:text-gray-400">
-            <span className="font-semibold text-gray-700 dark:text-gray-200">Freighter</span>
+            <span className="font-semibold text-gray-700 dark:text-gray-200">
+              {walletProviderId ? WALLET_LABELS[walletProviderId] : "Wallet"}
+            </span>
             <span className="flex items-center gap-1 text-[10px] uppercase font-bold text-stellar-purple px-1.5 py-0.5 rounded bg-stellar-purple/10">
               <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
               {network}
@@ -108,7 +122,7 @@ export function ConnectButton() {
             <div className="px-3 py-2 border-b border-gray-100 dark:border-gray-800">
               <div className="text-xs text-gray-400 font-medium">Connected Wallet</div>
               <div className="text-sm font-semibold text-gray-800 dark:text-gray-200 flex items-center justify-between">
-                <span>Freighter Wallet</span>
+                <span>{walletProviderId ? WALLET_LABELS[walletProviderId] : "Wallet"} Wallet</span>
                 <span className="text-[10px] text-green-600 bg-green-50 px-1.5 py-0.5 rounded font-mono font-bold">
                   ACTIVE
                 </span>
