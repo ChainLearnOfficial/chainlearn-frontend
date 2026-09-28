@@ -67,6 +67,7 @@ export interface UserProfile {
   background: string;
   learningGoals: string[];
   preferredPace: "slow" | "moderate" | "fast";
+  language?: string;
   avatarUrl?: string;
   createdAt: string;
   updatedAt: string;

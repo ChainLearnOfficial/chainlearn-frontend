@@ -166,9 +166,13 @@ export function capitalize(str: string): string {
  */
 export function truncate(text: string, maxLength: number, suffix = "..."): string {
   if (!text) return "";
-  if (maxLength <= 0) return "";
+  if (!Number.isFinite(maxLength) || maxLength <= 0) return "";
   if (text.length <= maxLength) return text;
-  return `${text.slice(0, maxLength - suffix.length).trimEnd()}${suffix}`;
+
+  const limit = Math.floor(maxLength);
+  const truncatedSuffix = suffix.slice(0, limit);
+  const contentLength = limit - truncatedSuffix.length;
+  return `${text.slice(0, contentLength).trimEnd()}${truncatedSuffix}`;
 }
 
 /**

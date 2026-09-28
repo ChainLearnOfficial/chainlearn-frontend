@@ -88,6 +88,11 @@ describe("truncate", () => {
   it("handles empty strings", () => {
     expect(truncate("", 12)).toBe("");
   });
+
+  it("keeps the result within the maximum when the suffix is longer", () => {
+    expect(truncate("Course Title", 2)).toBe("..");
+    expect(truncate("Course Title", 0)).toBe("");
+  });
 });
 
 describe("pluralize", () => {
