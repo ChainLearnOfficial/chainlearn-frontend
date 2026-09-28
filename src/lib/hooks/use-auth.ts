@@ -23,6 +23,8 @@ export interface WalletError {
   resolution: string;
 }
 
+export type WalletConnectionStage = "idle" | "detect" | "connect" | "sign" | "verify" | "complete";
+
 // Helper to classify wallet errors
 function classifyWalletError(err: unknown, currentNetwork: string): WalletError {
   const msg = err instanceof Error ? err.message : String(err);
@@ -118,9 +120,12 @@ export function useAuth() {
   networkRef.current = network;
 
   const [walletError, setWalletError] = useState<WalletError | null>(null);
+  const [connectionStage, setConnectionStage] =
+    useState<WalletConnectionStage>("idle");
 
   const connectWallet = useCallback(async () => {
     setIsConnecting(true);
+    setConnectionStage("detect");
     clearError();
     setWalletError(null);
 
@@ -140,16 +145,19 @@ export function useAuth() {
       }
 
       // Connect to Freighter
+      setConnectionStage("connect");
       const address = await connectFreighter();
 
       // Get challenge from backend
       const challenge = await getChallenge(address);
 
       // Sign challenge with Freighter
+      setConnectionStage("sign");
       const passphrase = getNetworkPassphrase(networkRef.current);
       const signedChallenge = await signChallenge(challenge, passphrase);
 
       // Verify signature and get JWT
+      setConnectionStage("verify");
       const tokens = await verifySignature(address, signedChallenge);
 
       // Store in Zustand. The refresh token is kept so useTokenRefresh can
@@ -160,6 +168,7 @@ export function useAuth() {
         tokens.expiresIn,
         tokens.refreshToken
       );
+      setConnectionStage("complete");
 
       return address;
     } catch (err) {
@@ -198,6 +207,7 @@ export function useAuth() {
     jwt,
     isAuthenticated,
     isConnecting,
+    connectionStage,
     error,
     walletError,
     walletInfo,
