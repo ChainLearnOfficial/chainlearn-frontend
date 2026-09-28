@@ -202,14 +202,19 @@ export async function getRecommendedCourses(
  * this helper needs to change.
  */
 export function parseModuleContent(module: Module): ModuleContent {
+  if (typeof module.content === "object" && module.content !== null) {
+    return module.content;
+  }
+
+  const content = module.content;
   switch (module.contentType) {
     case "video":
-      return { type: "video", url: module.content as string };
+      return { type: "video", url: content };
     case "interactive":
-      return { type: "interactive", challengeId: module.content as string };
+      return { type: "interactive", challengeId: content };
     case "text":
     default:
-      return { type: "text", body: module.content as string };
+      return { type: "text", body: content };
   }
 }
 

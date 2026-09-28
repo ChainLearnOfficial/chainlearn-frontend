@@ -4,9 +4,9 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Wallet, Shield, ArrowRight, Loader2, AlertCircle } from "lucide-react";
+import { Wallet, Shield, Loader2, AlertCircle } from "lucide-react";
 import { isFreighterInstalled } from "@/lib/stellar/wallet";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useToastContext } from "@/components/shared/toast";
 
 /**
@@ -16,41 +16,71 @@ import { useToastContext } from "@/components/shared/toast";
  */
 export default function ConnectPage() {
   const router = useRouter();
-  const { isAuthenticated, isConnecting, connectWallet, error } = useAuth();
+  const {
+    isAuthenticated,
+    isConnecting,
+    connectionStage,
+    connectWallet,
+    error,
+    walletError,
+  } = useAuth();
   const { addToast } = useToastContext();
   const [freighterInstalled, setFreighterInstalled] = useState<boolean | null>(
     null
   );
+  const connectingFromPage = useRef(false);
 
   useEffect(() => {
-    isFreighterInstalled().then(setFreighterInstalled);
+    let active = true;
+    isFreighterInstalled().then((installed) => {
+      if (active) setFreighterInstalled(installed);
+    });
+    return () => {
+      active = false;
+    };
   }, []);
 
   useEffect(() => {
-    if (isAuthenticated) {
-      router.push("/dashboard");
-    }
+    if (!isAuthenticated || connectingFromPage.current) return;
+    let active = true;
+    const redirect = async () => {
+      try {
+        const { getProfile } = await import("@/lib/api/auth");
+        const { useAuthStore } = await import("@/store/auth-store");
+        const jwt = useAuthStore.getState().jwt;
+        const profile = jwt ? await getProfile(jwt) : null;
+        if (active) {
+          router.replace(profile?.displayName ? "/dashboard" : "/onboarding");
+        }
+      } catch {
+        if (active) router.replace("/onboarding");
+      }
+    };
+    void redirect();
+    return () => {
+      active = false;
+    };
   }, [isAuthenticated, router]);
 
   const handleConnect = async () => {
+    connectingFromPage.current = true;
     try {
       await connectWallet();
-      addToast("Wallet connected successfully!", "success");
+    } catch {
+      connectingFromPage.current = false;
+      return;
+    }
+
+    addToast("Wallet connected successfully!", "success");
+    try {
       const { getProfile } = await import("@/lib/api/auth");
       const { useAuthStore } = await import("@/store/auth-store");
       const jwt = useAuthStore.getState().jwt;
-      if (jwt) {
-        const profile = await getProfile(jwt);
-        if (profile.displayName) {
-          router.push("/dashboard");
-        } else {
-          router.push("/onboarding");
-        }
-      } else {
-        router.push("/onboarding");
-      }
+      const profile = jwt ? await getProfile(jwt) : null;
+      router.replace(profile?.displayName ? "/dashboard" : "/onboarding");
     } catch {
-      // Error is already displayed inline via the error state from useAuth
+      addToast("Wallet connected, but your profile could not be loaded. Continue setup to get started.", "error");
+      router.replace("/onboarding");
     }
   };
 
@@ -97,9 +127,48 @@ export default function ConnectPage() {
               aria-live="polite"
             >
               <AlertCircle className="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" />
-              <p className="text-sm text-red-700">{error}</p>
+              <div className="text-sm text-red-700">
+                <p>{walletError?.message ?? error}</p>
+                {walletError?.resolution && (
+                  <p className="mt-1 text-xs">{walletError.resolution}</p>
+                )}
+              </div>
             </div>
           )}
+
+          <ol aria-label="Wallet connection steps" className="space-y-2">
+            {[
+              ["detect", "Detect Freighter"],
+              ["connect", "Connect wallet"],
+              ["sign", "Sign challenge"],
+              ["verify", "Verify connection"],
+            ].map(([stage, label], index) => {
+              const stages = ["detect", "connect", "sign", "verify"];
+              const activeIndex = stages.indexOf(connectionStage);
+              const active = connectionStage === stage;
+              const complete =
+                connectionStage === "complete" ||
+                (activeIndex >= 0 && index < activeIndex);
+              return (
+                <li
+                  key={stage}
+                  aria-current={active ? "step" : undefined}
+                  className={`flex items-center gap-2 text-sm ${
+                    active ? "font-medium text-primary-700" : "text-gray-500"
+                  }`}
+                >
+                  {active && isConnecting ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <span className="h-4 w-4 text-center" aria-hidden="true">
+                      {complete ? "✓" : "·"}
+                    </span>
+                  )}
+                  {label}
+                </li>
+              );
+            })}
+          </ol>
 
           <Button
             onClick={handleConnect}

@@ -34,7 +34,8 @@ export default function ModulePage({
   );
   const { addToast } = useToastContext();
   const [completing, setCompleting] = useState(false);
-  const [completed, setCompleted] = useState(false);
+  const progressPercent =
+    courseProgress?.progressPercent ?? enrollment?.progress ?? 0;
 
   const sortedModules = course
     ? [...course.modules].sort((a, b) => a.order - b.order)
@@ -47,15 +48,14 @@ export default function ModulePage({
       ? sortedModules[currentIndex + 1]
       : null;
   const isComplete =
-    completed ||
     Boolean(module?.isCompleted) ||
+    Boolean(courseProgress?.completedModuleIds.includes(moduleId)) ||
     Boolean(enrollment?.completedModules.includes(moduleId));
 
   const handleComplete = async () => {
     setCompleting(true);
     try {
       await complete();
-      setCompleted(true);
       addToast("Module marked as complete!", "success");
     } catch (err) {
       console.error("Failed to mark complete:", err);
@@ -83,15 +83,20 @@ export default function ModulePage({
     );
   }
 
+  const content = parseModuleContent(module);
+
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">
       {/* Breadcrumb */}
       <BackButton />
 
       {/* Progress */}
-      {courseProgress && (
+      {(courseProgress || enrollment) && (
         <div className="mb-6">
-          <ProgressBar value={courseProgress.progressPercent} size="sm" />
+          <ProgressBar value={progressPercent} size="sm" />
+          <p className="mt-1 text-right text-xs text-gray-500" aria-live="polite">
+            {progressPercent}% complete
+          </p>
         </div>
       )}
 
@@ -104,10 +109,10 @@ export default function ModulePage({
           <p className="text-gray-500 mb-6 dark:text-gray-400">{module.description}</p>
 
           <div className="prose prose-gray max-w-none dark:prose-invert">
-            {module.contentType === "video" ? (
+            {content.type === "video" ? (
               <div className="aspect-video w-full bg-black rounded-lg overflow-hidden flex items-center justify-center mb-6">
-                {(parseModuleContent(module) as any).url ? (
-                  <video src={(parseModuleContent(module) as any).url} controls className="w-full h-full object-cover" />
+                {content.url ? (
+                  <video src={content.url} controls className="w-full h-full object-cover" />
                 ) : (
                   <div className="text-gray-500 flex flex-col items-center">
                     <PlayCircle className="h-12 w-12 mb-2 opacity-50" />
@@ -115,14 +120,20 @@ export default function ModulePage({
                   </div>
                 )}
               </div>
-            ) : module.contentType === "interactive" ? (
+            ) : content.type === "interactive" ? (
               <div className="p-8 border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-lg text-center mb-6">
                 <CheckCircle className="h-12 w-12 mx-auto text-blue-500 mb-4" />
                 <h3 className="text-lg font-semibold mb-2">Interactive Challenge</h3>
-                <p className="text-gray-500 dark:text-gray-400">Complete the interactive task to proceed.</p>
+                {content.instructions ? (
+                  <p className="text-gray-500 dark:text-gray-400">{content.instructions}</p>
+                ) : (
+                  <p className="text-gray-500 dark:text-gray-400">
+                    Complete challenge <span className="font-mono">{content.challengeId}</span>, then mark this module complete.
+                  </p>
+                )}
               </div>
             ) : (
-              <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize((parseModuleContent(module) as any).body || module.content as string) }} />
+              <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(content.body) }} />
             )}
           </div>
         </CardContent>
