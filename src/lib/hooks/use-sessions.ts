@@ -17,7 +17,7 @@ export function useSessions() {
   const [error, setError] = useState<string | null>(null);
   const [revokingId, setRevokingId] = useState<string | null>(null);
 
-  const fetchSessions = useCallback(async () => {
+  const fetchSessions = useCallback(async (controller?: AbortController) => {
     if (!jwt) {
       setLoading(false);
       return;
@@ -26,14 +26,14 @@ export function useSessions() {
     setLoading(true);
     setError(null);
 
-    const controller = new AbortController();
+    const signal = controller?.signal;
 
     try {
-      const data = await getSessions(jwt, controller.signal);
+      const data = await getSessions(jwt, signal);
       setSessions(data || []);
     } catch (err) {
       if (isAbortError(err)) return;
-      
+
       // Fallback to current session if endpoint is not available
       const fallbackSession: UserSession = {
         id: "current-session",
@@ -44,14 +44,12 @@ export function useSessions() {
         createdAt: new Date().toISOString(),
         isCurrent: true,
       };
-      
+
       setSessions([fallbackSession]);
       setError(err instanceof Error ? err.message : "Failed to fetch sessions");
     } finally {
       setLoading(false);
     }
-
-    return () => controller.abort();
   }, [jwt]);
 
   const revoke = useCallback(
@@ -77,7 +75,10 @@ export function useSessions() {
   );
 
   useEffect(() => {
-    fetchSessions();
+    const controller = new AbortController();
+    fetchSessions(controller);
+
+    return () => controller.abort();
   }, [fetchSessions]);
 
   return {

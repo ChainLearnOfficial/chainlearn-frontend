@@ -39,8 +39,15 @@ export function ConfirmDialog({
   destructive = false,
   icon,
 }: ConfirmDialogProps) {
+  const handleOpenChange = (newOpen: boolean) => {
+    if (loading && !newOpen) {
+      return;
+    }
+    onOpenChange(newOpen);
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent>
         <DialogHeader className="sm:text-center">
           <div className={cn(
