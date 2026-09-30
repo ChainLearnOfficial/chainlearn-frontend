@@ -71,16 +71,17 @@ export default function ConnectPage() {
       return;
     }
 
-    addToast("Wallet connected successfully!", "success");
     try {
       const { getProfile } = await import("@/lib/api/auth");
       const { useAuthStore } = await import("@/store/auth-store");
       const jwt = useAuthStore.getState().jwt;
       const profile = jwt ? await getProfile(jwt) : null;
+      addToast("Wallet connected successfully!", "success");
       router.replace(profile?.displayName ? "/dashboard" : "/onboarding");
-    } catch {
-      addToast("Wallet connected, but your profile could not be loaded. Continue setup to get started.", "error");
-      router.replace("/onboarding");
+    } catch (err) {
+      connectingFromPage.current = false;
+      const errorMessage = err instanceof Error ? err.message : "Failed to fetch profile";
+      addToast(`Error: ${errorMessage}`, "error");
     }
   };
 

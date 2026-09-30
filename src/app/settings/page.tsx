@@ -67,6 +67,7 @@ export default function SettingsPage() {
         setBackground(profile.background ?? "");
         setLearningGoals((profile.learningGoals ?? []).join(", "));
         setPace(profile.preferredPace ?? "moderate");
+        setLanguage(profile.language ?? "English");
       })
       .catch(() => {
         addToast("Failed to load profile", "error");
@@ -86,6 +87,7 @@ export default function SettingsPage() {
           .map((g) => g.trim())
           .filter(Boolean),
         preferredPace: pace,
+        language,
       });
       addToast("Profile updated successfully", "success");
     } catch {
