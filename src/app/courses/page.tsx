@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useCourses, useInfiniteCourses } from "@/lib/hooks/use-courses";
+import { useEnrollments, useInfiniteCourses } from "@/lib/hooks/use-courses";
 import { useDebounce } from "@/lib/hooks/use-debounce";
 import { useCourseStore } from "@/store/course-store";
 import { CourseCard } from "@/components/course/course-card";
@@ -29,7 +29,7 @@ const categories = [
 const difficulties = ["All", "Beginner", "Intermediate", "Advanced"];
 
 export default function CoursesPage() {
-  const { enrollments } = useCourses();
+  const { enrollments } = useEnrollments();
   const progress = useCourseStore((s) => s.progress);
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, 300);

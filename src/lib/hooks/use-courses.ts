@@ -121,6 +121,41 @@ function invalidateEnrollmentsCache(jwt?: string | null) {
   enrollmentsCache.clear();
 }
 
+
+export function useEnrollments() {
+  const jwt = useAuthStore((s) => s.jwt);
+  const { enrollments, setEnrollments, enroll: addEnrollment } = useCourseStore();
+  const abortRef = useRef<AbortController | null>(null);
+
+  const fetchEnrollments = useCallback(async () => {
+    if (!jwt) return;
+
+    const cached = getCachedEnrollments(jwt);
+    if (cached) {
+      setEnrollments(cached);
+      return;
+    }
+
+    const controller = new AbortController();
+    abortRef.current = controller;
+
+    try {
+      const data = await loadEnrollments(jwt, controller.signal);
+      setEnrollments(data);
+    } catch (err) {
+      if (isAbortError(err)) return;
+      console.error("Failed to fetch enrollments:", err);
+    }
+  }, [jwt, setEnrollments]);
+
+  useEffect(() => {
+    fetchEnrollments();
+    return () => abortRef.current?.abort();
+  }, [fetchEnrollments]);
+
+  return { enrollments, fetchEnrollments };
+}
+
 export function useCourses() {
   const jwt = useAuthStore((s) => s.jwt);
   const { enrollments, setEnrollments, enroll: addEnrollment } = useCourseStore();
