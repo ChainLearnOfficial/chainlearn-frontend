@@ -1,4 +1,5 @@
 import { apiClient } from "./client";
+import { getValidToken } from "./auth";
 import { ApiError } from "@/types/api";
 import type { CredentialNFT } from "@/types/stellar";
 
@@ -20,8 +21,6 @@ export interface VerifyCredentialResult {
   verifiedAt?: string;
   error?: VerifyCredentialError;
 }
-import { getValidToken } from "./auth";
-import type { CredentialNFT, CredentialMetadata } from "@/types/stellar";
 
 /**
  * Fetch all credentials for the authenticated user.
