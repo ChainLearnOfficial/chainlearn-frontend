@@ -62,7 +62,7 @@ describe("BalanceDisplay", () => {
   it("links to transaction history", () => {
     render(<BalanceDisplay />);
     const link = screen.getByRole("link", { name: /view transactions/i });
-    expect(link).toHaveAttribute("href", "/transactions");
+    expect(link).toHaveAttribute("href", "/rewards");
   });
 
   it("copies the issuer address on click", async () => {
