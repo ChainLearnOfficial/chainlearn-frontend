@@ -4,7 +4,7 @@ import type { Module, ModuleContent } from "@/types/course";
 
 function createModule(
   contentType: Module["contentType"],
-  content: Module["content"]
+  content: Module["content"],
 ): Module {
   return {
     id: "module-1",
@@ -31,7 +31,9 @@ describe("parseModuleContent", () => {
       type: "video",
       url: "/lesson.mp4",
     });
-    expect(parseModuleContent(createModule("interactive", "challenge-1"))).toEqual({
+    expect(
+      parseModuleContent(createModule("interactive", "challenge-1")),
+    ).toEqual({
       type: "interactive",
       challengeId: "challenge-1",
     });
@@ -43,6 +45,8 @@ describe("parseModuleContent", () => {
       challengeId: "challenge-2",
       instructions: "Complete the task",
     };
-    expect(parseModuleContent(createModule("interactive", content))).toBe(content);
+    expect(parseModuleContent(createModule("interactive", content))).toBe(
+      content,
+    );
   });
 });

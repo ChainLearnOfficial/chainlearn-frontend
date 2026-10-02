@@ -26,21 +26,21 @@ export interface GetCoursesParams {
 
 /**
  * Fetch the course catalog with optional filters and pagination parameters.
- * 
+ *
  * Supports two pagination strategies:
  * 1. **Offset-based**: Use `page` and `limit`/`pageSize` parameters
  * 2. **Cursor-based**: Use `cursor` parameter (for infinite scroll)
- * 
+ *
  * @example
  * // Offset-based pagination
  * const page1 = await getCourses({ page: 1, limit: 10 });
  * const page2 = await getCourses({ page: 2, limit: 10 });
- * 
+ *
  * @example
  * // Cursor-based pagination (infinite scroll)
  * const first = await getCourses({ limit: 10 });
  * const next = await getCourses({ cursor: first.nextCursor, limit: 10 });
- * 
+ *
  * @returns PaginatedResponse with:
  * - `data`: Array of courses
  * - `total`: Total number of courses matching filters
@@ -50,21 +50,23 @@ export interface GetCoursesParams {
  */
 export async function getCourses(
   params?: GetCoursesParams,
-  signal?: AbortSignal
+  signal?: AbortSignal,
 ): Promise<PaginatedResponse<Course>> {
   const searchParams = new URLSearchParams();
   if (params?.category) searchParams.set("category", params.category);
   if (params?.difficulty) searchParams.set("difficulty", params.difficulty);
   if (params?.page !== undefined) searchParams.set("page", String(params.page));
-  if (params?.limit !== undefined) searchParams.set("limit", String(params.limit));
-  if (params?.pageSize !== undefined) searchParams.set("pageSize", String(params.pageSize));
+  if (params?.limit !== undefined)
+    searchParams.set("limit", String(params.limit));
+  if (params?.pageSize !== undefined)
+    searchParams.set("pageSize", String(params.pageSize));
   if (params?.cursor) searchParams.set("cursor", params.cursor);
 
   const query = searchParams.toString();
   const response = await apiClient.get<PaginatedResponse<Course>>(
     `/courses${query ? `?${query}` : ""}`,
     undefined,
-    signal
+    signal,
   );
   return response.data;
 }
@@ -75,9 +77,13 @@ export async function getCourses(
 export async function getCourse(
   courseId: string,
   jwt?: string,
-  signal?: AbortSignal
+  signal?: AbortSignal,
 ): Promise<Course> {
-  const response = await apiClient.get<Course>(`/courses/${courseId}`, jwt, signal);
+  const response = await apiClient.get<Course>(
+    `/courses/${courseId}`,
+    jwt,
+    signal,
+  );
   return response.data;
 }
 
@@ -87,7 +93,7 @@ export async function getCourse(
 export async function enrollInCourse(
   courseId: string,
   jwt: string,
-  signal?: AbortSignal
+  signal?: AbortSignal,
 ): Promise<CourseEnrollment> {
   const validToken = await getValidToken();
   const token = validToken || jwt;
@@ -95,32 +101,32 @@ export async function enrollInCourse(
     `/courses/${courseId}/enroll`,
     {},
     token,
-    signal
+    signal,
   );
   return response.data;
 }
 
 /**
  * Fetch a single module's content within a course.
- * 
+ *
  * @param courseId - The course ID
  * @param moduleId - The module ID
  * @param jwt - Optional JWT token for authenticated requests
  * @param signal - Optional AbortSignal for request cancellation
  * @returns Module with full content including lessons and material
- * 
+ *
  * @throws {ApiError} When the request fails or module is not found
  */
 export async function getModule(
   courseId: string,
   moduleId: string,
   jwt?: string,
-  signal?: AbortSignal
+  signal?: AbortSignal,
 ): Promise<Module> {
   const response = await apiClient.get<Module>(
     `/courses/${courseId}/modules/${moduleId}`,
     jwt,
-    signal
+    signal,
   );
   return response.data;
 }
@@ -142,7 +148,7 @@ export async function markModuleComplete(
   courseId: string,
   moduleId: string,
   jwt: string,
-  signal?: AbortSignal
+  signal?: AbortSignal,
 ): Promise<ModuleCompletionResult> {
   const validToken = await getValidToken();
   const token = validToken || jwt;
@@ -150,7 +156,7 @@ export async function markModuleComplete(
     `/courses/${courseId}/modules/${moduleId}/complete`,
     {},
     token,
-    signal
+    signal,
   );
   return response.data;
 }
@@ -160,14 +166,14 @@ export async function markModuleComplete(
  */
 export async function getEnrollments(
   jwt: string,
-  signal?: AbortSignal
+  signal?: AbortSignal,
 ): Promise<CourseEnrollment[]> {
   const validToken = await getValidToken();
   const token = validToken || jwt;
   const response = await apiClient.get<CourseEnrollment[]>(
     "/courses/enrollments",
     token,
-    signal
+    signal,
   );
   return response.data;
 }
@@ -177,14 +183,14 @@ export async function getEnrollments(
  */
 export async function getRecommendedCourses(
   jwt: string,
-  signal?: AbortSignal
+  signal?: AbortSignal,
 ): Promise<RecommendedCourse[]> {
   const validToken = await getValidToken();
   const token = validToken || jwt;
   const response = await apiClient.get<RecommendedCourse[]>(
     "/courses/recommended",
     token,
-    signal
+    signal,
   );
   return response.data;
 }
@@ -221,18 +227,18 @@ export function parseModuleContent(module: Module): ModuleContent {
 /**
  * Fetch all modules for a course in order.
  * This is a convenience function that fetches the course and returns sorted modules.
- * 
+ *
  * @param courseId - The course ID
  * @param jwt - Optional JWT token for authenticated requests
  * @param signal - Optional AbortSignal for request cancellation
  * @returns Array of modules sorted by order
- * 
+ *
  * @throws {ApiError} When the request fails or course is not found
  */
 export async function getCourseModules(
   courseId: string,
   jwt?: string,
-  signal?: AbortSignal
+  signal?: AbortSignal,
 ): Promise<Module[]> {
   const course = await getCourse(courseId, jwt, signal);
   return [...course.modules].sort((a, b) => a.order - b.order);
@@ -241,23 +247,23 @@ export async function getCourseModules(
 /**
  * Fetch multiple modules in a single batch.
  * Useful for preloading content or displaying multiple modules at once.
- * 
+ *
  * @param courseId - The course ID
  * @param moduleIds - Array of module IDs to fetch
  * @param jwt - Optional JWT token for authenticated requests
  * @param signal - Optional AbortSignal for request cancellation
  * @returns Array of modules in the same order as moduleIds
- * 
+ *
  * @throws {ApiError} When any request fails
  */
 export async function getModuleBatch(
   courseId: string,
   moduleIds: string[],
   jwt?: string,
-  signal?: AbortSignal
+  signal?: AbortSignal,
 ): Promise<Module[]> {
   const modules = await Promise.all(
-    moduleIds.map((moduleId) => getModule(courseId, moduleId, jwt, signal))
+    moduleIds.map((moduleId) => getModule(courseId, moduleId, jwt, signal)),
   );
   return modules;
 }

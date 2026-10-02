@@ -59,7 +59,9 @@ describe("RewardHistory", () => {
     render(<RewardHistory claims={claims} />);
     const links = screen.getAllByRole("link");
     // The confirmed claim has txHash abc123
-    expect(links.some((l) => l.getAttribute("href")?.includes("abc123"))).toBe(true);
+    expect(links.some((l) => l.getAttribute("href")?.includes("abc123"))).toBe(
+      true,
+    );
   });
 
   it("does not render explorer link when txHash is empty", () => {
@@ -69,7 +71,7 @@ describe("RewardHistory", () => {
 
   it("merges custom className", () => {
     const { container } = render(
-      <RewardHistory claims={claims} className="custom" />
+      <RewardHistory claims={claims} className="custom" />,
     );
     expect((container.firstChild as HTMLElement).className).toContain("custom");
   });

@@ -110,7 +110,7 @@ function withAbort<T>(promise: Promise<T>, signal?: AbortSignal): Promise<T> {
       (error) => {
         cleanup();
         reject(error);
-      }
+      },
     );
   });
 }
@@ -155,7 +155,9 @@ export type ResponseInterceptor = {
    * Post-processing interceptor running after `handleResponse`.
    * Can inspect or transform the parsed response data.
    */
-  onSuccess?: <T>(data: ApiResponse<T>) => ApiResponse<T> | Promise<ApiResponse<T>>;
+  onSuccess?: <T>(
+    data: ApiResponse<T>,
+  ) => ApiResponse<T> | Promise<ApiResponse<T>>;
   /**
    * Error interceptor running whenever an error is encountered during a request.
    * Can be used for global error logging or analytics events.
@@ -180,7 +182,7 @@ class ApiClient {
     this.responseInterceptors.push(interceptor);
     return () => {
       this.responseInterceptors = this.responseInterceptors.filter(
-        (entry) => entry !== interceptor
+        (entry) => entry !== interceptor,
       );
     };
   }
@@ -190,7 +192,9 @@ class ApiClient {
    * Runs onResponse interceptors (pre-processing) then handleResponse,
    * then onSuccess interceptors (post-processing).
    */
-  private async processResponse<T>(response: Response): Promise<ApiResponse<T>> {
+  private async processResponse<T>(
+    response: Response,
+  ): Promise<ApiResponse<T>> {
     let currentResponse = response;
     for (const interceptor of this.responseInterceptors) {
       if (interceptor.onResponse) {
@@ -245,7 +249,7 @@ class ApiClient {
       throw new ApiError(
         response.status,
         errorBody.message || response.statusText,
-        errorBody.code
+        errorBody.code,
       );
     }
 
@@ -268,18 +272,18 @@ class ApiClient {
   }
 
   /**
-    * fetchWithRetry with AbortController support (#315).
-    * - Creates internal AbortController for timeout
-    * - Links external signal to abort internal controller
-    * - External abort throws AbortError immediately, no retry
-    * - Timeout abort throws AbortError
-    */
+   * fetchWithRetry with AbortController support (#315).
+   * - Creates internal AbortController for timeout
+   * - Links external signal to abort internal controller
+   * - External abort throws AbortError immediately, no retry
+   * - Timeout abort throws AbortError
+   */
   private async fetchWithRetry(
     url: string,
     init: RequestInit,
     retries: number,
     signal?: AbortSignal,
-    timeout: number = REQUEST_TIMEOUT_MS
+    timeout: number = REQUEST_TIMEOUT_MS,
   ): Promise<Response> {
     for (let attempt = 0; ; attempt++) {
       if (signal?.aborted) {
@@ -328,7 +332,7 @@ class ApiClient {
             : new ApiError(
                 0,
                 "Unable to reach the server. Check your connection.",
-                "NETWORK_ERROR"
+                "NETWORK_ERROR",
               );
         }
         const delayMs = computeRetryDelayMs(attempt);
@@ -422,7 +426,7 @@ class ApiClient {
     path: string,
     jwt?: string,
     signal?: AbortSignal,
-    options?: { bypassCache?: boolean; timeout?: number; ttl?: number }
+    options?: { bypassCache?: boolean; timeout?: number; ttl?: number },
   ): Promise<ApiResponse<T>> {
     const url = `${this.baseUrl}${path}`;
     const key = this.cacheKey(url, jwt);
@@ -441,7 +445,15 @@ class ApiClient {
     // A `bypassCache` read is deliberately never shared: the caller wants its
     // own fresh round-trip and owns cancellation directly.
     if (options?.bypassCache) {
-      return this.executeGet<T>(url, key, jwt, true, signal, options?.timeout, options?.ttl);
+      return this.executeGet<T>(
+        url,
+        key,
+        jwt,
+        true,
+        signal,
+        options?.timeout,
+        options?.ttl,
+      );
     }
 
     let entry = inFlightGets.get(key);
@@ -504,7 +516,7 @@ class ApiClient {
         { method: "GET", headers: this.getHeaders(jwt) },
         MAX_RETRIES,
         signal,
-        timeout
+        timeout,
       );
       // #314: run response interceptors (onResponse -> handleResponse -> onSuccess)
       const data = await this.processResponse<T>(response);
@@ -533,7 +545,7 @@ class ApiClient {
     body: unknown,
     jwt?: string,
     signal?: AbortSignal,
-    timeout?: number
+    timeout?: number,
   ): Promise<ApiResponse<T>> {
     try {
       const response = await this.fetchWithRetry(
@@ -545,7 +557,7 @@ class ApiClient {
         },
         0,
         signal,
-        timeout
+        timeout,
       );
       // #314: run response interceptors (onResponse -> handleResponse -> onSuccess)
       const data = await this.processResponse<T>(response);
@@ -570,7 +582,7 @@ class ApiClient {
     body: unknown,
     jwt?: string,
     signal?: AbortSignal,
-    timeout?: number
+    timeout?: number,
   ): Promise<ApiResponse<T>> {
     try {
       const response = await this.fetchWithRetry(
@@ -582,7 +594,7 @@ class ApiClient {
         },
         0,
         signal,
-        timeout
+        timeout,
       );
       // #314: run response interceptors (onResponse -> handleResponse -> onSuccess)
       const data = await this.processResponse<T>(response);
@@ -606,7 +618,7 @@ class ApiClient {
     path: string,
     jwt?: string,
     signal?: AbortSignal,
-    timeout?: number
+    timeout?: number,
   ): Promise<ApiResponse<T>> {
     try {
       const response = await this.fetchWithRetry(
@@ -614,7 +626,7 @@ class ApiClient {
         { method: "DELETE", headers: this.getHeaders(jwt) },
         0,
         signal,
-        timeout
+        timeout,
       );
       // #314: run response interceptors (onResponse -> handleResponse -> onSuccess)
       const data = await this.processResponse<T>(response);
@@ -639,7 +651,7 @@ class ApiClient {
  * Creates an error logging interceptor for ApiClient.
  */
 export function createLoggingInterceptor(
-  logFn: (message: string, ...args: unknown[]) => void = console.error
+  logFn: (message: string, ...args: unknown[]) => void = console.error,
 ): ResponseInterceptor {
   return {
     onError: (error) => {
@@ -652,11 +664,13 @@ export function createLoggingInterceptor(
  * Creates an analytics event interceptor for ApiClient.
  */
 export function createAnalyticsInterceptor(
-  trackEvent: (eventName: string, metadata?: Record<string, unknown>) => void
+  trackEvent: (eventName: string, metadata?: Record<string, unknown>) => void,
 ): ResponseInterceptor {
   return {
     onSuccess: (data) => {
-      trackEvent("api_response_success", { success: (data as { success?: boolean })?.success });
+      trackEvent("api_response_success", {
+        success: (data as { success?: boolean })?.success,
+      });
       return data;
     },
     onError: (error) => {

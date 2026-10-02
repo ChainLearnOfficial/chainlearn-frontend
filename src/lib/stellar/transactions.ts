@@ -41,7 +41,8 @@ export interface BuildContractInvokeTxParams {
 function toScVal(arg: unknown): xdr.ScVal {
   if (typeof arg === "string") return xdr.ScVal.scvString(arg);
   if (typeof arg === "number") {
-    if (!Number.isInteger(arg)) throw new Error("Contract number arguments must be integers.");
+    if (!Number.isInteger(arg))
+      throw new Error("Contract number arguments must be integers.");
     return arg < 0 ? xdr.ScVal.scvI32(arg) : xdr.ScVal.scvU32(arg);
   }
   if (typeof arg === "bigint") {
@@ -62,12 +63,16 @@ export async function buildPaymentTx({
   timeoutSeconds = 180,
 }: BuildPaymentTxParams): Promise<string> {
   if (!/^\d+(\.\d{1,7})?$/.test(amount) || Number(amount) <= 0) {
-    throw new Error("Payment amount must be positive and have at most 7 decimal places.");
+    throw new Error(
+      "Payment amount must be positive and have at most 7 decimal places.",
+    );
   }
 
   const server = new Horizon.Server(getHorizonUrl(network));
   const sourceAccount = await server.loadAccount(sourceAddress);
-  const paymentAsset = asset ? new Asset(asset.code, asset.issuer) : Asset.native();
+  const paymentAsset = asset
+    ? new Asset(asset.code, asset.issuer)
+    : Asset.native();
   const transaction = new TransactionBuilder(sourceAccount, {
     fee,
     networkPassphrase: getNetworkPassphrase(network),
@@ -77,7 +82,7 @@ export async function buildPaymentTx({
         destination: destinationAddress,
         asset: paymentAsset,
         amount,
-      })
+      }),
     )
     .setTimeout(timeoutSeconds)
     .build();
@@ -101,7 +106,9 @@ export async function buildContractInvokeTx({
     fee: "100",
     networkPassphrase: getNetworkPassphrase(network),
   })
-    .addOperation(new Contract(contractAddress).call(method, ...args.map(toScVal)))
+    .addOperation(
+      new Contract(contractAddress).call(method, ...args.map(toScVal)),
+    )
     .setTimeout(timeoutSeconds)
     .build();
 
@@ -120,7 +127,9 @@ export async function signAndSubmit(
   try {
     const signedXdr = await signWalletTransaction(xdr, network, providerId);
     const signedTransaction = TransactionBuilder.fromXDR(signedXdr, passphrase);
-    const response = await new rpc.Server(getRpcUrl(network)).sendTransaction(signedTransaction);
+    const response = await new rpc.Server(getRpcUrl(network)).sendTransaction(
+      signedTransaction,
+    );
 
     if (response.status !== "PENDING" && response.status !== "DUPLICATE") {
       return {
@@ -129,11 +138,16 @@ export async function signAndSubmit(
         error:
           response.status === "TRY_AGAIN_LATER"
             ? "Stellar RPC could not accept the transaction yet. Please try again."
-            : response.errorResult?.toXDR("base64") ?? "Stellar RPC rejected the transaction.",
+            : (response.errorResult?.toXDR("base64") ??
+              "Stellar RPC rejected the transaction."),
       };
     }
     if (!response.hash) {
-      return { hash: "", success: false, error: "Invalid RPC response: missing transaction hash." };
+      return {
+        hash: "",
+        success: false,
+        error: "Invalid RPC response: missing transaction hash.",
+      };
     }
 
     return {

@@ -30,7 +30,7 @@ import Link from "next/link";
 const ModuleList = lazy(() =>
   import("@/components/course/module-list").then((m) => ({
     default: m.ModuleList,
-  }))
+  })),
 );
 
 export default function CourseDetailPage({
@@ -79,7 +79,11 @@ export default function CourseDetailPage({
   if (error || !course) {
     return (
       <div className="mx-auto max-w-4xl px-4 py-16 text-center">
-        <p role="alert" aria-live="polite" className="text-gray-500 dark:text-gray-400">
+        <p
+          role="alert"
+          aria-live="polite"
+          className="text-gray-500 dark:text-gray-400"
+        >
           {error || "Course not found."}
         </p>
       </div>
@@ -90,12 +94,10 @@ export default function CourseDetailPage({
     <div className="mx-auto max-w-4xl px-4 py-8">
       <BackButton />
       <div className="flex items-center justify-between mb-6">
-        <AutoBreadcrumb
-          labels={{ [courseId]: course.title }}
-        />
-        <ShareButton 
-          url={typeof window !== "undefined" ? window.location.href : ""} 
-          title={course.title} 
+        <AutoBreadcrumb labels={{ [courseId]: course.title }} />
+        <ShareButton
+          url={typeof window !== "undefined" ? window.location.href : ""}
+          title={course.title}
         />
       </div>
 
@@ -113,7 +115,9 @@ export default function CourseDetailPage({
         <h1 className="text-3xl font-bold text-gray-900 mb-3 dark:text-gray-100">
           {course.title}
         </h1>
-        <p className="text-gray-600 text-lg dark:text-gray-300">{course.description}</p>
+        <p className="text-gray-600 text-lg dark:text-gray-300">
+          {course.description}
+        </p>
 
         <div className="flex flex-wrap items-center gap-6 mt-6 text-sm text-gray-500 dark:text-gray-400">
           <span className="flex items-center gap-1.5">
@@ -129,8 +133,7 @@ export default function CourseDetailPage({
             {course.enrolledCount} enrolled
           </span>
           <span className="flex items-center gap-1.5 text-stellar-purple font-medium">
-            <Trophy className="h-4 w-4" />
-            +{course.rewardTokenAmount} LEARN
+            <Trophy className="h-4 w-4" />+{course.rewardTokenAmount} LEARN
           </span>
         </div>
       </div>
@@ -140,7 +143,9 @@ export default function CourseDetailPage({
         <Card className="mb-8 transition-all duration-300 ease-in-out">
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="font-semibold text-gray-900 dark:text-gray-100">Your Progress</h2>
+              <h2 className="font-semibold text-gray-900 dark:text-gray-100">
+                Your Progress
+              </h2>
               <Link href={`/courses/${courseId}/quiz`}>
                 <Button variant="outline" size="sm">
                   Take Quiz

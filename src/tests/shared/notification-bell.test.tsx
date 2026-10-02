@@ -24,12 +24,13 @@ vi.mock("@/lib/hooks/use-notifications", () => ({
 }));
 
 vi.mock("@/store/auth-store", () => ({
-  useAuthStore: (selector: (s: { isAuthenticated: boolean; jwt: string }) => unknown) =>
-    selector({ isAuthenticated: true, jwt: "test-jwt" }),
+  useAuthStore: (
+    selector: (s: { isAuthenticated: boolean; jwt: string }) => unknown,
+  ) => selector({ isAuthenticated: true, jwt: "test-jwt" }),
 }));
 
 function makeNotification(
-  overrides: Partial<AppNotification> = {}
+  overrides: Partial<AppNotification> = {},
 ): AppNotification {
   return {
     id: "n1",
@@ -61,7 +62,7 @@ describe("NotificationBell", () => {
   it("renders a bell button with the unread count", () => {
     render(<NotificationBell />);
     expect(
-      screen.getByRole("button", { name: /notifications, 1 unread/i })
+      screen.getByRole("button", { name: /notifications, 1 unread/i }),
     ).toBeInTheDocument();
     expect(screen.getByText("1")).toBeInTheDocument();
   });
@@ -73,7 +74,7 @@ describe("NotificationBell", () => {
     }));
     render(<NotificationBell />);
     expect(
-      screen.getByRole("button", { name: /^notifications$/i })
+      screen.getByRole("button", { name: /^notifications$/i }),
     ).toBeInTheDocument();
     expect(screen.queryByText("1")).not.toBeInTheDocument();
   });
@@ -101,7 +102,7 @@ describe("NotificationBell", () => {
     render(<NotificationBell />);
     await user.click(screen.getByRole("button", { name: /notifications/i }));
     await user.click(
-      await screen.findByRole("button", { name: /mark all read/i })
+      await screen.findByRole("button", { name: /mark all read/i }),
     );
     expect(markAllAsRead).toHaveBeenCalledTimes(1);
   });

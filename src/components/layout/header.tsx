@@ -9,7 +9,12 @@ import { BookOpen, Menu, X } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils/cn";
 import { isNavLinkActive, navLinks } from "./nav-links";
-import { Avatar, AvatarFallback, AvatarImage, getInitials } from "@/components/ui/avatar";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+  getInitials,
+} from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import {
   DropdownMenu,
@@ -38,22 +43,29 @@ export function Header() {
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-stellar-purple">
             <BookOpen className="h-5 w-5 text-white" />
           </div>
-          <span className="text-lg font-bold text-gray-900 dark:text-gray-100">ChainLearn</span>
+          <span className="text-lg font-bold text-gray-900 dark:text-gray-100">
+            ChainLearn
+          </span>
         </Link>
 
         {/* Desktop nav */}
-        <nav aria-label="Primary navigation" className="hidden md:flex items-center gap-6">
+        <nav
+          aria-label="Primary navigation"
+          className="hidden md:flex items-center gap-6"
+        >
           {isAuthenticated &&
             navLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                aria-current={isNavLinkActive(pathname, link.href) ? "page" : undefined}
+                aria-current={
+                  isNavLinkActive(pathname, link.href) ? "page" : undefined
+                }
                 className={cn(
                   "flex items-center gap-1.5 text-sm font-medium transition-colors",
                   isNavLinkActive(pathname, link.href)
                     ? "text-primary-700 dark:text-primary-300"
-                    : "text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-gray-100"
+                    : "text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-gray-100",
                 )}
               >
                 <link.icon className="h-4 w-4" />
@@ -68,29 +80,42 @@ export function Header() {
           {isAuthenticated && walletAddress && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button 
+                <button
                   className="flex items-center gap-2 outline-none hover:opacity-80 transition-opacity"
                   aria-label="User account menu"
                 >
                   <Avatar size="sm">
-                    <AvatarFallback>{getInitials(walletAddress)}</AvatarFallback>
+                    <AvatarFallback>
+                      {getInitials(walletAddress)}
+                    </AvatarFallback>
                   </Avatar>
-                   <span className="hidden sm:block text-xs font-mono text-gray-500 dark:text-gray-400">
+                  <span className="hidden sm:block text-xs font-mono text-gray-500 dark:text-gray-400">
                     {truncateAddress(walletAddress)}
                   </span>
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56 dark:border-gray-800 dark:bg-gray-900">
-                <DropdownMenuLabel className="text-gray-900 dark:text-gray-100">My Account</DropdownMenuLabel>
+              <DropdownMenuContent
+                align="end"
+                className="w-56 dark:border-gray-800 dark:bg-gray-900"
+              >
+                <DropdownMenuLabel className="text-gray-900 dark:text-gray-100">
+                  My Account
+                </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
-                  <Link href="/profile" className="flex items-center w-full cursor-pointer">
+                  <Link
+                    href="/profile"
+                    className="flex items-center w-full cursor-pointer"
+                  >
                     <User className="mr-2 h-4 w-4" />
                     <span>Profile</span>
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link href="/settings" className="flex items-center w-full cursor-pointer">
+                  <Link
+                    href="/settings"
+                    className="flex items-center w-full cursor-pointer"
+                  >
                     <Settings className="mr-2 h-4 w-4" />
                     <span>Settings</span>
                   </Link>
@@ -163,7 +188,7 @@ export function Header() {
                     "flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
                     isActive
                       ? "bg-gray-100 text-primary-700 dark:bg-gray-800 dark:text-primary-300"
-                      : "text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-gray-100"
+                      : "text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-gray-100",
                   )}
                 >
                   <link.icon className="h-4 w-4" />

@@ -17,11 +17,21 @@ export interface WalletOption {
 }
 
 interface WalletKit {
-  getSupportedWallets(): Promise<Array<{ id: string; name: string; isAvailable: boolean; url: string }>>;
+  getSupportedWallets(): Promise<
+    Array<{ id: string; name: string; isAvailable: boolean; url: string }>
+  >;
   setWallet(id: string): void;
-  getAddress(options?: { skipRequestAccess?: boolean }): Promise<{ address: string }>;
-  signMessage(message: string, options?: { networkPassphrase?: string; address?: string }): Promise<{ signedMessage: string }>;
-  signTransaction(xdr: string, options?: { networkPassphrase?: string; address?: string }): Promise<{ signedTxXdr: string }>;
+  getAddress(options?: {
+    skipRequestAccess?: boolean;
+  }): Promise<{ address: string }>;
+  signMessage(
+    message: string,
+    options?: { networkPassphrase?: string; address?: string },
+  ): Promise<{ signedMessage: string }>;
+  signTransaction(
+    xdr: string,
+    options?: { networkPassphrase?: string; address?: string },
+  ): Promise<{ signedTxXdr: string }>;
   openModal(options: {
     onWalletSelected: (wallet: { id: string }) => void;
     onClosed?: (error: Error) => void;
@@ -33,7 +43,8 @@ const walletKits = new Map<NetworkType, Promise<WalletKit>>();
 let selectedWalletId: WalletProviderId = "freighter";
 
 function getSavedWalletId(): WalletProviderId {
-  if (typeof window === "undefined" || !window.localStorage) return selectedWalletId;
+  if (typeof window === "undefined" || !window.localStorage)
+    return selectedWalletId;
   let savedId: string | null;
   try {
     savedId = window.localStorage.getItem(WALLET_STORAGE_KEY);
@@ -76,7 +87,8 @@ async function getWalletKit(network: NetworkType): Promise<WalletKit> {
       ]);
 
       return new StellarWalletsKit({
-        network: network === "public" ? WalletNetwork.PUBLIC : WalletNetwork.TESTNET,
+        network:
+          network === "public" ? WalletNetwork.PUBLIC : WalletNetwork.TESTNET,
         selectedWalletId: getSavedWalletId(),
         modules: [new FreighterModule(), new LobstrModule(), new RabetModule()],
       });
@@ -86,35 +98,42 @@ async function getWalletKit(network: NetworkType): Promise<WalletKit> {
   return kitPromise;
 }
 
-export async function getSupportedWallets(network: NetworkType = "testnet"): Promise<WalletOption[]> {
+export async function getSupportedWallets(
+  network: NetworkType = "testnet",
+): Promise<WalletOption[]> {
   const kit = await getWalletKit(network);
   const supportedWallets = await kit.getSupportedWallets();
   return supportedWallets
-    .filter((wallet): wallet is typeof wallet & { id: WalletProviderId } =>
-      wallet.id === "freighter" || wallet.id === "lobstr" || wallet.id === "rabet"
+    .filter(
+      (wallet): wallet is typeof wallet & { id: WalletProviderId } =>
+        wallet.id === "freighter" ||
+        wallet.id === "lobstr" ||
+        wallet.id === "rabet",
     )
     .map(({ id, name, isAvailable, url }) => ({ id, name, isAvailable, url }));
 }
 
 export async function connectWallet(
   network: NetworkType,
-  providerId?: WalletProviderId
+  providerId?: WalletProviderId,
 ): Promise<{ address: string; providerId: WalletProviderId }> {
   const kit = await getWalletKit(network);
   let selectedId = providerId;
 
   if (!selectedId) {
     selectedId = await new Promise<WalletProviderId>((resolve, reject) => {
-      void kit.openModal({
-        onWalletSelected: ({ id }) => {
-          if (id === "freighter" || id === "lobstr" || id === "rabet") {
-            resolve(id);
-          } else {
-            reject(new Error("The selected wallet is not supported."));
-          }
-        },
-        onClosed: reject,
-      }).catch(reject);
+      void kit
+        .openModal({
+          onWalletSelected: ({ id }) => {
+            if (id === "freighter" || id === "lobstr" || id === "rabet") {
+              resolve(id);
+            } else {
+              reject(new Error("The selected wallet is not supported."));
+            }
+          },
+          onClosed: reject,
+        })
+        .catch(reject);
     });
   }
 
@@ -126,7 +145,7 @@ export async function connectWallet(
 
 export async function getWalletAddress(
   providerId: WalletProviderId = getSavedWalletId(),
-  network: NetworkType = "testnet"
+  network: NetworkType = "testnet",
 ): Promise<string | null> {
   try {
     const kit = await getWalletKit(network);
@@ -159,20 +178,26 @@ export async function getFreighterAddress(): Promise<string | null> {
 export async function signChallenge(
   challenge: string,
   networkPassphrase: string,
-  providerId: WalletProviderId = getSavedWalletId()
+  providerId: WalletProviderId = getSavedWalletId(),
 ): Promise<string> {
-  const network = networkPassphrase === getNetworkPassphrase("public") ? "public" : "testnet";
+  const network =
+    networkPassphrase === getNetworkPassphrase("public") ? "public" : "testnet";
   const kit = await getWalletKit(network);
   kit.setWallet(providerId);
   try {
-    const { signedMessage } = await kit.signMessage(challenge, { networkPassphrase });
+    const { signedMessage } = await kit.signMessage(challenge, {
+      networkPassphrase,
+    });
     if (!signedMessage) throw new Error("Wallet returned an empty signature.");
     return signedMessage;
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    if (providerId !== "freighter" && message.toLowerCase().includes("does not support")) {
+    if (
+      providerId !== "freighter" &&
+      message.toLowerCase().includes("does not support")
+    ) {
       throw new Error(
-        `${providerId === "lobstr" ? "LOBSTR" : "Rabet"} can connect and sign transactions, but this authentication flow requires message signing.`
+        `${providerId === "lobstr" ? "LOBSTR" : "Rabet"} can connect and sign transactions, but this authentication flow requires message signing.`,
       );
     }
     throw error;
@@ -182,14 +207,15 @@ export async function signChallenge(
 export async function signWalletTransaction(
   transactionXdr: string,
   network: NetworkType,
-  providerId: WalletProviderId = getSavedWalletId()
+  providerId: WalletProviderId = getSavedWalletId(),
 ): Promise<string> {
   const kit = await getWalletKit(network);
   kit.setWallet(providerId);
   const { signedTxXdr } = await kit.signTransaction(transactionXdr, {
     networkPassphrase: getNetworkPassphrase(network),
   });
-  if (!signedTxXdr) throw new Error("Wallet returned an empty signed transaction.");
+  if (!signedTxXdr)
+    throw new Error("Wallet returned an empty signed transaction.");
   return signedTxXdr;
 }
 
@@ -228,7 +254,7 @@ export function normalizeNetwork(network: string): NetworkType {
 /** Start polling Freighter for account or network changes. */
 export function watchWalletChanges(
   onChange: (change: WalletChange) => void,
-  intervalMs = 3000
+  intervalMs = 3000,
 ): () => void {
   const watcher = new WatchWalletChanges(intervalMs);
   watcher.watch(onChange);

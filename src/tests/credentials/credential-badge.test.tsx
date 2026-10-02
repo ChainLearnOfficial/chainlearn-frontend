@@ -21,7 +21,7 @@ describe("CredentialBadge", () => {
 
   it("shows verified indicator when verified=true", () => {
     const { container } = render(
-      <CredentialBadge {...defaultProps} verified />
+      <CredentialBadge {...defaultProps} verified />,
     );
     // The verified badge container has bg-green-500
     expect(container.querySelector(".bg-green-500")).toBeInTheDocument();
@@ -33,14 +33,14 @@ describe("CredentialBadge", () => {
     ["lg", "w-48"],
   ] as const)("size=%s applies correct width", (size, cls) => {
     const { container } = render(
-      <CredentialBadge {...defaultProps} size={size} />
+      <CredentialBadge {...defaultProps} size={size} />,
     );
     expect((container.firstChild as HTMLElement).className).toContain(cls);
   });
 
   it("merges custom className", () => {
     const { container } = render(
-      <CredentialBadge {...defaultProps} className="extra" />
+      <CredentialBadge {...defaultProps} className="extra" />,
     );
     expect((container.firstChild as HTMLElement).className).toContain("extra");
   });

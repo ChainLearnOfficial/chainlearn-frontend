@@ -80,7 +80,7 @@ describe("verifyCredential", () => {
           verifiedAt: "2026-09-25T10:00:00.000Z",
         },
         success: true,
-      })
+      }),
     );
 
     const result = await verifyCredential("cred-abc");
@@ -102,7 +102,7 @@ describe("verifyCredential", () => {
 
   it("returns { valid: false, error: 'not_found' } on 404 without throwing", async () => {
     fetchMock.mockResolvedValueOnce(
-      jsonResponse({ message: "Credential not found" }, 404)
+      jsonResponse({ message: "Credential not found" }, 404),
     );
 
     const result = await verifyCredential("does-not-exist");

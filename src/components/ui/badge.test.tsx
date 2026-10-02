@@ -56,7 +56,15 @@ describe("Badge", () => {
 
   it("forwards a ref to the underlying span", () => {
     let node: HTMLSpanElement | null = null;
-    render(<Badge ref={(el) => { node = el; }}>Ref</Badge>);
+    render(
+      <Badge
+        ref={(el) => {
+          node = el;
+        }}
+      >
+        Ref
+      </Badge>,
+    );
 
     expect(node).toBeInstanceOf(HTMLSpanElement);
   });
@@ -65,12 +73,12 @@ describe("Badge", () => {
     render(
       <Badge data-testid="status" title="Verified on-chain">
         Verified
-      </Badge>
+      </Badge>,
     );
 
     expect(screen.getByTestId("status")).toHaveAttribute(
       "title",
-      "Verified on-chain"
+      "Verified on-chain",
     );
   });
 

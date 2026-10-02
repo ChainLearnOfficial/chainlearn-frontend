@@ -115,7 +115,10 @@ const config: Config = {
           "100%": { opacity: "1" },
         },
         "dialog-content-show": {
-          "0%": { opacity: "0", transform: "translate(-50%, -48%) scale(0.95)" },
+          "0%": {
+            opacity: "0",
+            transform: "translate(-50%, -48%) scale(0.95)",
+          },
           "100%": { opacity: "1", transform: "translate(-50%, -50%) scale(1)" },
         },
         "dialog-overlay-hide": {
@@ -124,7 +127,10 @@ const config: Config = {
         },
         "dialog-content-hide": {
           "0%": { opacity: "1", transform: "translate(-50%, -50%) scale(1)" },
-          "100%": { opacity: "0", transform: "translate(-50%, -48%) scale(0.95)" },
+          "100%": {
+            opacity: "0",
+            transform: "translate(-50%, -48%) scale(0.95)",
+          },
         },
         "overlay-in": {
           from: { opacity: "0" },
@@ -135,7 +141,10 @@ const config: Config = {
           to: { opacity: "0" },
         },
         "content-in": {
-          from: { opacity: "0", transform: "translate(-50%, -48%) scale(0.96)" },
+          from: {
+            opacity: "0",
+            transform: "translate(-50%, -48%) scale(0.96)",
+          },
           to: { opacity: "1", transform: "translate(-50%, -50%) scale(1)" },
         },
         "content-out": {

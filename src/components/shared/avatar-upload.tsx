@@ -1,35 +1,40 @@
-'use client';
+"use client";
 
-import React, { useState, useCallback, useRef } from 'react';
-import Cropper, { Area } from 'react-easy-crop';
-import { Camera, Loader2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Avatar, AvatarImage, AvatarFallback, getInitials } from '@/components/ui/avatar';
+import React, { useState, useCallback, useRef } from "react";
+import Cropper, { Area } from "react-easy-crop";
+import { Camera, Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Avatar,
+  AvatarImage,
+  AvatarFallback,
+  getInitials,
+} from "@/components/ui/avatar";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogFooter,
-} from '@/components/ui/dialog';
-import { useToastContext } from '@/components/shared/toast';
+} from "@/components/ui/dialog";
+import { useToastContext } from "@/components/shared/toast";
 
 const createImage = (url: string): Promise<HTMLImageElement> =>
   new Promise((resolve, reject) => {
     const image = new Image();
-    image.addEventListener('load', () => resolve(image));
-    image.addEventListener('error', (error) => reject(error));
-    image.setAttribute('crossOrigin', 'anonymous');
+    image.addEventListener("load", () => resolve(image));
+    image.addEventListener("error", (error) => reject(error));
+    image.setAttribute("crossOrigin", "anonymous");
     image.src = url;
   });
 
 async function getCroppedImg(
   imageSrc: string,
-  pixelCrop: Area
+  pixelCrop: Area,
 ): Promise<File | null> {
   const image = await createImage(imageSrc);
-  const canvas = document.createElement('canvas');
-  const ctx = canvas.getContext('2d');
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d");
   if (!ctx) return null;
 
   canvas.width = pixelCrop.width;
@@ -44,7 +49,7 @@ async function getCroppedImg(
     0,
     0,
     pixelCrop.width,
-    pixelCrop.height
+    pixelCrop.height,
   );
 
   return new Promise((resolve) => {
@@ -53,8 +58,8 @@ async function getCroppedImg(
         resolve(null);
         return;
       }
-      resolve(new File([blob], 'avatar.jpg', { type: 'image/jpeg' }));
-    }, 'image/jpeg');
+      resolve(new File([blob], "avatar.jpg", { type: "image/jpeg" }));
+    }, "image/jpeg");
   });
 }
 
@@ -64,7 +69,11 @@ interface AvatarUploadProps {
   onUpload: (file: File) => Promise<void>;
 }
 
-export function AvatarUpload({ currentAvatarUrl, name, onUpload }: AvatarUploadProps) {
+export function AvatarUpload({
+  currentAvatarUrl,
+  name,
+  onUpload,
+}: AvatarUploadProps) {
   const [imageSrc, setImageSrc] = useState<string | null>(null);
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
@@ -77,12 +86,12 @@ export function AvatarUpload({ currentAvatarUrl, name, onUpload }: AvatarUploadP
   const onFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const file = e.target.files[0];
-      if (!file.type.startsWith('image/')) {
-        addToast('Please select an image file', 'error');
+      if (!file.type.startsWith("image/")) {
+        addToast("Please select an image file", "error");
         return;
       }
       if (file.size > 5 * 1024 * 1024) {
-        addToast('Image must be less than 5MB', 'error');
+        addToast("Image must be less than 5MB", "error");
         return;
       }
       const imageDataUrl = URL.createObjectURL(file);
@@ -91,9 +100,12 @@ export function AvatarUpload({ currentAvatarUrl, name, onUpload }: AvatarUploadP
     }
   };
 
-  const onCropComplete = useCallback((croppedArea: Area, croppedAreaPixels: Area) => {
-    setCroppedAreaPixels(croppedAreaPixels);
-  }, []);
+  const onCropComplete = useCallback(
+    (croppedArea: Area, croppedAreaPixels: Area) => {
+      setCroppedAreaPixels(croppedAreaPixels);
+    },
+    [],
+  );
 
   const handleSave = async () => {
     if (!imageSrc || !croppedAreaPixels) return;
@@ -103,13 +115,13 @@ export function AvatarUpload({ currentAvatarUrl, name, onUpload }: AvatarUploadP
       const croppedImageFile = await getCroppedImg(imageSrc, croppedAreaPixels);
       if (croppedImageFile) {
         await onUpload(croppedImageFile);
-        addToast('Avatar updated successfully', 'success');
+        addToast("Avatar updated successfully", "success");
         setIsCropDialogOpen(false);
         setImageSrc(null);
       }
     } catch (e) {
       console.error(e);
-      addToast('Failed to crop and upload image', 'error');
+      addToast("Failed to crop and upload image", "error");
     } finally {
       setIsUploading(false);
     }
@@ -118,9 +130,14 @@ export function AvatarUpload({ currentAvatarUrl, name, onUpload }: AvatarUploadP
   return (
     <div>
       <div className="relative inline-block">
-        <Avatar size="lg" className="h-24 w-24 border-2 border-white shadow-sm dark:border-gray-900">
+        <Avatar
+          size="lg"
+          className="h-24 w-24 border-2 border-white shadow-sm dark:border-gray-900"
+        >
           <AvatarImage src={currentAvatarUrl} alt={name} />
-          <AvatarFallback className="text-xl">{getInitials(name)}</AvatarFallback>
+          <AvatarFallback className="text-xl">
+            {getInitials(name)}
+          </AvatarFallback>
         </Avatar>
         <button
           type="button"

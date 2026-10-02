@@ -1,9 +1,4 @@
-import {
-  LayoutDashboard,
-  BookOpen,
-  Trophy,
-  Award,
-} from "lucide-react";
+import { LayoutDashboard, BookOpen, Trophy, Award } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 export interface NavLink {

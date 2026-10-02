@@ -41,7 +41,7 @@ export function RewardClaimDialog({
       setStatus("success");
     } catch (err) {
       setErrorMessage(
-        err instanceof Error ? err.message : "Claim failed. Please try again."
+        err instanceof Error ? err.message : "Claim failed. Please try again.",
       );
       setStatus("error");
     }

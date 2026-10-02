@@ -15,14 +15,16 @@ export function TokenBalance({ balance, className }: TokenBalanceProps) {
     <div
       className={cn(
         "flex items-center gap-3 rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-900",
-        className
+        className,
       )}
     >
       <div className="flex h-10 w-10 items-center justify-center rounded-full bg-stellar-purple/10">
         <Coins className="h-5 w-5 text-stellar-purple" />
       </div>
       <div>
-        <p className="text-xs text-gray-500 dark:text-gray-400">{balance.tokenCode}</p>
+        <p className="text-xs text-gray-500 dark:text-gray-400">
+          {balance.tokenCode}
+        </p>
         <p className="text-lg font-bold text-gray-900 dark:text-gray-100">
           {formatTokenBalance(balance.balance, balance.decimals)}
         </p>

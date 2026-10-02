@@ -50,14 +50,21 @@ export function ConfirmDialog({
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent>
         <DialogHeader className="sm:text-center">
-          <div className={cn(
-            "mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full",
-            destructive ? "bg-red-100" : "bg-primary-100"
-          )}>
+          <div
+            className={cn(
+              "mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full",
+              destructive ? "bg-red-100" : "bg-primary-100",
+            )}
+          >
             {icon ? (
               icon
             ) : (
-              <AlertTriangle className={cn("h-6 w-6", destructive ? "text-red-600" : "text-primary-600")} />
+              <AlertTriangle
+                className={cn(
+                  "h-6 w-6",
+                  destructive ? "text-red-600" : "text-primary-600",
+                )}
+              />
             )}
           </div>
           <DialogTitle>{title}</DialogTitle>

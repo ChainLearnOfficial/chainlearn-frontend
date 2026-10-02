@@ -45,7 +45,7 @@ const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
  */
 export function useAsync<TData, TArgs extends unknown[] = []>(
   asyncFn: (signal: AbortSignal, ...args: TArgs) => Promise<TData>,
-  options: UseAsyncOptions<TData> = {}
+  options: UseAsyncOptions<TData> = {},
 ): UseAsyncResult<TData, TArgs> {
   const { immediate = false, retries = 0, retryDelayMs = 500 } = options;
 
@@ -112,7 +112,7 @@ export function useAsync<TData, TArgs extends unknown[] = []>(
         }
       }
     },
-    [retries, retryDelayMs]
+    [retries, retryDelayMs],
   );
 
   const retry = useCallback((): Promise<TData | undefined> => {

@@ -10,7 +10,8 @@ vi.mock("next/navigation", () => ({
 
 const authState = { isAuthenticated: false, hasHydrated: false };
 vi.mock("@/store/auth-store", () => ({
-  useAuthStore: (selector: (s: typeof authState) => unknown) => selector(authState),
+  useAuthStore: (selector: (s: typeof authState) => unknown) =>
+    selector(authState),
 }));
 
 import { useRequireAuth } from "./use-require-auth";

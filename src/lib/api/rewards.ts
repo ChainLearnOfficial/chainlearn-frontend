@@ -22,14 +22,14 @@ export interface RewardHistoryParams {
  */
 export async function getTokenBalances(
   jwt: string,
-  signal?: AbortSignal
+  signal?: AbortSignal,
 ): Promise<TokenBalance[]> {
   const validToken = await getValidToken();
   const token = validToken || jwt;
   const response = await apiClient.get<TokenBalance[]>(
     "/rewards/balances",
     token,
-    signal
+    signal,
   );
   return response.data;
 }
@@ -49,7 +49,7 @@ export async function getTokenBalances(
 export async function getRewardHistory(
   params: RewardHistoryParams | undefined,
   jwt: string,
-  signal?: AbortSignal
+  signal?: AbortSignal,
 ): Promise<PaginatedResponse<RewardClaim>> {
   const validToken = await getValidToken();
   const token = validToken || jwt;
@@ -67,7 +67,7 @@ export async function getRewardHistory(
   const response = await apiClient.get<PaginatedResponse<RewardClaim>>(
     path,
     token,
-    signal
+    signal,
   );
   return response.data;
 }
@@ -78,7 +78,7 @@ export async function getRewardHistory(
 export async function claimReward(
   claimableId: string,
   jwt: string,
-  signal?: AbortSignal
+  signal?: AbortSignal,
 ): Promise<RewardClaim> {
   const validToken = await getValidToken();
   const token = validToken || jwt;
@@ -86,7 +86,7 @@ export async function claimReward(
     "/rewards/claim",
     { claimableId },
     token,
-    signal
+    signal,
   );
   return response.data;
 }
@@ -96,8 +96,10 @@ export async function claimReward(
  */
 export async function getClaimables(
   jwt: string,
-  signal?: AbortSignal
-): Promise<{ id: string; amount: string; source: string; sourceTitle: string }[]> {
+  signal?: AbortSignal,
+): Promise<
+  { id: string; amount: string; source: string; sourceTitle: string }[]
+> {
   const validToken = await getValidToken();
   const token = validToken || jwt;
   const response = await apiClient.get<

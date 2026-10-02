@@ -56,7 +56,7 @@ export interface UseTokenRefreshResult {
 }
 
 export function useTokenRefresh(
-  options: UseTokenRefreshOptions = {}
+  options: UseTokenRefreshOptions = {},
 ): UseTokenRefreshResult {
   const {
     refreshWindowMs = REFRESH_WINDOW_MS,
@@ -98,7 +98,7 @@ export function useTokenRefresh(
         .applyRefreshedTokens(
           tokens.accessToken,
           tokens.expiresIn,
-          tokens.refreshToken
+          tokens.refreshToken,
         );
       return true;
     } catch {

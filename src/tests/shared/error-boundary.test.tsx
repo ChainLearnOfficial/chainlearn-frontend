@@ -14,7 +14,7 @@ describe("ErrorBoundary", () => {
     render(
       <ErrorBoundary>
         <Bomb shouldThrow={false} />
-      </ErrorBoundary>
+      </ErrorBoundary>,
     );
     expect(screen.getByText("Safe content")).toBeInTheDocument();
   });
@@ -23,17 +23,19 @@ describe("ErrorBoundary", () => {
     render(
       <ErrorBoundary>
         <Bomb shouldThrow />
-      </ErrorBoundary>
+      </ErrorBoundary>,
     );
     expect(screen.getByText("Something went wrong")).toBeInTheDocument();
-    expect(screen.getByText(/could not render this section/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/could not render this section/i),
+    ).toBeInTheDocument();
   });
 
   it("renders a custom fallback when provided", () => {
     render(
       <ErrorBoundary fallback={<p>Custom error UI</p>}>
         <Bomb shouldThrow />
-      </ErrorBoundary>
+      </ErrorBoundary>,
     );
     expect(screen.getByText("Custom error UI")).toBeInTheDocument();
   });
@@ -42,16 +44,18 @@ describe("ErrorBoundary", () => {
     render(
       <ErrorBoundary>
         <Bomb shouldThrow />
-      </ErrorBoundary>
+      </ErrorBoundary>,
     );
-    expect(screen.getByRole("button", { name: /try again/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /try again/i }),
+    ).toBeInTheDocument();
   });
 
   it("clears error state when Try Again is clicked", async () => {
     render(
       <ErrorBoundary>
         <Bomb shouldThrow />
-      </ErrorBoundary>
+      </ErrorBoundary>,
     );
     await userEvent.click(screen.getByRole("button", { name: /try again/i }));
     // After reset the boundary re-renders children (still throws → back to error UI,

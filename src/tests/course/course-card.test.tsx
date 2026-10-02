@@ -25,7 +25,9 @@ describe("CourseCard", () => {
 
   it("renders the course description", () => {
     render(<CourseCard course={baseCourse} />);
-    expect(screen.getByText("Learn the Stellar blockchain from scratch.")).toBeInTheDocument();
+    expect(
+      screen.getByText("Learn the Stellar blockchain from scratch."),
+    ).toBeInTheDocument();
   });
 
   it("renders the difficulty badge", () => {

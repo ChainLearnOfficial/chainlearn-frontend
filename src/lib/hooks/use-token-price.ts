@@ -12,14 +12,14 @@ import { useState, useEffect } from "react";
  */
 async function fetchTokenUsdRate(
   code: string,
-  issuer?: string
+  issuer?: string,
 ): Promise<number | null> {
   try {
     const asset = issuer ? `${code}-${issuer}` : code;
     const res = await fetch(
       `https://api.stellarindex.io/v1/price?asset=${encodeURIComponent(
-        asset
-      )}&quote=fiat:USD`
+        asset,
+      )}&quote=fiat:USD`,
     );
     if (!res.ok) return null;
     const data = (await res.json()) as {
@@ -49,7 +49,7 @@ export interface UseTokenPriceResult {
 export function useTokenPrice(
   code: string,
   issuer?: string,
-  nonce = 0
+  nonce = 0,
 ): UseTokenPriceResult {
   const [usdRate, setUsdRate] = useState<number | null>(null);
   const [usdLoading, setUsdLoading] = useState(true);

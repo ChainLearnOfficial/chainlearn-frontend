@@ -4,7 +4,8 @@ import type { WalletProviderId } from "@/lib/stellar/wallet";
 
 function setSessionCookie(token: string | null) {
   if (typeof document === "undefined") return;
-  const isSecure = typeof window !== "undefined" && window.location.protocol === "https:";
+  const isSecure =
+    typeof window !== "undefined" && window.location.protocol === "https:";
   if (token) {
     const secureFlag = isSecure ? "; Secure" : "";
     document.cookie = `chainlearn-session=${token}; path=/; max-age=86400; SameSite=Lax${secureFlag}`;
@@ -33,7 +34,7 @@ interface AuthState {
     token: string,
     expiresIn?: number,
     refreshToken?: string,
-    walletProviderId?: WalletProviderId
+    walletProviderId?: WalletProviderId,
   ) => void;
   disconnect: () => void;
   setJwt: (token: string, expiresIn?: number) => void;
@@ -41,7 +42,7 @@ interface AuthState {
   applyRefreshedTokens: (
     token: string,
     expiresIn?: number,
-    refreshToken?: string
+    refreshToken?: string,
   ) => void;
   setIsConnecting: (value: boolean) => void;
   setNetwork: (network: "testnet" | "public") => void;
@@ -70,7 +71,7 @@ export const useAuthStore = create<AuthState>()(
         token: string,
         expiresIn?: number,
         refreshToken?: string,
-        walletProviderId?: WalletProviderId
+        walletProviderId?: WalletProviderId,
       ) => {
         setSessionCookie(token);
         set({
@@ -80,9 +81,7 @@ export const useAuthStore = create<AuthState>()(
           refreshToken: refreshToken ?? null,
           isAuthenticated: true,
           isConnecting: false,
-          tokenExpiresAt: expiresIn
-            ? Date.now() + expiresIn * 1000
-            : null,
+          tokenExpiresAt: expiresIn ? Date.now() + expiresIn * 1000 : null,
           error: null,
         });
       },
@@ -116,7 +115,7 @@ export const useAuthStore = create<AuthState>()(
       applyRefreshedTokens: (
         token: string,
         expiresIn?: number,
-        refreshToken?: string
+        refreshToken?: string,
       ) => {
         setSessionCookie(token);
         set({
@@ -163,6 +162,6 @@ export const useAuthStore = create<AuthState>()(
           useAuthStore.getState().setHasHydrated(true);
         };
       },
-    }
-  )
+    },
+  ),
 );

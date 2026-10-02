@@ -11,8 +11,9 @@ const avatarSizes = {
   lg: "h-14 w-14 text-base",
 } as const;
 
-export interface AvatarProps
-  extends React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Root> {
+export interface AvatarProps extends React.ComponentPropsWithoutRef<
+  typeof AvatarPrimitive.Root
+> {
   size?: keyof typeof avatarSizes;
 }
 
@@ -25,7 +26,7 @@ const Avatar = React.forwardRef<
     className={cn(
       "relative flex shrink-0 overflow-hidden rounded-full bg-gray-100",
       avatarSizes[size],
-      className
+      className,
     )}
     {...props}
   />
@@ -43,12 +44,7 @@ const AvatarImage = React.forwardRef<
     src={src}
     {...props}
   >
-    <Image 
-      src={src || ""} 
-      alt={alt || ""} 
-      fill 
-      sizes="100px" 
-    />
+    <Image src={src || ""} alt={alt || ""} fill sizes="100px" />
   </AvatarPrimitive.Image>
 ));
 AvatarImage.displayName = AvatarPrimitive.Image.displayName;
@@ -61,7 +57,7 @@ const AvatarFallback = React.forwardRef<
     ref={ref}
     className={cn(
       "flex h-full w-full items-center justify-center rounded-full bg-primary-100 font-medium text-primary-700",
-      className
+      className,
     )}
     {...props}
   />

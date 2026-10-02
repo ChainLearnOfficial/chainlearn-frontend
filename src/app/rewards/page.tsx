@@ -16,7 +16,7 @@ import { Gift, Coins, TrendingUp } from "lucide-react";
 const RewardHistory = lazy(() =>
   import("@/components/rewards/reward-history").then((m) => ({
     default: m.RewardHistory,
-  }))
+  })),
 );
 
 export default function RewardsPage() {

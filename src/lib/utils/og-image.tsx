@@ -17,52 +17,50 @@ export function createOgImage({
   description,
 }: OgImageOptions): ImageResponse {
   return new ImageResponse(
-    (
-      <div
-        style={{
-          height: "100%",
-          width: "100%",
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "space-between",
-          background:
-            "linear-gradient(135deg, #1e3a8a 0%, #7b3fe4 55%, #08b5e5 100%)",
-          padding: 64,
-          color: "#ffffff",
-          fontFamily: "sans-serif",
-        }}
-      >
-        <div style={{ display: "flex", fontSize: 28, opacity: 0.9 }}>
-          {eyebrow}
+    <div
+      style={{
+        height: "100%",
+        width: "100%",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "space-between",
+        background:
+          "linear-gradient(135deg, #1e3a8a 0%, #7b3fe4 55%, #08b5e5 100%)",
+        padding: 64,
+        color: "#ffffff",
+        fontFamily: "sans-serif",
+      }}
+    >
+      <div style={{ display: "flex", fontSize: 28, opacity: 0.9 }}>
+        {eyebrow}
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+        <div
+          style={{
+            display: "flex",
+            fontSize: 60,
+            fontWeight: 700,
+            lineHeight: 1.15,
+            maxWidth: 1000,
+          }}
+        >
+          {title}
         </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+        {description ? (
           <div
             style={{
               display: "flex",
-              fontSize: 60,
-              fontWeight: 700,
-              lineHeight: 1.15,
-              maxWidth: 1000,
+              fontSize: 28,
+              opacity: 0.88,
+              maxWidth: 960,
+              lineHeight: 1.35,
             }}
           >
-            {title}
+            {description}
           </div>
-          {description ? (
-            <div
-              style={{
-                display: "flex",
-                fontSize: 28,
-                opacity: 0.88,
-                maxWidth: 960,
-                lineHeight: 1.35,
-              }}
-            >
-              {description}
-            </div>
-          ) : null}
-        </div>
+        ) : null}
       </div>
-    ),
-    { ...OG_SIZE }
+    </div>,
+    { ...OG_SIZE },
   );
 }

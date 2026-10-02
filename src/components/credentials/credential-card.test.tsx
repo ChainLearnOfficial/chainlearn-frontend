@@ -32,7 +32,7 @@ describe("CredentialCard", () => {
     render(<CredentialCard credential={mockCredential} />);
     expect(screen.getByRole("link")).toHaveAttribute(
       "href",
-      "/credentials/cred-1"
+      "/credentials/cred-1",
     );
   });
 });

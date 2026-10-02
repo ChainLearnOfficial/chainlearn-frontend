@@ -6,12 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/shared/empty-state";
 import { ResultsScreen } from "@/components/course/results-screen";
-import {
-  ChevronLeft,
-  ChevronRight,
-  Clock,
-  Loader2,
-} from "lucide-react";
+import { ChevronLeft, ChevronRight, Clock, Loader2 } from "lucide-react";
 import type { Quiz, QuizAttempt } from "@/types/quiz";
 
 interface QuizInterfaceProps {
@@ -22,7 +17,13 @@ interface QuizInterfaceProps {
   className?: string;
 }
 
-export function QuizInterface({ quiz, courseId, onSubmit, onRetry, className }: QuizInterfaceProps) {
+export function QuizInterface({
+  quiz,
+  courseId,
+  onSubmit,
+  onRetry,
+  className,
+}: QuizInterfaceProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [attempt, setAttempt] = useState<QuizAttempt | null>(null);
@@ -34,7 +35,9 @@ export function QuizInterface({ quiz, courseId, onSubmit, onRetry, className }: 
   const isLastQuestion = currentIndex === questions.length - 1;
   const answeredCount = Object.keys(answers).length;
   const allAnswered = answeredCount === questions.length;
-  const progressPercent = Math.round(((currentIndex + 1) / questions.length) * 100);
+  const progressPercent = Math.round(
+    ((currentIndex + 1) / questions.length) * 100,
+  );
 
   if (!question) {
     return (
@@ -58,7 +61,9 @@ export function QuizInterface({ quiz, courseId, onSubmit, onRetry, className }: 
       setAttempt(result);
     } catch (err) {
       setSubmitError(
-        err instanceof Error ? err.message : "Submission failed. Please try again."
+        err instanceof Error
+          ? err.message
+          : "Submission failed. Please try again.",
       );
     } finally {
       setSubmitting(false);
@@ -146,7 +151,7 @@ export function QuizInterface({ quiz, courseId, onSubmit, onRetry, className }: 
                     ? "bg-primary-500 scale-125"
                     : isAnswered
                       ? "bg-primary-300 dark:bg-primary-700 hover:bg-primary-400"
-                      : "bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600"
+                      : "bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600",
                 )}
               />
             );
@@ -179,7 +184,7 @@ export function QuizInterface({ quiz, courseId, onSubmit, onRetry, className }: 
                   "w-full text-left rounded-lg border px-4 py-3 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500",
                   isSelected
                     ? "border-primary-500 bg-primary-50 text-primary-700 dark:bg-primary-900/30 dark:border-primary-500 dark:text-primary-200"
-                    : "border-gray-200 dark:border-gray-700 hover:border-gray-300 hover:bg-gray-50 dark:hover:border-gray-600 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300"
+                    : "border-gray-200 dark:border-gray-700 hover:border-gray-300 hover:bg-gray-50 dark:hover:border-gray-600 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300",
                 )}
               >
                 <span className="text-sm">{option.text}</span>
@@ -213,11 +218,16 @@ export function QuizInterface({ quiz, courseId, onSubmit, onRetry, className }: 
               onClick={handleSubmit}
               disabled={!allAnswered || submitting}
               className="gap-1 min-w-[120px]"
-              aria-label={allAnswered ? "Submit quiz" : "Answer all questions to submit"}
+              aria-label={
+                allAnswered ? "Submit quiz" : "Answer all questions to submit"
+              }
             >
               {submitting ? (
                 <>
-                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                  <Loader2
+                    className="h-4 w-4 animate-spin"
+                    aria-hidden="true"
+                  />
                   Submitting...
                 </>
               ) : (

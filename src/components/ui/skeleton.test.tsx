@@ -37,10 +37,10 @@ describe("Skeleton", () => {
         <SkeletonCircle />
         <SkeletonText className="w-1/2" />
         <SkeletonStack lines={2} />
-      </div>
+      </div>,
     );
     expect(
-      container.querySelectorAll('[data-slot="skeleton"]').length
+      container.querySelectorAll('[data-slot="skeleton"]').length,
     ).toBeGreaterThanOrEqual(4);
   });
 });

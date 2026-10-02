@@ -24,7 +24,7 @@ describe("useMediaQuery", () => {
           }
         }),
         dispatchEvent: vi.fn(),
-      }))
+      })),
     );
   });
 
@@ -48,7 +48,10 @@ describe("useMediaQuery", () => {
 
     act(() => {
       listeners.forEach((listener) =>
-        listener({ matches: false, media: "(max-width: 768px)" } as MediaQueryListEvent)
+        listener({
+          matches: false,
+          media: "(max-width: 768px)",
+        } as MediaQueryListEvent),
       );
     });
 

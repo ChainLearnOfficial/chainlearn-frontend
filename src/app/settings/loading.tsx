@@ -1,4 +1,7 @@
-import { ProfileSkeleton, FormSkeleton } from "@/components/shared/loading-skeleton";
+import {
+  ProfileSkeleton,
+  FormSkeleton,
+} from "@/components/shared/loading-skeleton";
 
 export default function Loading() {
   return (

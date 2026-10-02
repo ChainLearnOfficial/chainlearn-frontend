@@ -5,7 +5,11 @@ import { useTokenPrice } from "@/lib/hooks/use-token-price";
 import { formatTokenAmount, formatUSD } from "@/lib/utils/format";
 import { Coins, ExternalLink, Copy, Check, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useState, useCallback } from "react";
 import Link from "next/link";
 
@@ -14,7 +18,10 @@ interface BalanceDisplayProps {
   compact?: boolean;
 }
 
-export function BalanceDisplay({ className, compact = false }: BalanceDisplayProps) {
+export function BalanceDisplay({
+  className,
+  compact = false,
+}: BalanceDisplayProps) {
   const { balances, loading, refetch } = useRewards();
   const [copied, setCopied] = useState(false);
 
@@ -23,8 +30,12 @@ export function BalanceDisplay({ className, compact = false }: BalanceDisplayPro
   const decimals = primaryBalance?.decimals ?? 7;
   const issuer = primaryBalance?.tokenIssuer;
   const rawBalance = primaryBalance ? parseFloat(primaryBalance.balance) : 0;
-  const balanceVal = isNaN(rawBalance) ? 0 : rawBalance / Math.pow(10, decimals);
-  const balanceStr = formatTokenAmount(balanceVal, "", { maximumFractionDigits: 2 });
+  const balanceVal = isNaN(rawBalance)
+    ? 0
+    : rawBalance / Math.pow(10, decimals);
+  const balanceStr = formatTokenAmount(balanceVal, "", {
+    maximumFractionDigits: 2,
+  });
 
   // Derive the deployed address for the current network from the balance's
   // issuer when available, so users always have a copyable asset address.
@@ -33,7 +44,7 @@ export function BalanceDisplay({ className, compact = false }: BalanceDisplayPro
   const { usdRate, usdLoading } = useTokenPrice(
     tokenCode,
     issuer,
-    primaryBalance?.balance ? 1 : 0
+    primaryBalance?.balance ? 1 : 0,
   );
 
   const handleCopyContract = useCallback(
@@ -49,7 +60,7 @@ export function BalanceDisplay({ className, compact = false }: BalanceDisplayPro
         console.error("Failed to copy contract address", err);
       }
     },
-    [contractAddress]
+    [contractAddress],
   );
 
   const handleRefresh = (e: React.MouseEvent) => {
@@ -71,7 +82,12 @@ export function BalanceDisplay({ className, compact = false }: BalanceDisplayPro
     return (
       <Tooltip>
         <TooltipTrigger asChild>
-          <div className={cn("flex items-center gap-1.5 text-sm font-medium cursor-help", className)}>
+          <div
+            className={cn(
+              "flex items-center gap-1.5 text-sm font-medium cursor-help",
+              className,
+            )}
+          >
             <Coins className="h-4 w-4 text-stellar-purple" />
             <span>{balanceStr}</span>
             <span className="text-gray-500">{tokenCode}</span>
@@ -79,8 +95,12 @@ export function BalanceDisplay({ className, compact = false }: BalanceDisplayPro
           </div>
         </TooltipTrigger>
         <TooltipContent>
-          <p>Available {tokenCode} balance ({usdValue} USD)</p>
-          <p className="text-gray-300">{tokenCode} decimals: {decimals}</p>
+          <p>
+            Available {tokenCode} balance ({usdValue} USD)
+          </p>
+          <p className="text-gray-300">
+            {tokenCode} decimals: {decimals}
+          </p>
         </TooltipContent>
       </Tooltip>
     );
@@ -90,7 +110,7 @@ export function BalanceDisplay({ className, compact = false }: BalanceDisplayPro
     <div
       className={cn(
         "rounded-xl border border-gray-200 bg-gradient-to-br from-stellar-purple/5 to-stellar-blue/5 p-4 dark:border-gray-800 dark:bg-gray-900/50",
-        className
+        className,
       )}
     >
       <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400 mb-1">
@@ -109,16 +129,25 @@ export function BalanceDisplay({ className, compact = false }: BalanceDisplayPro
       <div className="flex items-baseline justify-between">
         <div>
           <div className="flex items-baseline gap-2">
-            <span className="text-2xl font-bold text-gray-900 dark:text-gray-100">{balanceStr}</span>
-            <span className="text-sm font-semibold text-gray-500 dark:text-gray-400">{tokenCode}</span>
+            <span className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+              {balanceStr}
+            </span>
+            <span className="text-sm font-semibold text-gray-500 dark:text-gray-400">
+              {tokenCode}
+            </span>
           </div>
           <div className="text-xs text-gray-500 dark:text-gray-400 font-medium mt-0.5">
             ≈ {usdValue} USD
           </div>
           <div className="flex items-center gap-2 text-[11px] text-gray-400 mt-1">
-            <span>{tokenCode} decimals: {decimals}</span>
+            <span>
+              {tokenCode} decimals: {decimals}
+            </span>
             {issuer && (
-              <span className="font-mono truncate max-w-[12rem]" title={`Issuer: ${issuer}`}>
+              <span
+                className="font-mono truncate max-w-[12rem]"
+                title={`Issuer: ${issuer}`}
+              >
                 Issuer: {issuer.slice(0, 6)}…
               </span>
             )}

@@ -17,23 +17,25 @@ This directory contains all API interaction functions for the ChainLearn fronten
 Fetches complete module content including lessons and materials.
 
 ```typescript
-import { getModule } from '@/lib/api/courses';
+import { getModule } from "@/lib/api/courses";
 
 // Fetch module content
-const module = await getModule('course-123', 'module-456', jwt);
+const module = await getModule("course-123", "module-456", jwt);
 
 // Or use the more explicit alias
-import { getModuleContent } from '@/lib/api/courses';
-const content = await getModuleContent('course-123', 'module-456', jwt);
+import { getModuleContent } from "@/lib/api/courses";
+const content = await getModuleContent("course-123", "module-456", jwt);
 ```
 
 **Parameters:**
+
 - `courseId`: string - The course ID
-- `moduleId`: string - The module ID  
+- `moduleId`: string - The module ID
 - `jwt?`: string - Optional JWT token (required for enrolled courses)
 - `signal?`: AbortSignal - Optional cancellation signal
 
 **Returns:** `Promise<Module>` with fields:
+
 - `id`: Module identifier
 - `courseId`: Parent course ID
 - `title`: Module title
@@ -49,9 +51,9 @@ const content = await getModuleContent('course-123', 'module-456', jwt);
 Convenience function to fetch all modules for a course, sorted by order.
 
 ```typescript
-import { getCourseModules } from '@/lib/api/courses';
+import { getCourseModules } from "@/lib/api/courses";
 
-const modules = await getCourseModules('course-123', jwt);
+const modules = await getCourseModules("course-123", jwt);
 // Returns sorted array of all course modules
 ```
 
@@ -60,10 +62,10 @@ const modules = await getCourseModules('course-123', jwt);
 Fetch multiple modules efficiently in parallel.
 
 ```typescript
-import { getModuleBatch } from '@/lib/api/courses';
+import { getModuleBatch } from "@/lib/api/courses";
 
-const moduleIds = ['mod-1', 'mod-2', 'mod-3'];
-const modules = await getModuleBatch('course-123', moduleIds, jwt);
+const moduleIds = ["mod-1", "mod-2", "mod-3"];
+const modules = await getModuleBatch("course-123", moduleIds, jwt);
 // Returns modules in same order as moduleIds
 ```
 
@@ -74,12 +76,13 @@ const modules = await getModuleBatch('course-123', moduleIds, jwt);
 Fetches quiz content for a course.
 
 ```typescript
-import { getQuiz } from '@/lib/api/quizzes';
+import { getQuiz } from "@/lib/api/quizzes";
 
-const quiz = await getQuiz('course-123', jwt);
+const quiz = await getQuiz("course-123", jwt);
 ```
 
 **Returns:** `Promise<Quiz>` with:
+
 - `id`: Quiz identifier
 - `courseId`: Parent course ID
 - `title`: Quiz title
@@ -93,14 +96,14 @@ const quiz = await getQuiz('course-123', jwt);
 Submits quiz answers and receives score.
 
 ```typescript
-import { submitQuiz } from '@/lib/api/quizzes';
+import { submitQuiz } from "@/lib/api/quizzes";
 
 const submission = {
-  quizId: 'quiz-123',
+  quizId: "quiz-123",
   answers: [
-    { questionId: 'q1', selectedOptionId: 'opt-a' },
-    { questionId: 'q2', selectedOptionId: 'opt-b' },
-  ]
+    { questionId: "q1", selectedOptionId: "opt-a" },
+    { questionId: "q2", selectedOptionId: "opt-b" },
+  ],
 };
 
 const attempt = await submitQuiz(submission, jwt);
@@ -109,6 +112,7 @@ console.log(`Passed: ${attempt.passed}`);
 ```
 
 **Returns:** `Promise<QuizAttempt>` with:
+
 - `id`: Attempt identifier
 - `score`: Score percentage (0-100)
 - `passed`: Whether score met passing threshold
@@ -120,10 +124,10 @@ console.log(`Passed: ${attempt.passed}`);
 Fetches user's past attempts for review.
 
 ```typescript
-import { getQuizAttempts } from '@/lib/api/quizzes';
+import { getQuizAttempts } from "@/lib/api/quizzes";
 
-const attempts = await getQuizAttempts('quiz-123', jwt);
-const bestScore = Math.max(...attempts.map(a => a.score));
+const attempts = await getQuizAttempts("quiz-123", jwt);
+const bestScore = Math.max(...attempts.map((a) => a.score));
 ```
 
 ## Authentication
@@ -132,7 +136,7 @@ All authenticated functions automatically handle token refresh using `getValidTo
 
 ```typescript
 // Manual token refresh
-import { getValidToken } from '@/lib/api/auth';
+import { getValidToken } from "@/lib/api/auth";
 
 const freshToken = await getValidToken();
 // Returns refreshed token or null if session expired
@@ -143,11 +147,11 @@ const freshToken = await getValidToken();
 All API functions throw `ApiError` on failure:
 
 ```typescript
-import { ApiError } from '@/types/api';
-import { getModule } from '@/lib/api/courses';
+import { ApiError } from "@/types/api";
+import { getModule } from "@/lib/api/courses";
 
 try {
-  const module = await getModule('course-123', 'module-456', jwt);
+  const module = await getModule("course-123", "module-456", jwt);
 } catch (error) {
   if (error instanceof ApiError) {
     console.error(`API Error ${error.status}: ${error.message}`);
@@ -166,7 +170,12 @@ try {
 const controller = new AbortController();
 
 // Start request
-const modulePromise = getModule('course-123', 'mod-456', jwt, controller.signal);
+const modulePromise = getModule(
+  "course-123",
+  "mod-456",
+  jwt,
+  controller.signal,
+);
 
 // Cancel if needed
 controller.abort();
@@ -175,7 +184,7 @@ try {
   await modulePromise;
 } catch (error) {
   if (isAbortError(error)) {
-    console.log('Request was cancelled');
+    console.log("Request was cancelled");
   }
 }
 ```
@@ -185,42 +194,29 @@ try {
 ### Fetching Course Content Flow
 
 ```typescript
-import { 
-  getCourse, 
-  getCourseModules, 
-  getModule,
-  getQuiz 
-} from '@/lib/api';
+import { getCourse, getCourseModules, getModule, getQuiz } from "@/lib/api";
 
 // 1. Get course overview
-const course = await getCourse('course-123', jwt);
+const course = await getCourse("course-123", jwt);
 
 // 2. Get all modules sorted
-const modules = await getCourseModules('course-123', jwt);
+const modules = await getCourseModules("course-123", jwt);
 
 // 3. Fetch first module content
-const firstModule = await getModule(
-  'course-123', 
-  modules[0].id, 
-  jwt
-);
+const firstModule = await getModule("course-123", modules[0].id, jwt);
 
 // 4. Get course quiz
-const quiz = await getQuiz('course-123', jwt);
+const quiz = await getQuiz("course-123", jwt);
 ```
 
 ### Preloading Content
 
 ```typescript
-import { getModuleBatch } from '@/lib/api';
+import { getModuleBatch } from "@/lib/api";
 
 // Preload next 3 modules for smooth navigation
-const nextModuleIds = ['mod-2', 'mod-3', 'mod-4'];
-const preloadedModules = await getModuleBatch(
-  'course-123',
-  nextModuleIds,
-  jwt
-);
+const nextModuleIds = ["mod-2", "mod-3", "mod-4"];
+const preloadedModules = await getModuleBatch("course-123", nextModuleIds, jwt);
 
 // Cache in state or local storage
 ```
@@ -228,22 +224,25 @@ const preloadedModules = await getModuleBatch(
 ### Taking a Quiz
 
 ```typescript
-import { getQuiz, submitQuiz } from '@/lib/api';
+import { getQuiz, submitQuiz } from "@/lib/api";
 
 // 1. Load quiz
-const quiz = await getQuiz('course-123', jwt);
+const quiz = await getQuiz("course-123", jwt);
 
 // 2. User answers questions
 const userAnswers = [
-  { questionId: quiz.questions[0].id, selectedOptionId: 'opt-1' },
-  { questionId: quiz.questions[1].id, selectedOptionId: 'opt-2' },
+  { questionId: quiz.questions[0].id, selectedOptionId: "opt-1" },
+  { questionId: quiz.questions[1].id, selectedOptionId: "opt-2" },
 ];
 
 // 3. Submit answers
-const attempt = await submitQuiz({
-  quizId: quiz.id,
-  answers: userAnswers
-}, jwt);
+const attempt = await submitQuiz(
+  {
+    quizId: quiz.id,
+    answers: userAnswers,
+  },
+  jwt,
+);
 
 // 4. Show results
 if (attempt.passed) {

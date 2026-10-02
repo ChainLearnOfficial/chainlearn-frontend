@@ -109,7 +109,10 @@ export function NotificationBell() {
             </div>
           ) : error && notifications.length === 0 ? (
             <div className="flex flex-col items-center justify-center px-4 py-10 text-center">
-              <Bell className="mb-3 h-8 w-8 text-gray-300 dark:text-gray-600" aria-hidden="true" />
+              <Bell
+                className="mb-3 h-8 w-8 text-gray-300 dark:text-gray-600"
+                aria-hidden="true"
+              />
               <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
                 Couldn&apos;t load notifications
               </p>
@@ -126,7 +129,10 @@ export function NotificationBell() {
             </div>
           ) : notifications.length === 0 ? (
             <div className="flex flex-col items-center justify-center px-4 py-10 text-center">
-              <Bell className="mb-3 h-8 w-8 text-gray-300 dark:text-gray-600" aria-hidden="true" />
+              <Bell
+                className="mb-3 h-8 w-8 text-gray-300 dark:text-gray-600"
+                aria-hidden="true"
+              />
               <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
                 No notifications
               </p>
@@ -134,7 +140,7 @@ export function NotificationBell() {
                 Rewards, credentials and announcements will show up here.
               </p>
             </div>
-) : (
+          ) : (
             <div>
               {notifications.map((notification) => {
                 const Icon = typeIcons[notification.type] ?? Info;
@@ -145,13 +151,13 @@ export function NotificationBell() {
                     onSelect={() => markAsRead(notification.id)}
                     className={cn(
                       "cursor-pointer items-start gap-3 px-4 py-3",
-                      unread && "bg-primary-50/60 dark:bg-primary-950/40"
+                      unread && "bg-primary-50/60 dark:bg-primary-950/40",
                     )}
                   >
                     <span
                       className={cn(
                         "mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800",
-                        typeStyles[notification.type]
+                        typeStyles[notification.type],
                       )}
                     >
                       <Icon className="h-4 w-4" aria-hidden="true" />
@@ -163,7 +169,7 @@ export function NotificationBell() {
                             "truncate text-sm",
                             unread
                               ? "font-semibold text-gray-900 dark:text-gray-100"
-                              : "font-medium text-gray-700 dark:text-gray-300"
+                              : "font-medium text-gray-700 dark:text-gray-300",
                           )}
                         >
                           {notification.title}

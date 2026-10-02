@@ -28,13 +28,15 @@ describe("StatsCard", () => {
         value={2}
         trend="up"
         trendLabel="12% this week"
-      />
+      />,
     );
     expect(screen.getByText("12% this week")).toBeInTheDocument();
   });
 
   it("renders a down trend with the default label", () => {
-    render(<StatsCard icon={BookOpen} label="Courses" value={2} trend="down" />);
+    render(
+      <StatsCard icon={BookOpen} label="Courses" value={2} trend="down" />,
+    );
     expect(screen.getByText("Trending down")).toBeInTheDocument();
   });
 
@@ -45,9 +47,11 @@ describe("StatsCard", () => {
         label="Courses"
         value={2}
         className="my-class"
-      />
+      />,
     );
-    expect((container.firstChild as HTMLElement).className).toContain("my-class");
+    expect((container.firstChild as HTMLElement).className).toContain(
+      "my-class",
+    );
   });
 
   it.each([
@@ -59,10 +63,11 @@ describe("StatsCard", () => {
     ["muted", "bg-gray-100"],
   ] as const)("color=%s applies the icon container theme", (color, cls) => {
     const { container } = render(
-      <StatsCard icon={BookOpen} label="Courses" value={2} color={color} />
+      <StatsCard icon={BookOpen} label="Courses" value={2} color={color} />,
     );
-    expect((container.querySelector("[aria-hidden='true']") as HTMLElement).className).toContain(
-      cls
-    );
+    expect(
+      (container.querySelector("[aria-hidden='true']") as HTMLElement)
+        .className,
+    ).toContain(cls);
   });
 });

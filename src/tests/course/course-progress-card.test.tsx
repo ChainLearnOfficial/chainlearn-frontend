@@ -13,7 +13,7 @@ describe("CourseProgressCard", () => {
     expect(screen.getByText("Stellar Development")).toBeInTheDocument();
     expect(screen.getByText("In Progress")).toBeInTheDocument();
     expect(
-      screen.getByRole("link", { name: /continue learning/i })
+      screen.getByRole("link", { name: /continue learning/i }),
     ).toHaveAttribute("href", "/courses/course-1");
   });
 
@@ -21,7 +21,7 @@ describe("CourseProgressCard", () => {
     render(<CourseProgressCard {...baseProps} progress={100} />);
     expect(screen.getByText("Completed")).toBeInTheDocument();
     expect(
-      screen.getByRole("link", { name: /review course/i })
+      screen.getByRole("link", { name: /review course/i }),
     ).toBeInTheDocument();
   });
 
@@ -37,7 +37,7 @@ describe("CourseProgressCard", () => {
         progress={50}
         completedModules={4}
         moduleCount={8}
-      />
+      />,
     );
     expect(screen.getByText("4 of 8 modules")).toBeInTheDocument();
   });
@@ -48,17 +48,19 @@ describe("CourseProgressCard", () => {
         {...baseProps}
         progress={10}
         continueHref="/courses/course-1/modules/mod-2"
-      />
+      />,
     );
     expect(
-      screen.getByRole("link", { name: /continue learning/i })
+      screen.getByRole("link", { name: /continue learning/i }),
     ).toHaveAttribute("href", "/courses/course-1/modules/mod-2");
   });
 
   it("merges custom className", () => {
     const { container } = render(
-      <CourseProgressCard {...baseProps} progress={10} className="my-class" />
+      <CourseProgressCard {...baseProps} progress={10} className="my-class" />,
     );
-    expect((container.firstChild as HTMLElement).className).toContain("my-class");
+    expect((container.firstChild as HTMLElement).className).toContain(
+      "my-class",
+    );
   });
 });

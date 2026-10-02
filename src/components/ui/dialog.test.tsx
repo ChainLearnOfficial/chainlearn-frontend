@@ -80,10 +80,10 @@ describe("Dialog", () => {
     expect(labelledBy).toBeTruthy();
     expect(describedBy).toBeTruthy();
     expect(document.getElementById(labelledBy as string)).toHaveTextContent(
-      "Enroll in this course?"
+      "Enroll in this course?",
     );
     expect(document.getElementById(describedBy as string)).toHaveTextContent(
-      "You can leave at any time."
+      "You can leave at any time.",
     );
   });
 
@@ -96,7 +96,7 @@ describe("Dialog", () => {
     await user.keyboard("{Escape}");
 
     await waitFor(() =>
-      expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument(),
     );
   });
 
@@ -123,7 +123,7 @@ describe("Dialog", () => {
     fireEvent.click(overlay as Element, { button: 0, ctrlKey: false });
 
     await waitFor(() =>
-      expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument(),
     );
   });
 
@@ -136,7 +136,7 @@ describe("Dialog", () => {
     await user.click(screen.getByRole("button", { name: "Close" }));
 
     await waitFor(() =>
-      expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument(),
     );
   });
 
@@ -149,7 +149,7 @@ describe("Dialog", () => {
     await user.click(screen.getByRole("button", { name: "Cancel" }));
 
     await waitFor(() =>
-      expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument(),
     );
   });
 
@@ -175,7 +175,7 @@ describe("Dialog", () => {
     const dialog = await screen.findByRole("dialog");
 
     await waitFor(() =>
-      expect(dialog.contains(document.activeElement)).toBe(true)
+      expect(dialog.contains(document.activeElement)).toBe(true),
     );
   });
 
@@ -215,16 +215,18 @@ describe("Dialog", () => {
     // bracketing the content in focus guards, rather than by setting
     // aria-modal. Assert the mechanism it actually uses.
     const hiddenSiblings = Array.from(document.body.children).filter(
-      (el) => el !== dialog.parentElement && el.getAttribute("aria-hidden") === "true"
+      (el) =>
+        el !== dialog.parentElement &&
+        el.getAttribute("aria-hidden") === "true",
     );
     const portalSiblings = Array.from(dialog.parentElement?.children ?? []);
 
     expect(
       hiddenSiblings.length > 0 ||
-        portalSiblings.some((el) => el.getAttribute("aria-hidden") === "true")
+        portalSiblings.some((el) => el.getAttribute("aria-hidden") === "true"),
     ).toBe(true);
     expect(
-      portalSiblings.filter((el) => el.hasAttribute("data-radix-focus-guard"))
+      portalSiblings.filter((el) => el.hasAttribute("data-radix-focus-guard")),
     ).toHaveLength(2);
   });
 
@@ -234,11 +236,13 @@ describe("Dialog", () => {
     await user.click(screen.getByRole("button", { name: "Enroll" }));
     await screen.findByRole("dialog");
 
-    expect(screen.queryByRole("button", { name: "Close" })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Close" }),
+    ).not.toBeInTheDocument();
     // Escape still dismisses, so the dialog is never a trap.
     await user.keyboard("{Escape}");
     await waitFor(() =>
-      expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument(),
     );
   });
 
@@ -253,7 +257,7 @@ describe("Dialog", () => {
           <DialogTitle>Claiming reward</DialogTitle>
           <DialogDescription>Do not close mid-transaction.</DialogDescription>
         </DialogContent>
-      </Dialog>
+      </Dialog>,
     );
 
     await screen.findByRole("dialog");
@@ -273,7 +277,7 @@ describe("Dialog", () => {
           <DialogTitle>Controlled</DialogTitle>
           <DialogDescription>Owned by the parent.</DialogDescription>
         </DialogContent>
-      </Dialog>
+      </Dialog>,
     );
 
     expect(await screen.findByRole("dialog")).toBeInTheDocument();
@@ -289,7 +293,9 @@ describe("Dialog", () => {
     const dialog = await screen.findByRole("dialog");
 
     expect(dialog.className).toContain("data-[state=open]:animate-content-in");
-    expect(dialog.className).toContain("data-[state=closed]:animate-content-out");
+    expect(dialog.className).toContain(
+      "data-[state=closed]:animate-content-out",
+    );
   });
 
   it("merges a caller className onto the content", async () => {
@@ -297,7 +303,9 @@ describe("Dialog", () => {
     render(<Example className="max-w-2xl" />);
     await user.click(screen.getByRole("button", { name: "Enroll" }));
 
-    expect((await screen.findByRole("dialog")).className).toContain("max-w-2xl");
+    expect((await screen.findByRole("dialog")).className).toContain(
+      "max-w-2xl",
+    );
   });
 });
 
@@ -307,7 +315,7 @@ describe("Dialog layout parts", () => {
       <div>
         <DialogHeader data-testid="header" className="custom-header" />
         <DialogFooter data-testid="footer" className="custom-footer" />
-      </div>
+      </div>,
     );
 
     expect(screen.getByTestId("header").className).toContain("custom-header");

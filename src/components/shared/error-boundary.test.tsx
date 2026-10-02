@@ -11,7 +11,7 @@ describe("ErrorBoundary", () => {
     render(
       <ErrorBoundary>
         <p>All good</p>
-      </ErrorBoundary>
+      </ErrorBoundary>,
     );
     expect(screen.getByText("All good")).toBeInTheDocument();
   });
@@ -22,13 +22,13 @@ describe("ErrorBoundary", () => {
     render(
       <ErrorBoundary>
         <Boom />
-      </ErrorBoundary>
+      </ErrorBoundary>,
     );
 
     expect(screen.getByText("Something went wrong")).toBeInTheDocument();
     expect(screen.getByText("Boom exploded")).toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: /Try Again/i })
+      screen.getByRole("button", { name: /Try Again/i }),
     ).toBeInTheDocument();
     consoleSpy.mockRestore();
   });
@@ -38,7 +38,7 @@ describe("ErrorBoundary", () => {
     render(
       <ErrorBoundary fallback={<p>Custom fallback</p>}>
         <Boom />
-      </ErrorBoundary>
+      </ErrorBoundary>,
     );
     expect(screen.getByText("Custom fallback")).toBeInTheDocument();
     consoleSpy.mockRestore();

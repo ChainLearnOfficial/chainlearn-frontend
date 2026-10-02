@@ -28,7 +28,7 @@ describe("WalletProvider", () => {
     render(
       <WalletProvider>
         <ReadyProbe />
-      </WalletProvider>
+      </WalletProvider>,
     );
     expect(screen.getByText("ready")).toBeInTheDocument();
   });

@@ -17,7 +17,9 @@ const createMockCourse = (overrides?: Partial<Course>): Course => ({
   ...overrides,
 });
 
-const createMockEnrollment = (overrides?: Partial<CourseEnrollment>): CourseEnrollment => ({
+const createMockEnrollment = (
+  overrides?: Partial<CourseEnrollment>,
+): CourseEnrollment => ({
   id: "enrollment-1",
   courseId: "course-1",
   userId: "user-1",
@@ -51,9 +53,9 @@ describe("useCourseStore", () => {
     it("should set the current course", () => {
       const store = useCourseStore.getState();
       const mockCourse = createMockCourse();
-      
+
       store.setCurrentCourse(mockCourse);
-      
+
       expect(store.currentCourse).toEqual(mockCourse);
     });
 
@@ -61,9 +63,9 @@ describe("useCourseStore", () => {
       const store = useCourseStore.getState();
       const mockCourse = createMockCourse();
       store.setCurrentCourse(mockCourse);
-      
+
       store.setCurrentCourse(null);
-      
+
       expect(store.currentCourse).toBe(null);
     });
   });
@@ -73,11 +75,16 @@ describe("useCourseStore", () => {
       const store = useCourseStore.getState();
       const mockEnrollments: CourseEnrollment[] = [
         createMockEnrollment({ id: "enrollment-1", courseId: "course-1" }),
-        createMockEnrollment({ id: "enrollment-2", courseId: "course-2", progress: 50, completedModules: ["module-1"] }),
+        createMockEnrollment({
+          id: "enrollment-2",
+          courseId: "course-2",
+          progress: 50,
+          completedModules: ["module-1"],
+        }),
       ];
-      
+
       store.setEnrollments(mockEnrollments);
-      
+
       expect(store.enrollments).toEqual(mockEnrollments);
     });
 
@@ -87,12 +94,17 @@ describe("useCourseStore", () => {
         createMockEnrollment({ id: "enrollment-1", courseId: "course-1" }),
       ];
       store.setEnrollments(initialEnrollments);
-      
+
       const newEnrollments: CourseEnrollment[] = [
-        createMockEnrollment({ id: "enrollment-2", courseId: "course-2", progress: 50, completedModules: ["module-1"] }),
+        createMockEnrollment({
+          id: "enrollment-2",
+          courseId: "course-2",
+          progress: 50,
+          completedModules: ["module-1"],
+        }),
       ];
       store.setEnrollments(newEnrollments);
-      
+
       expect(store.enrollments).toEqual(newEnrollments);
       expect(store.enrollments.length).toBe(1);
     });
@@ -102,45 +114,63 @@ describe("useCourseStore", () => {
     it("should add enrollment when it doesn't exist", () => {
       const store = useCourseStore.getState();
       const mockEnrollment = createMockEnrollment();
-      
+
       store.enroll(mockEnrollment);
-      
+
       expect(store.enrollments).toContain(mockEnrollment);
       expect(store.enrollments.length).toBe(1);
     });
 
     it("should not add duplicate enrollment by courseId", () => {
       const store = useCourseStore.getState();
-      const enrollment1 = createMockEnrollment({ id: "enrollment-1", courseId: "course-1" });
-      const enrollment2 = createMockEnrollment({ id: "enrollment-2", courseId: "course-1" });
-      
+      const enrollment1 = createMockEnrollment({
+        id: "enrollment-1",
+        courseId: "course-1",
+      });
+      const enrollment2 = createMockEnrollment({
+        id: "enrollment-2",
+        courseId: "course-1",
+      });
+
       store.enroll(enrollment1);
       store.enroll(enrollment2);
-      
+
       expect(store.enrollments.length).toBe(1);
       expect(store.enrollments[0]).toEqual(enrollment1);
     });
 
     it("should not add duplicate enrollment by id", () => {
       const store = useCourseStore.getState();
-      const enrollment1 = createMockEnrollment({ id: "enrollment-1", courseId: "course-1" });
-      const enrollment2 = createMockEnrollment({ id: "enrollment-1", courseId: "course-2" });
-      
+      const enrollment1 = createMockEnrollment({
+        id: "enrollment-1",
+        courseId: "course-1",
+      });
+      const enrollment2 = createMockEnrollment({
+        id: "enrollment-1",
+        courseId: "course-2",
+      });
+
       store.enroll(enrollment1);
       store.enroll(enrollment2);
-      
+
       expect(store.enrollments.length).toBe(1);
       expect(store.enrollments[0]).toEqual(enrollment1);
     });
 
     it("should add multiple different enrollments", () => {
       const store = useCourseStore.getState();
-      const enrollment1 = createMockEnrollment({ id: "enrollment-1", courseId: "course-1" });
-      const enrollment2 = createMockEnrollment({ id: "enrollment-2", courseId: "course-2" });
-      
+      const enrollment1 = createMockEnrollment({
+        id: "enrollment-1",
+        courseId: "course-1",
+      });
+      const enrollment2 = createMockEnrollment({
+        id: "enrollment-2",
+        courseId: "course-2",
+      });
+
       store.enroll(enrollment1);
       store.enroll(enrollment2);
-      
+
       expect(store.enrollments.length).toBe(2);
       expect(store.enrollments).toContain(enrollment1);
       expect(store.enrollments).toContain(enrollment2);
@@ -152,12 +182,14 @@ describe("useCourseStore", () => {
       const store = useCourseStore.getState();
       const mockCourse = createMockCourse();
       store.setCurrentCourse(mockCourse);
-      
+
       store.updateProgress("course-1", "module-1");
-      
+
       expect(store.progress["course-1"]).toBeDefined();
       expect(store.progress["course-1"].courseId).toBe("course-1");
-      expect(store.progress["course-1"].completedModuleIds).toContain("module-1");
+      expect(store.progress["course-1"].completedModuleIds).toContain(
+        "module-1",
+      );
     });
 
     it("should add module to completed modules", () => {
@@ -165,32 +197,40 @@ describe("useCourseStore", () => {
       const mockCourse = createMockCourse();
       store.setCurrentCourse(mockCourse);
       store.updateProgress("course-1", "module-1");
-      
+
       store.updateProgress("course-1", "module-2");
-      
-      expect(store.progress["course-1"].completedModuleIds).toContain("module-1");
-      expect(store.progress["course-1"].completedModuleIds).toContain("module-2");
+
+      expect(store.progress["course-1"].completedModuleIds).toContain(
+        "module-1",
+      );
+      expect(store.progress["course-1"].completedModuleIds).toContain(
+        "module-2",
+      );
     });
 
     it("should not add duplicate module to completed modules", () => {
       const store = useCourseStore.getState();
       const mockCourse = createMockCourse();
       store.setCurrentCourse(mockCourse);
-      
+
       store.updateProgress("course-1", "module-1");
       store.updateProgress("course-1", "module-1");
-      
-      expect(store.progress["course-1"].completedModuleIds.filter((id: string) => id === "module-1").length).toBe(1);
+
+      expect(
+        store.progress["course-1"].completedModuleIds.filter(
+          (id: string) => id === "module-1",
+        ).length,
+      ).toBe(1);
     });
 
     it("should calculate progress percent correctly", () => {
       const store = useCourseStore.getState();
       const mockCourse = createMockCourse({ totalModules: 4 });
       store.setCurrentCourse(mockCourse);
-      
+
       store.updateProgress("course-1", "module-1");
       store.updateProgress("course-1", "module-2");
-      
+
       expect(store.progress["course-1"].progressPercent).toBe(50);
     });
 
@@ -198,10 +238,10 @@ describe("useCourseStore", () => {
       const store = useCourseStore.getState();
       const mockCourse = createMockCourse({ totalModules: 3 });
       store.setCurrentCourse(mockCourse);
-      
+
       store.updateProgress("course-1", "module-1");
       store.updateProgress("course-1", "module-2");
-      
+
       expect(store.progress["course-1"].progressPercent).toBe(67);
     });
 
@@ -209,9 +249,9 @@ describe("useCourseStore", () => {
       const store = useCourseStore.getState();
       const mockCourse = createMockCourse({ totalModules: 0 });
       store.setCurrentCourse(mockCourse);
-      
+
       store.updateProgress("course-1", "module-1");
-      
+
       expect(store.progress["course-1"].progressPercent).toBe(0);
     });
 
@@ -220,12 +260,12 @@ describe("useCourseStore", () => {
       const mockCourse = createMockCourse();
       store.setCurrentCourse(mockCourse);
       store.updateProgress("course-1", "module-1");
-      
+
       // Change currentCourse to null
       store.setCurrentCourse(null);
-      
+
       store.updateProgress("course-1", "module-2");
-      
+
       expect(store.progress["course-1"].totalModules).toBe(5);
     });
 
@@ -233,9 +273,9 @@ describe("useCourseStore", () => {
       const store = useCourseStore.getState();
       const mockCourse = createMockCourse();
       store.setCurrentCourse(mockCourse);
-      
+
       store.updateProgress("course-1", "module-3");
-      
+
       expect(store.progress["course-1"].currentModuleId).toBe("module-3");
     });
   });
@@ -246,18 +286,18 @@ describe("useCourseStore", () => {
       const mockCourse = createMockCourse();
       store.setCurrentCourse(mockCourse);
       store.updateProgress("course-1", "module-1");
-      
+
       const progress = store.getProgress("course-1");
-      
+
       expect(progress).toBeDefined();
       expect(progress?.courseId).toBe("course-1");
     });
 
     it("should return null for non-existent course", () => {
       const store = useCourseStore.getState();
-      
+
       const progress = store.getProgress("non-existent-course");
-      
+
       expect(progress).toBe(null);
     });
   });
@@ -267,9 +307,9 @@ describe("useCourseStore", () => {
       const store1 = useCourseStore.getState();
       const mockCourse = createMockCourse();
       store1.setCurrentCourse(mockCourse);
-      
+
       const store2 = useCourseStore.getState();
-      
+
       expect(store2.currentCourse).toEqual(mockCourse);
     });
 
@@ -277,9 +317,9 @@ describe("useCourseStore", () => {
       const store1 = useCourseStore.getState();
       const mockEnrollment = createMockEnrollment();
       store1.enroll(mockEnrollment);
-      
+
       const store2 = useCourseStore.getState();
-      
+
       expect(store2.enrollments).toContain(mockEnrollment);
     });
 
@@ -288,11 +328,13 @@ describe("useCourseStore", () => {
       const mockCourse = createMockCourse();
       store1.setCurrentCourse(mockCourse);
       store1.updateProgress("course-1", "module-1");
-      
+
       const store2 = useCourseStore.getState();
-      
+
       expect(store2.progress["course-1"]).toBeDefined();
-      expect(store2.progress["course-1"].completedModuleIds).toContain("module-1");
+      expect(store2.progress["course-1"].completedModuleIds).toContain(
+        "module-1",
+      );
     });
   });
 });

@@ -51,7 +51,7 @@ const PaginationLink = ({
       isActive
         ? "bg-primary-600 text-white hover:bg-primary-700"
         : "text-gray-600 hover:bg-gray-100 hover:text-gray-900",
-      className
+      className,
     )}
     {...props}
   />
@@ -96,7 +96,7 @@ const PaginationEllipsis = ({
     aria-hidden
     className={cn(
       "flex h-9 w-9 items-center justify-center text-gray-400",
-      className
+      className,
     )}
     {...props}
   >
@@ -109,7 +109,7 @@ PaginationEllipsis.displayName = "PaginationEllipsis";
 function getPageNumbers(
   currentPage: number,
   totalPages: number,
-  siblingCount = 1
+  siblingCount = 1,
 ): (number | "ellipsis")[] {
   const totalNumbers = siblingCount * 2 + 5;
 
@@ -189,7 +189,7 @@ function PaginationControl({
                 {page}
               </PaginationLink>
             </PaginationItem>
-          )
+          ),
         )}
 
         <PaginationItem>

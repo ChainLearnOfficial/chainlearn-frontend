@@ -6,7 +6,13 @@ import { useAuthStore } from "@/store/auth-store";
 import { updateProfile } from "@/lib/api/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { User, Target, Zap, ArrowRight, Languages } from "lucide-react";
 import { useToastContext } from "@/components/shared/toast";
 
@@ -49,15 +55,22 @@ export default function OnboardingPage() {
 
   const toggleGoal = (goal: string) => {
     setSelectedGoals((prev) =>
-      prev.includes(goal) ? prev.filter((g) => g !== goal) : [...prev, goal]
+      prev.includes(goal) ? prev.filter((g) => g !== goal) : [...prev, goal],
     );
   };
 
   const handleNext = () => {
     if (step === 0) {
       const trimmed = displayName.trim();
-      if (trimmed.length < 2 || trimmed.length > 50 || /[\r\n\t\0<>]/.test(trimmed)) {
-        addToast("Enter a valid display name between 2 and 50 characters.", "error");
+      if (
+        trimmed.length < 2 ||
+        trimmed.length > 50 ||
+        /[\r\n\t\0<>]/.test(trimmed)
+      ) {
+        addToast(
+          "Enter a valid display name between 2 and 50 characters.",
+          "error",
+        );
         return;
       }
     }
@@ -144,7 +157,9 @@ export default function OnboardingPage() {
             type="button"
             aria-pressed={selectedGoals.includes(goal)}
             onClick={() => toggleGoal(goal)}
-            disabled={!selectedGoals.includes(goal) && selectedGoals.length >= 3}
+            disabled={
+              !selectedGoals.includes(goal) && selectedGoals.length >= 3
+            }
             className={`rounded-full border px-4 py-2 text-sm transition-all ${
               selectedGoals.includes(goal)
                 ? "border-primary-500 bg-primary-50 text-primary-700"
@@ -263,9 +278,7 @@ export default function OnboardingPage() {
 
   return (
     <div className="flex min-h-[80vh] items-center justify-center px-4">
-      <Card
-        className="relative w-full max-w-md"
-      >
+      <Card className="relative w-full max-w-md">
         <CardHeader>
           <div className="flex justify-center gap-2 mb-2">
             {steps.map((_, i) => (

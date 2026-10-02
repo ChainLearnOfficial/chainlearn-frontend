@@ -14,13 +14,7 @@ import { DashboardSkeleton } from "@/components/shared/loading-skeleton";
 import { EmptyState } from "@/components/shared/empty-state";
 import { StatsCard } from "@/components/shared/stats-card";
 import { useCourseStore } from "@/store/course-store";
-import {
-  BookOpen,
-  Trophy,
-  Award,
-  TrendingUp,
-  ArrowRight,
-} from "lucide-react";
+import { BookOpen, Trophy, Award, TrendingUp, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -28,7 +22,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 export default function DashboardPage() {
   const { ready } = useRequireAuth();
   const { courses, enrollments, loading: coursesLoading } = useCourses();
-  const { recommended, loading: recommendedLoading, error: recommendedError } = useRecommendedCourses();
+  const {
+    recommended,
+    loading: recommendedLoading,
+    error: recommendedError,
+  } = useRecommendedCourses();
   const { balances, history, loading: rewardsLoading } = useRewards();
   const { credentials, loading: credentialsLoading } = useCredentials();
   const progress = useCourseStore((s) => s.progress);
@@ -36,7 +34,10 @@ export default function DashboardPage() {
   if (!ready) return null;
 
   const isLoading =
-    coursesLoading || rewardsLoading || credentialsLoading || recommendedLoading;
+    coursesLoading ||
+    rewardsLoading ||
+    credentialsLoading ||
+    recommendedLoading;
 
   if (isLoading) {
     return (
@@ -75,7 +76,10 @@ export default function DashboardPage() {
           <TabsTrigger value="rewards">Rewards</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="overview" className="space-y-8 focus-visible:outline-none focus-visible:ring-0">
+        <TabsContent
+          value="overview"
+          className="space-y-8 focus-visible:outline-none focus-visible:ring-0"
+        >
           {/* Stats */}
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <StatsCard
@@ -130,10 +134,15 @@ export default function DashboardPage() {
           </section>
         </TabsContent>
 
-        <TabsContent value="courses" className="focus-visible:outline-none focus-visible:ring-0">
+        <TabsContent
+          value="courses"
+          className="focus-visible:outline-none focus-visible:ring-0"
+        >
           <section className="mb-8">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-gray-900">My Courses</h2>
+              <h2 className="text-lg font-semibold text-gray-900">
+                My Courses
+              </h2>
               <Link href="/courses">
                 <Button variant="ghost" size="sm" className="gap-1">
                   Browse Catalog <ArrowRight className="h-4 w-4" />
@@ -171,7 +180,10 @@ export default function DashboardPage() {
           </section>
         </TabsContent>
 
-        <TabsContent value="credentials" className="focus-visible:outline-none focus-visible:ring-0">
+        <TabsContent
+          value="credentials"
+          className="focus-visible:outline-none focus-visible:ring-0"
+        >
           <section>
             <h2 className="text-lg font-semibold text-gray-900 mb-4">
               My Credentials
@@ -192,7 +204,10 @@ export default function DashboardPage() {
           </section>
         </TabsContent>
 
-        <TabsContent value="rewards" className="focus-visible:outline-none focus-visible:ring-0">
+        <TabsContent
+          value="rewards"
+          className="focus-visible:outline-none focus-visible:ring-0"
+        >
           <section className="mb-8">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">
               Rewards Balance

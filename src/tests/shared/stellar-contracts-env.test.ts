@@ -27,7 +27,7 @@ describe("stellar contracts env validation (#442)", () => {
     for (const k of KEYS) vi.stubEnv(k, "");
     const { getContractAddress } = await import("@/lib/stellar/contracts");
     expect(() => getContractAddress("rewards", "testnet")).toThrow(
-      /rewards.*not configured for testnet.*NEXT_PUBLIC_REWARDS_CONTRACT_TESTNET/
+      /rewards.*not configured for testnet.*NEXT_PUBLIC_REWARDS_CONTRACT_TESTNET/,
     );
   });
 
@@ -43,6 +43,8 @@ describe("stellar contracts env validation (#442)", () => {
     vi.stubEnv("NEXT_PUBLIC_REWARDS_CONTRACT_TESTNET", "CTESTREW");
     const { getContractAddress } = await import("@/lib/stellar/contracts");
     expect(getContractAddress("rewards", "testnet")).toBe("CTESTREW");
-    expect(() => getContractAddress("rewards", "public")).toThrow(/not configured/);
+    expect(() => getContractAddress("rewards", "public")).toThrow(
+      /not configured/,
+    );
   });
 });

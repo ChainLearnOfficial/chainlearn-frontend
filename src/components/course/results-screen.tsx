@@ -5,7 +5,12 @@ import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils/cn";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+} from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
@@ -43,7 +48,9 @@ export function ResultsScreen({
   const sortedModules = currentCourse
     ? [...currentCourse.modules].sort((a, b) => a.order - b.order)
     : [];
-  const quizModuleIndex = sortedModules.findIndex((m) => m.id === quiz.moduleId);
+  const quizModuleIndex = sortedModules.findIndex(
+    (m) => m.id === quiz.moduleId,
+  );
   const nextModule =
     quizModuleIndex >= 0 && quizModuleIndex < sortedModules.length - 1
       ? sortedModules[quizModuleIndex + 1]
@@ -78,13 +85,15 @@ export function ResultsScreen({
             "mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-full",
             attempt.passed
               ? "bg-green-50 dark:bg-green-900/20"
-              : "bg-gray-100 dark:bg-gray-800"
+              : "bg-gray-100 dark:bg-gray-800",
           )}
         >
           <Trophy
             className={cn(
               "h-10 w-10 transition-transform",
-              attempt.passed ? "text-green-500 animate-bounce" : "text-gray-400 dark:text-gray-500"
+              attempt.passed
+                ? "text-green-500 animate-bounce"
+                : "text-gray-400 dark:text-gray-500",
             )}
             aria-hidden="true"
           />
@@ -101,7 +110,10 @@ export function ResultsScreen({
         </div>
 
         {/* Heading */}
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100" aria-live="assertive">
+        <h2
+          className="text-2xl font-bold text-gray-900 dark:text-gray-100"
+          aria-live="assertive"
+        >
           {attempt.passed ? "Well done!" : "Keep going!"}
         </h2>
         <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
@@ -124,7 +136,12 @@ export function ResultsScreen({
             />
             {/* Overlay percentage — Progress showValue renders at text-xs; we override with a larger label */}
             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-              <span className={cn("text-2xl font-bold tabular-nums", scoreTextColor)}>
+              <span
+                className={cn(
+                  "text-2xl font-bold tabular-nums",
+                  scoreTextColor,
+                )}
+              >
                 {attempt.score}%
               </span>
             </div>
@@ -140,7 +157,10 @@ export function ResultsScreen({
         {/* Token reward banner */}
         {attempt.passed && attempt.rewardClaimed && (
           <div className="mt-5 flex items-center justify-center gap-2 rounded-lg bg-green-50 border border-green-200 dark:bg-green-900/20 dark:border-green-800 px-4 py-3">
-            <Coins className="h-4 w-4 text-green-600 dark:text-green-400 flex-shrink-0" aria-hidden="true" />
+            <Coins
+              className="h-4 w-4 text-green-600 dark:text-green-400 flex-shrink-0"
+              aria-hidden="true"
+            />
             <p className="text-sm font-medium text-green-700 dark:text-green-300">
               +{quiz.rewardTokenAmount} LEARN tokens sent to your wallet
             </p>
@@ -161,10 +181,10 @@ export function ResultsScreen({
             {quiz.questions.map((q, i) => {
               const answer = attempt.answers.find((a) => a.questionId === q.id);
               const selectedOption = q.options.find(
-                (o) => o.id === answer?.selectedOptionId
+                (o) => o.id === answer?.selectedOptionId,
               );
               const correctOption = q.options.find(
-                (o) => o.id === q.correctOptionId
+                (o) => o.id === q.correctOptionId,
               );
 
               return (
@@ -174,7 +194,7 @@ export function ResultsScreen({
                     "rounded-lg border p-4",
                     answer?.isCorrect
                       ? "border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-900/10"
-                      : "border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-900/10"
+                      : "border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-900/10",
                   )}
                 >
                   {/* Question header */}
@@ -214,7 +234,9 @@ export function ResultsScreen({
                         )}
                         {correctOption && (
                           <p className="text-green-700 dark:text-green-400">
-                            <span className="font-medium">Correct answer: </span>
+                            <span className="font-medium">
+                              Correct answer:{" "}
+                            </span>
                             {correctOption.text}
                           </p>
                         )}

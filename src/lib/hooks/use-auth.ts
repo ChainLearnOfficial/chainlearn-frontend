@@ -22,22 +22,27 @@ export interface WalletError {
   resolution: string;
 }
 
-export type WalletConnectionStage = "idle" | "detect" | "connect" | "sign" | "verify" | "complete";
+export type WalletConnectionStage =
+  "idle" | "detect" | "connect" | "sign" | "verify" | "complete";
 
 // Helper to classify wallet errors
-function classifyWalletError(err: unknown, currentNetwork: string): WalletError {
+function classifyWalletError(
+  err: unknown,
+  currentNetwork: string,
+): WalletError {
   const msg = err instanceof Error ? err.message : String(err);
   const lower = msg.toLowerCase();
 
   if (
     lower.includes("not installed") ||
     lower.includes("is not installed") ||
-    lower.includes("freighter") && lower.includes("install")
+    (lower.includes("freighter") && lower.includes("install"))
   ) {
     return {
       type: "not_installed",
       message: "No supported Stellar wallet was detected",
-      resolution: "Install and unlock Freighter, Lobstr, or Rabet, then try again.",
+      resolution:
+        "Install and unlock Freighter, Lobstr, or Rabet, then try again.",
     };
   }
 
@@ -46,18 +51,21 @@ function classifyWalletError(err: unknown, currentNetwork: string): WalletError 
     lower.includes("rejected") ||
     lower.includes("user rejected") ||
     lower.includes("user denied") ||
-    lower.includes("request access") && lower.includes("denied")
+    (lower.includes("request access") && lower.includes("denied"))
   ) {
     return {
       type: "user_denied",
       message: "Connection request was denied",
-      resolution: "Approve the connection request in your wallet, then try again.",
+      resolution:
+        "Approve the connection request in your wallet, then try again.",
     };
   }
 
   if (
     lower.includes("network") &&
-    (lower.includes("mismatch") || lower.includes("wrong") || lower.includes("expected"))
+    (lower.includes("mismatch") ||
+      lower.includes("wrong") ||
+      lower.includes("expected"))
   ) {
     return {
       type: "wrong_network",
@@ -129,7 +137,9 @@ export function useAuth() {
     setWalletError(null);
 
     try {
-      const { address, providerId } = await connectStellarWallet(networkRef.current);
+      const { address, providerId } = await connectStellarWallet(
+        networkRef.current,
+      );
       // Check Freighter is installed
       const installed = await isFreighterInstalled();
       if (!installed) {
@@ -155,7 +165,11 @@ export function useAuth() {
       // Sign challenge with Freighter
       setConnectionStage("sign");
       const passphrase = getNetworkPassphrase(networkRef.current);
-      const signedChallenge = await signChallenge(challenge, passphrase, providerId);
+      const signedChallenge = await signChallenge(
+        challenge,
+        passphrase,
+        providerId,
+      );
 
       // Verify signature and get JWT
       setConnectionStage("verify");
@@ -168,7 +182,7 @@ export function useAuth() {
         tokens.accessToken,
         tokens.expiresIn,
         tokens.refreshToken,
-        providerId
+        providerId,
       );
       setConnectionStage("complete");
 

@@ -209,7 +209,10 @@ class ErrorBoundaryInner extends React.Component<
 
       // Default error UI
       return (
-        <div className="flex flex-col items-center justify-center py-16 px-4 text-center" role="alert">
+        <div
+          className="flex flex-col items-center justify-center py-16 px-4 text-center"
+          role="alert"
+        >
           <div className="flex h-16 w-16 items-center justify-center rounded-full bg-red-100 mb-4">
             <AlertTriangle className="h-8 w-8 text-red-500" />
           </div>

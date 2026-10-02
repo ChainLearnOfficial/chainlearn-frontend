@@ -51,15 +51,39 @@ describe("Stellar wallet adapter", () => {
       },
     });
     mocks.getSupportedWallets.mockReset().mockResolvedValue([
-      { id: "freighter", name: "Freighter", isAvailable: true, url: "https://freighter.app" },
-      { id: "lobstr", name: "LOBSTR", isAvailable: false, url: "https://lobstr.co" },
-      { id: "rabet", name: "Rabet", isAvailable: true, url: "https://rabet.io" },
-      { id: "other", name: "Other", isAvailable: true, url: "https://example.com" },
+      {
+        id: "freighter",
+        name: "Freighter",
+        isAvailable: true,
+        url: "https://freighter.app",
+      },
+      {
+        id: "lobstr",
+        name: "LOBSTR",
+        isAvailable: false,
+        url: "https://lobstr.co",
+      },
+      {
+        id: "rabet",
+        name: "Rabet",
+        isAvailable: true,
+        url: "https://rabet.io",
+      },
+      {
+        id: "other",
+        name: "Other",
+        isAvailable: true,
+        url: "https://example.com",
+      },
     ]);
     mocks.setWallet.mockReset();
     mocks.getAddress.mockReset().mockResolvedValue({ address: "GADDRESS" });
-    mocks.signMessage.mockReset().mockResolvedValue({ signedMessage: "signature" });
-    mocks.signTransaction.mockReset().mockResolvedValue({ signedTxXdr: "signed-xdr" });
+    mocks.signMessage
+      .mockReset()
+      .mockResolvedValue({ signedMessage: "signature" });
+    mocks.signTransaction
+      .mockReset()
+      .mockResolvedValue({ signedTxXdr: "signed-xdr" });
     mocks.openModal.mockReset().mockImplementation(({ onWalletSelected }) => {
       onWalletSelected({ id: "rabet" });
       return Promise.resolve();
@@ -70,9 +94,24 @@ describe("Stellar wallet adapter", () => {
     const { getSupportedWallets } = await import("@/lib/stellar/wallet");
 
     await expect(getSupportedWallets("public")).resolves.toEqual([
-      { id: "freighter", name: "Freighter", isAvailable: true, url: "https://freighter.app" },
-      { id: "lobstr", name: "LOBSTR", isAvailable: false, url: "https://lobstr.co" },
-      { id: "rabet", name: "Rabet", isAvailable: true, url: "https://rabet.io" },
+      {
+        id: "freighter",
+        name: "Freighter",
+        isAvailable: true,
+        url: "https://freighter.app",
+      },
+      {
+        id: "lobstr",
+        name: "LOBSTR",
+        isAvailable: false,
+        url: "https://lobstr.co",
+      },
+      {
+        id: "rabet",
+        name: "Rabet",
+        isAvailable: true,
+        url: "https://rabet.io",
+      },
     ]);
   });
 
@@ -90,9 +129,9 @@ describe("Stellar wallet adapter", () => {
   it("signs transactions through the selected provider", async () => {
     const { signWalletTransaction } = await import("@/lib/stellar/wallet");
 
-    await expect(signWalletTransaction("unsigned-xdr", "public", "lobstr")).resolves.toBe(
-      "signed-xdr"
-    );
+    await expect(
+      signWalletTransaction("unsigned-xdr", "public", "lobstr"),
+    ).resolves.toBe("signed-xdr");
     expect(mocks.setWallet).toHaveBeenCalledWith("lobstr");
     expect(mocks.signTransaction).toHaveBeenCalledWith("unsigned-xdr", {
       networkPassphrase: "Public Global Stellar Network ; September 2015",

@@ -23,14 +23,18 @@ interface WalletProviderProps {
  * It checks whether the selected provider is still connected.
  */
 export function WalletProvider({ children }: WalletProviderProps) {
-  const { isAuthenticated, walletProviderId, network, disconnect } = useAuthStore();
+  const { isAuthenticated, walletProviderId, network, disconnect } =
+    useAuthStore();
 
   useEffect(() => {
     async function checkConnection() {
       if (!isAuthenticated) return;
 
       try {
-        const address = await getWalletAddress(walletProviderId ?? undefined, network);
+        const address = await getWalletAddress(
+          walletProviderId ?? undefined,
+          network,
+        );
         if (!address) {
           disconnect();
         }

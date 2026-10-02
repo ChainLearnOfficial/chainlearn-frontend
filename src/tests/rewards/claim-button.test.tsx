@@ -13,7 +13,9 @@ describe("ClaimButton", () => {
 
   it("renders claim button with amount", () => {
     render(<ClaimButton {...defaultProps} />);
-    expect(screen.getByRole("button", { name: /Claim 50 LEARN/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /Claim 50 LEARN/i }),
+    ).toBeInTheDocument();
   });
 
   it("shows loading state while claiming", async () => {
@@ -33,7 +35,7 @@ describe("ClaimButton", () => {
     render(<ClaimButton {...defaultProps} />);
     await userEvent.click(screen.getByRole("button"));
     await waitFor(() =>
-      expect(screen.getByText("Claimed!")).toBeInTheDocument()
+      expect(screen.getByText("Claimed!")).toBeInTheDocument(),
     );
   });
 
@@ -55,7 +57,9 @@ describe("ClaimButton", () => {
     render(<ClaimButton {...defaultProps} onClaim={onClaim} />);
     await userEvent.click(screen.getByRole("button"));
     await waitFor(() =>
-      expect(screen.getByRole("button", { name: /Claim/i })).toBeInTheDocument()
+      expect(
+        screen.getByRole("button", { name: /Claim/i }),
+      ).toBeInTheDocument(),
     );
   });
 });

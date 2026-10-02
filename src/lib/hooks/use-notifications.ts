@@ -43,26 +43,23 @@ export function useNotifications() {
     }
   }, []);
 
-  const markAsRead = useCallback(
-    async (id: string) => {
-      const token = jwtRef.current;
-      if (!token) return;
-      // Optimistically mark local state before the server round-trips.
+  const markAsRead = useCallback(async (id: string) => {
+    const token = jwtRef.current;
+    if (!token) return;
+    // Optimistically mark local state before the server round-trips.
+    setNotifications((prev) =>
+      prev.map((n) => (n.id === id ? { ...n, read: true } : n)),
+    );
+    try {
+      await markNotificationAsRead(id, token);
+    } catch (e) {
+      console.error("Failed to mark notification as read:", e);
+      // Revert so the unread state stays accurate if the request fails.
       setNotifications((prev) =>
-        prev.map((n) => (n.id === id ? { ...n, read: true } : n))
+        prev.map((n) => (n.id === id ? { ...n, read: false } : n)),
       );
-      try {
-        await markNotificationAsRead(id, token);
-      } catch (e) {
-        console.error("Failed to mark notification as read:", e);
-        // Revert so the unread state stays accurate if the request fails.
-        setNotifications((prev) =>
-          prev.map((n) => (n.id === id ? { ...n, read: false } : n))
-        );
-      }
-    },
-    []
-  );
+    }
+  }, []);
 
   const markAllAsRead = useCallback(async () => {
     const token = jwtRef.current;

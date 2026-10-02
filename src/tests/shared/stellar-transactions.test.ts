@@ -1,5 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { Account, Keypair, StrKey, TransactionBuilder } from "@stellar/stellar-sdk";
+import {
+  Account,
+  Keypair,
+  StrKey,
+  TransactionBuilder,
+} from "@stellar/stellar-sdk";
 
 const mocks = vi.hoisted(() => ({
   loadAccount: vi.fn(),
@@ -42,8 +47,12 @@ const sourceAccount = new Account(sourceAddress, "1");
 beforeEach(() => {
   mocks.loadAccount.mockReset().mockResolvedValue(sourceAccount);
   mocks.getAccount.mockReset().mockResolvedValue(sourceAccount);
-  mocks.prepareTransaction.mockReset().mockImplementation((transaction) => transaction);
-  mocks.sendTransaction.mockReset().mockResolvedValue({ status: "PENDING", hash: "tx-hash" });
+  mocks.prepareTransaction
+    .mockReset()
+    .mockImplementation((transaction) => transaction);
+  mocks.sendTransaction
+    .mockReset()
+    .mockResolvedValue({ status: "PENDING", hash: "tx-hash" });
   mocks.signWalletTransaction.mockReset();
 });
 
@@ -58,7 +67,7 @@ describe("Stellar transaction helpers", () => {
     });
     const transaction = TransactionBuilder.fromXDR(
       builtXdr,
-      "Test SDF Network ; September 2015"
+      "Test SDF Network ; September 2015",
     );
 
     expect(transaction.operations[0]).toMatchObject({
@@ -73,13 +82,19 @@ describe("Stellar transaction helpers", () => {
     const { buildPaymentTx } = await import("@/lib/stellar/transactions");
 
     await expect(
-      buildPaymentTx({ sourceAddress, destinationAddress, amount: "0", network: "testnet" })
+      buildPaymentTx({
+        sourceAddress,
+        destinationAddress,
+        amount: "0",
+        network: "testnet",
+      }),
     ).rejects.toThrow("Payment amount must be positive");
     expect(mocks.loadAccount).not.toHaveBeenCalled();
   });
 
   it("builds and prepares a Soroban contract invocation", async () => {
-    const { buildContractInvokeTx } = await import("@/lib/stellar/transactions");
+    const { buildContractInvokeTx } =
+      await import("@/lib/stellar/transactions");
     const builtXdr = await buildContractInvokeTx({
       sourceAddress,
       contractAddress: StrKey.encodeContract(Keypair.random().rawPublicKey()),
@@ -89,7 +104,7 @@ describe("Stellar transaction helpers", () => {
     });
     const transaction = TransactionBuilder.fromXDR(
       builtXdr,
-      "Test SDF Network ; September 2015"
+      "Test SDF Network ; September 2015",
     );
 
     expect(transaction.operations[0].type).toBe("invokeHostFunction");
@@ -98,7 +113,8 @@ describe("Stellar transaction helpers", () => {
   });
 
   it("signs through the selected provider and submits via Stellar RPC", async () => {
-    const { buildPaymentTx, signAndSubmit } = await import("@/lib/stellar/transactions");
+    const { buildPaymentTx, signAndSubmit } =
+      await import("@/lib/stellar/transactions");
     const builtXdr = await buildPaymentTx({
       sourceAddress,
       destinationAddress,
@@ -107,16 +123,23 @@ describe("Stellar transaction helpers", () => {
     });
     mocks.signWalletTransaction.mockResolvedValue(builtXdr);
 
-    await expect(signAndSubmit(builtXdr, "testnet", "lobstr")).resolves.toEqual({
-      hash: "tx-hash",
-      success: true,
-    });
-    expect(mocks.signWalletTransaction).toHaveBeenCalledWith(builtXdr, "testnet", "lobstr");
+    await expect(signAndSubmit(builtXdr, "testnet", "lobstr")).resolves.toEqual(
+      {
+        hash: "tx-hash",
+        success: true,
+      },
+    );
+    expect(mocks.signWalletTransaction).toHaveBeenCalledWith(
+      builtXdr,
+      "testnet",
+      "lobstr",
+    );
     expect(mocks.sendTransaction).toHaveBeenCalledOnce();
   });
 
   it("does not report TRY_AGAIN_LATER as a successful submission", async () => {
-    const { buildPaymentTx, signAndSubmit } = await import("@/lib/stellar/transactions");
+    const { buildPaymentTx, signAndSubmit } =
+      await import("@/lib/stellar/transactions");
     const builtXdr = await buildPaymentTx({
       sourceAddress,
       destinationAddress,
@@ -124,7 +147,10 @@ describe("Stellar transaction helpers", () => {
       network: "testnet",
     });
     mocks.signWalletTransaction.mockResolvedValue(builtXdr);
-    mocks.sendTransaction.mockResolvedValue({ status: "TRY_AGAIN_LATER", hash: "tx-hash" });
+    mocks.sendTransaction.mockResolvedValue({
+      status: "TRY_AGAIN_LATER",
+      hash: "tx-hash",
+    });
 
     await expect(signAndSubmit(builtXdr, "testnet")).resolves.toMatchObject({
       hash: "",

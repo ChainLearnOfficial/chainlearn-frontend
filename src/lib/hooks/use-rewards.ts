@@ -18,7 +18,12 @@ const CACHE_TTL_MS = 60_000;
 interface RewardsCache {
   balances: TokenBalance[];
   history: PaginatedResponse<RewardClaim>;
-  claimables: { id: string; amount: string; source: string; sourceTitle: string }[];
+  claimables: {
+    id: string;
+    amount: string;
+    source: string;
+    sourceTitle: string;
+  }[];
   fetchedAt: number;
 }
 
@@ -28,10 +33,11 @@ const inFlight = new Map<string, Promise<void>>();
 async function loadRewards(
   jwt: string,
   signal?: AbortSignal,
-  historyParams?: RewardHistoryParams
+  historyParams?: RewardHistoryParams,
 ): Promise<void> {
   const cached = rewardsCache.get(jwt);
-  if (cached && Date.now() - cached.fetchedAt < CACHE_TTL_MS && !historyParams) return;
+  if (cached && Date.now() - cached.fetchedAt < CACHE_TTL_MS && !historyParams)
+    return;
 
   const cacheKey = historyParams
     ? `${jwt}:${JSON.stringify(historyParams)}`
@@ -51,16 +57,21 @@ async function loadRewards(
   }
 
   const request = loadFromApi(jwt, signal, historyParams).finally(() => {
-    inFlight.delete(historyParams ? `${jwt}:${JSON.stringify(historyParams)}` : jwt);
+    inFlight.delete(
+      historyParams ? `${jwt}:${JSON.stringify(historyParams)}` : jwt,
+    );
   });
-  inFlight.set(historyParams ? `${jwt}:${JSON.stringify(historyParams)}` : jwt, request);
+  inFlight.set(
+    historyParams ? `${jwt}:${JSON.stringify(historyParams)}` : jwt,
+    request,
+  );
   await request;
 }
 
 async function loadFromApi(
   jwt: string,
   signal?: AbortSignal,
-  historyParams?: RewardHistoryParams
+  historyParams?: RewardHistoryParams,
 ): Promise<void> {
   const [bal, hist, claim] = await Promise.all([
     getTokenBalances(jwt, signal),
@@ -124,38 +135,36 @@ export function useRewards() {
     }
   }, []);
 
-  const claim = useCallback(
-    async (claimableId: string) => {
-      const token = jwtRef.current;
-      if (!token) throw new Error("Not authenticated");
-      setClaiming(true);
-      setError(null);
-      try {
-        const result = await claimReward(claimableId, token);
-        invalidateCache(token);
-        setHistory((prev) => ({
-          ...prev,
-          data: [result, ...prev.data],
-          total: prev.total + 1,
-        }));
-        // Refresh balances and claimables
-        await loadRewards(token);
-        const cached = rewardsCache.get(token);
-        if (cached) {
-          setBalances(cached.balances);
-          setClaimables(cached.claimables);
-        }
-        return result;
-      } catch (err) {
-        const message = err instanceof Error ? err.message : "Failed to claim reward";
-        setError(message);
-        throw err;
-      } finally {
-        setClaiming(false);
+  const claim = useCallback(async (claimableId: string) => {
+    const token = jwtRef.current;
+    if (!token) throw new Error("Not authenticated");
+    setClaiming(true);
+    setError(null);
+    try {
+      const result = await claimReward(claimableId, token);
+      invalidateCache(token);
+      setHistory((prev) => ({
+        ...prev,
+        data: [result, ...prev.data],
+        total: prev.total + 1,
+      }));
+      // Refresh balances and claimables
+      await loadRewards(token);
+      const cached = rewardsCache.get(token);
+      if (cached) {
+        setBalances(cached.balances);
+        setClaimables(cached.claimables);
       }
-    },
-    []
-  );
+      return result;
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Failed to claim reward";
+      setError(message);
+      throw err;
+    } finally {
+      setClaiming(false);
+    }
+  }, []);
 
   useEffect(() => {
     fetchAll();
