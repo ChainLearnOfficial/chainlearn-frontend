@@ -132,6 +132,36 @@ describe("auth routes", () => {
     expect(target?.searchParams.get("redirect")).toBeNull();
   });
 
+  it("rejects malicious, protocol-relative, or external redirect URLs and falls back to /dashboard", () => {
+    const maliciousCases = [
+      "//evil.com",
+      "//evil.com/path",
+      "https://evil.com",
+      "http://evil.com",
+      "javascript:alert(1)",
+      "data:text/html,evil",
+      "\\evil.com",
+      "relative-without-slash",
+    ];
+
+    for (const evil of maliciousCases) {
+      const target = redirectTarget(
+        middleware(makeRequest("/connect", "jwt-abc", `?redirect=${encodeURIComponent(evil)}`))
+      );
+      expect(target?.pathname).toBe("/dashboard");
+    }
+  });
+
+  it("allows safe internal redirect paths", () => {
+    const safeCases = ["/rewards", "/courses/123", "/credentials/my-cred"];
+    for (const safe of safeCases) {
+      const target = redirectTarget(
+        middleware(makeRequest("/connect", "jwt-abc", `?redirect=${encodeURIComponent(safe)}`))
+      );
+      expect(target?.pathname).toBe(safe);
+    }
+  });
+
   it("leaves /onboarding accessible while signed out", () => {
     expect(redirectTarget(middleware(makeRequest("/onboarding")))).toBeNull();
   });

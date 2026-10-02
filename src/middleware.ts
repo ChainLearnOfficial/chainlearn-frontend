@@ -31,6 +31,22 @@ function isAuthRoute(pathname: string): boolean {
   return AUTH_PREFIXES.some((prefix) => pathname.startsWith(prefix));
 }
 
+/**
+ * Validate and sanitize redirect destination to prevent open redirects (issue #518).
+ * Must start with a single '/' and not be protocol-relative ('//') or specify a URL scheme.
+ */
+export function getSafeRedirect(redirect: string | null): string {
+  if (!redirect) return "/dashboard";
+  if (!redirect.startsWith("/") || redirect.startsWith("//") || redirect.includes("\\")) {
+    return "/dashboard";
+  }
+  // Reject protocol schemes e.g. "http:", "https:", "javascript:", "data:"
+  if (/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(redirect)) {
+    return "/dashboard";
+  }
+  return redirect;
+}
+
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const sessionToken = request.cookies.get("chainlearn-session")?.value;
@@ -52,7 +68,7 @@ export function middleware(request: NextRequest) {
     if (sessionToken) {
       const redirect = request.nextUrl.searchParams.get("redirect");
       const url = request.nextUrl.clone();
-      url.pathname = redirect || "/dashboard";
+      url.pathname = getSafeRedirect(redirect);
       url.searchParams.delete("redirect");
       return NextResponse.redirect(url);
     }
