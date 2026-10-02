@@ -10,6 +10,7 @@ const PROTECTED_PREFIXES = [
   "/dashboard",
   "/rewards",
   "/credentials",
+  "/settings",
   "/courses/", // individual course pages, modules, quiz — NOT /courses list
 ];
 
@@ -71,6 +72,7 @@ export const config = {
     "/dashboard/:path*",
     "/rewards/:path*",
     "/credentials/:path*",
+    "/settings/:path*",
     "/courses/:courseId/:path*", // individual course + sub-pages only
     "/connect",
     "/onboarding",
