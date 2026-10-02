@@ -44,7 +44,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   // Read the persisted preference (or system default) after mount.
   useEffect(() => {
-    const stored = (localStorage.getItem(STORAGE_KEY) as Theme | null) ?? "system";
+    const stored =
+      (localStorage.getItem(STORAGE_KEY) as Theme | null) ?? "system";
     const resolved = stored === "system" ? getSystemTheme() : stored;
     setThemeState(stored);
     setResolvedTheme(resolved);
@@ -77,7 +78,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   }, [resolvedTheme, setTheme]);
 
   return (
-    <ThemeContext.Provider value={{ theme, resolvedTheme, setTheme, toggleTheme }}>
+    <ThemeContext.Provider
+      value={{ theme, resolvedTheme, setTheme, toggleTheme }}
+    >
       {children}
     </ThemeContext.Provider>
   );

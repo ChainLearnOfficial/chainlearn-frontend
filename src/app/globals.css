@@ -89,13 +89,19 @@
 /* ── Responsive design improvements (#228) ───────────────────────────────── */
 
 /* Prevent horizontal overflow on all pages */
-html, body {
+html,
+body {
   overflow-x: hidden;
 }
 
 /* Ensure minimum touch target size (44px) for interactive elements on mobile */
 @media (max-width: 640px) {
-  button, a, [role="button"], input, select, textarea {
+  button,
+  a,
+  [role="button"],
+  input,
+  select,
+  textarea {
     min-height: 44px;
   }
 
@@ -105,13 +111,20 @@ html, body {
   }
 
   /* Improve card spacing on mobile */
-  .card, [class*="Card"] {
+  .card,
+  [class*="Card"] {
     margin-bottom: 0.75rem;
   }
 
   /* Ensure text is readable on mobile */
-  h1 { font-size: 1.5rem; line-height: 2rem; }
-  h2 { font-size: 1.25rem; line-height: 1.75rem; }
+  h1 {
+    font-size: 1.5rem;
+    line-height: 2rem;
+  }
+  h2 {
+    font-size: 1.25rem;
+    line-height: 1.75rem;
+  }
 
   /* Fix navigation menu for mobile */
   nav[aria-label="Bottom navigation"] {

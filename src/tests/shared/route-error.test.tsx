@@ -18,7 +18,9 @@ describe("RouteError", () => {
 
   it("renders the Try Again button", () => {
     render(<RouteError error={error} reset={vi.fn()} />);
-    expect(screen.getByRole("button", { name: /try again/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /try again/i }),
+    ).toBeInTheDocument();
   });
 
   it("calls reset when Try Again is clicked", async () => {
@@ -31,6 +33,8 @@ describe("RouteError", () => {
   it("shows fallback text when error has no message", () => {
     const emptyError = Object.assign(new Error(""), { digest: undefined });
     render(<RouteError error={emptyError} reset={vi.fn()} />);
-    expect(screen.getByText("An unexpected error occurred.")).toBeInTheDocument();
+    expect(
+      screen.getByText("An unexpected error occurred."),
+    ).toBeInTheDocument();
   });
 });

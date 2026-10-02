@@ -3,14 +3,7 @@ import { Button } from "@/components/ui/button";
 import { HeroCTA } from "@/components/landing/hero-cta";
 import { BottomCTA } from "@/components/landing/bottom-cta";
 import { Separator } from "@/components/ui/separator";
-import {
-  BookOpen,
-  Trophy,
-  Award,
-  Zap,
-  Shield,
-  Sparkles,
-} from "lucide-react";
+import { BookOpen, Trophy, Award, Zap, Shield, Sparkles } from "lucide-react";
 
 const features = [
   {
@@ -156,7 +149,8 @@ export default function LandingPage() {
             Ready to Start Learning?
           </h2>
           <p className="mt-4 text-lg text-white/80">
-            Join thousands of learners earning tokens and credentials on Stellar.
+            Join thousands of learners earning tokens and credentials on
+            Stellar.
           </p>
           <BottomCTA />
         </div>

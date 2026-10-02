@@ -12,10 +12,18 @@ const entries: LeaderboardEntry[] = [
 describe("LeaderboardTable", () => {
   it("renders a table with rank, name and score columns", () => {
     render(<LeaderboardTable entries={entries} />);
-    expect(screen.getByRole("table", { name: /leaderboard/i })).toBeInTheDocument();
-    expect(screen.getByRole("columnheader", { name: /rank/i })).toBeInTheDocument();
-    expect(screen.getByRole("columnheader", { name: /name/i })).toBeInTheDocument();
-    expect(screen.getByRole("columnheader", { name: /score/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("table", { name: /leaderboard/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("columnheader", { name: /rank/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("columnheader", { name: /name/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("columnheader", { name: /score/i }),
+    ).toBeInTheDocument();
   });
 
   it("renders each entry with its rank and score", () => {
@@ -50,10 +58,10 @@ describe("LeaderboardTable", () => {
 
   it("merges custom className", () => {
     const { container } = render(
-      <LeaderboardTable entries={entries} className="my-class" />
+      <LeaderboardTable entries={entries} className="my-class" />,
     );
     expect(
-      (container.querySelector("table") as HTMLElement).className
+      (container.querySelector("table") as HTMLElement).className,
     ).toContain("my-class");
   });
 });

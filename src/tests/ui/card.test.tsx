@@ -25,7 +25,9 @@ describe("Card", () => {
 
   it("merges custom className", () => {
     const { container } = render(<Card className="my-class" />);
-    expect((container.firstChild as HTMLElement).className).toContain("my-class");
+    expect((container.firstChild as HTMLElement).className).toContain(
+      "my-class",
+    );
   });
 
   it("forwards ref", () => {
@@ -45,7 +47,9 @@ describe("CardHeader", () => {
 describe("CardTitle", () => {
   it("renders as h3", () => {
     render(<CardTitle>Title</CardTitle>);
-    expect(screen.getByRole("heading", { level: 3, name: "Title" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { level: 3, name: "Title" }),
+    ).toBeInTheDocument();
   });
 });
 
@@ -80,9 +84,11 @@ describe("Card composition", () => {
         </CardHeader>
         <CardContent>body text</CardContent>
         <CardFooter>footer text</CardFooter>
-      </Card>
+      </Card>,
     );
-    expect(screen.getByRole("heading", { name: "My Card" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "My Card" }),
+    ).toBeInTheDocument();
     expect(screen.getByText("A description")).toBeInTheDocument();
     expect(screen.getByText("body text")).toBeInTheDocument();
     expect(screen.getByText("footer text")).toBeInTheDocument();

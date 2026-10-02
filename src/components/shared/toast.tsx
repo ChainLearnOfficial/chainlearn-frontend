@@ -133,7 +133,7 @@ export function Toast({
         "fixed right-4 z-[100] flex flex-col gap-0 rounded-lg border shadow-lg transition-all touch-pan-y overflow-hidden",
         visible ? "animate-slideUp opacity-100" : "animate-slideDown opacity-0",
         variantStyles[variant],
-        className
+        className,
       )}
       style={{
         bottom: `${16 + index * 72}px`,
@@ -199,7 +199,9 @@ export function useToast() {
         typeof options === "string" ? { variant: options } : options;
       setToasts((prev) => {
         const withoutDuplicate = prev.filter(
-          (toast) => toast.message !== message || toast.variant !== (opts.variant ?? "info")
+          (toast) =>
+            toast.message !== message ||
+            toast.variant !== (opts.variant ?? "info"),
         );
         return [
           ...withoutDuplicate,
@@ -213,7 +215,7 @@ export function useToast() {
         ].slice(-MAX_VISIBLE_TOASTS);
       });
     },
-    []
+    [],
   );
 
   const removeToast = useCallback((id: string) => {
@@ -236,17 +238,14 @@ export function useToast() {
         ))}
       </>
     ),
-    [toasts, removeToast]
+    [toasts, removeToast],
   );
 
   return { addToast, ToastContainer };
 }
 
 interface ToastContextValue {
-  addToast: (
-    message: string,
-    options?: ToastVariant | AddToastOptions
-  ) => void;
+  addToast: (message: string, options?: ToastVariant | AddToastOptions) => void;
 }
 
 const ToastContext = createContext<ToastContextValue | null>(null);
@@ -261,7 +260,7 @@ export function ToastContextProvider({ children }: { children: ReactNode }) {
       setToasts((prev) => {
         const variant = opts.variant ?? "info";
         const withoutDuplicate = prev.filter(
-          (toast) => toast.message !== message || toast.variant !== variant
+          (toast) => toast.message !== message || toast.variant !== variant,
         );
         return [
           ...withoutDuplicate,
@@ -275,7 +274,7 @@ export function ToastContextProvider({ children }: { children: ReactNode }) {
         ].slice(-MAX_VISIBLE_TOASTS);
       });
     },
-    []
+    [],
   );
 
   const removeToast = useCallback((id: string) => {

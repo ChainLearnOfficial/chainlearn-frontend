@@ -6,8 +6,10 @@ import { cn } from "@/lib/utils/cn";
 
 export type AlertVariant = "default" | "destructive" | "warning" | "success";
 
-export interface AlertProps
-  extends Omit<React.HTMLAttributes<HTMLDivElement>, "title"> {
+export interface AlertProps extends Omit<
+  React.HTMLAttributes<HTMLDivElement>,
+  "title"
+> {
   variant?: AlertVariant;
   title?: React.ReactNode;
   description?: React.ReactNode;
@@ -57,7 +59,7 @@ const Alert = React.forwardRef<HTMLDivElement, AlertProps>(
       children,
       ...props
     },
-    ref
+    ref,
   ) => {
     const [dismissed, setDismissed] = React.useState(false);
 
@@ -77,7 +79,7 @@ const Alert = React.forwardRef<HTMLDivElement, AlertProps>(
         className={cn(
           "relative w-full rounded-lg border px-4 py-3 text-sm",
           variantStyles[variant],
-          className
+          className,
         )}
         {...props}
       >
@@ -87,14 +89,19 @@ const Alert = React.forwardRef<HTMLDivElement, AlertProps>(
               <h5
                 className={cn(
                   "font-medium leading-none tracking-tight",
-                  titleStyles[variant]
+                  titleStyles[variant],
                 )}
               >
                 {title}
               </h5>
             )}
             {description && (
-              <p className={cn("text-sm [&_p]:leading-relaxed", descriptionStyles[variant])}>
+              <p
+                className={cn(
+                  "text-sm [&_p]:leading-relaxed",
+                  descriptionStyles[variant],
+                )}
+              >
                 {description}
               </p>
             )}
@@ -109,7 +116,7 @@ const Alert = React.forwardRef<HTMLDivElement, AlertProps>(
               className={cn(
                 "flex h-6 w-6 shrink-0 items-center justify-center rounded-md transition-colors",
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500",
-                dismissStyles[variant]
+                dismissStyles[variant],
               )}
             >
               <X className="h-4 w-4" />
@@ -118,7 +125,7 @@ const Alert = React.forwardRef<HTMLDivElement, AlertProps>(
         </div>
       </div>
     );
-  }
+  },
 );
 Alert.displayName = "Alert";
 

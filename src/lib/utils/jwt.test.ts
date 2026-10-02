@@ -59,7 +59,7 @@ describe("decodeJwt", () => {
 describe("getTokenExpiry", () => {
   it("converts the exp claim from seconds to milliseconds", () => {
     expect(getTokenExpiry(makeJwt({ exp: 1_800_000_000 }))).toBe(
-      1_800_000_000_000
+      1_800_000_000_000,
     );
   });
 
@@ -67,12 +67,13 @@ describe("getTokenExpiry", () => {
     expect(getTokenExpiry(makeJwt({ sub: "GABC" }))).toBeNull();
   });
 
-  it.each([["a string", "soon"], ["null", null], ["NaN", Number.NaN]])(
-    "returns null when exp is %s",
-    (_label, exp) => {
-      expect(getTokenExpiry(makeJwt({ exp }))).toBeNull();
-    }
-  );
+  it.each([
+    ["a string", "soon"],
+    ["null", null],
+    ["NaN", Number.NaN],
+  ])("returns null when exp is %s", (_label, exp) => {
+    expect(getTokenExpiry(makeJwt({ exp }))).toBeNull();
+  });
 
   it("returns null for a malformed token", () => {
     expect(getTokenExpiry("garbage")).toBeNull();
@@ -97,11 +98,15 @@ describe("getTimeUntilExpiry", () => {
 
 describe("isTokenExpired", () => {
   it("is false while the token is still valid", () => {
-    expect(isTokenExpired(makeJwt({ exp: (NOW + HOUR) / 1000 }), NOW)).toBe(false);
+    expect(isTokenExpired(makeJwt({ exp: (NOW + HOUR) / 1000 }), NOW)).toBe(
+      false,
+    );
   });
 
   it("is true once past expiry", () => {
-    expect(isTokenExpired(makeJwt({ exp: (NOW - 1000) / 1000 }), NOW)).toBe(true);
+    expect(isTokenExpired(makeJwt({ exp: (NOW - 1000) / 1000 }), NOW)).toBe(
+      true,
+    );
   });
 
   it("is true exactly at expiry", () => {
@@ -140,13 +145,15 @@ describe("shouldRefreshToken", () => {
   it("is false for an already-expired token", () => {
     // The acceptance criterion: refreshing a dead token is a guaranteed-failed
     // request, so it must not be attempted.
-    expect(shouldRefreshToken(makeJwt({ exp: (NOW - 1) / 1000 }), HOUR, NOW)).toBe(
-      false
-    );
+    expect(
+      shouldRefreshToken(makeJwt({ exp: (NOW - 1) / 1000 }), HOUR, NOW),
+    ).toBe(false);
   });
 
   it("is false exactly at expiry", () => {
-    expect(shouldRefreshToken(makeJwt({ exp: NOW / 1000 }), HOUR, NOW)).toBe(false);
+    expect(shouldRefreshToken(makeJwt({ exp: NOW / 1000 }), HOUR, NOW)).toBe(
+      false,
+    );
   });
 
   it("is false when expiry cannot be read", () => {

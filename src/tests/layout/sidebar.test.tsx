@@ -19,9 +19,13 @@ describe("Nav", () => {
 
   it("renders all nav links", () => {
     render(<Sidebar />);
-    expect(screen.getByRole("link", { name: /dashboard/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: /dashboard/i }),
+    ).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /courses/i })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /credentials/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: /credentials/i }),
+    ).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /rewards/i })).toBeInTheDocument();
   });
 

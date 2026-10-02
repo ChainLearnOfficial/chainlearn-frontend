@@ -35,12 +35,12 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
           "disabled:opacity-50 disabled:pointer-events-none",
           variants[variant],
           sizes[size],
-          className
+          className,
         )}
         {...props}
       />
     );
-  }
+  },
 );
 
 Button.displayName = "Button";

@@ -43,7 +43,7 @@ describe("useAsync", () => {
       throw new Error("nope");
     });
     const { result } = renderHook(() =>
-      useAsync(fn, { retries: 2, retryDelayMs: 0 })
+      useAsync(fn, { retries: 2, retryDelayMs: 0 }),
     );
 
     await act(async () => {
@@ -55,7 +55,9 @@ describe("useAsync", () => {
   });
 
   it("forwards execute arguments to the async function after the signal", async () => {
-    const fn = vi.fn(async (_signal: AbortSignal, id: string) => `course-${id}`);
+    const fn = vi.fn(
+      async (_signal: AbortSignal, id: string) => `course-${id}`,
+    );
     const { result } = renderHook(() => useAsync(fn));
 
     await act(async () => {
@@ -73,7 +75,7 @@ describe("useAsync", () => {
         new Promise<string>((resolve) => {
           seenSignal = signal;
           signal.addEventListener("abort", () => resolve("late"));
-        })
+        }),
     );
     const { result, unmount } = renderHook(() => useAsync(fn));
 
@@ -92,7 +94,7 @@ describe("useAsync", () => {
         new Promise<string>((resolve) => {
           signals.push(signal);
           signal.addEventListener("abort", () => resolve("cancelled"));
-        })
+        }),
     );
     const { result } = renderHook(() => useAsync(fn));
 

@@ -28,9 +28,11 @@ describe("TokenBalance", () => {
 
   it("merges custom className", () => {
     const { container } = render(
-      <TokenBalance balance={balance} className="my-class" />
+      <TokenBalance balance={balance} className="my-class" />,
     );
-    expect((container.firstChild as HTMLElement).className).toContain("my-class");
+    expect((container.firstChild as HTMLElement).className).toContain(
+      "my-class",
+    );
   });
 
   it("renders a different token code", () => {

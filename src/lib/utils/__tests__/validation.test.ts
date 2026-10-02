@@ -16,8 +16,10 @@ import {
 } from "../validation";
 
 // Valid fixtures (checksum-verified via stellar-sdk Keypair.random)
-const VALID_ADDRESS = "GBO3B63GKPFO2G5RVHJOZJGQVXEXZKRKMNKEH4IDCGTL2OZFJJ3MB5EM";
-const VALID_CONTRACT = "CBO3B63GKPFO2G5RVHJOZJGQVXEXZKRKMNKEH4IDCGTL2OZFJJ3MAZBV";
+const VALID_ADDRESS =
+  "GBO3B63GKPFO2G5RVHJOZJGQVXEXZKRKMNKEH4IDCGTL2OZFJJ3MB5EM";
+const VALID_CONTRACT =
+  "CBO3B63GKPFO2G5RVHJOZJGQVXEXZKRKMNKEH4IDCGTL2OZFJJ3MAZBV";
 // Same length/prefix but broken checksum (last char swapped)
 const BAD_CHECKSUM_ADDRESS =
   "GBO3B63GKPFO2G5RVHJOZJGQVXEXZKRKMNKEH4IDCGTL2OZFJJ3MB5EN";
@@ -102,7 +104,10 @@ describe("required", () => {
   });
 
   it("rejects null/undefined/blank", () => {
-    expect(required(null)).toEqual({ valid: false, error: "Field is required" });
+    expect(required(null)).toEqual({
+      valid: false,
+      error: "Field is required",
+    });
     expect(required(undefined)).toEqual({
       valid: false,
       error: "Field is required",
@@ -180,7 +185,7 @@ describe("composeValidators", () => {
   it("returns valid when all pass", () => {
     const v = composeValidators(
       (s) => required(s, "X"),
-      (s) => minLength(s, 2, "X")
+      (s) => minLength(s, 2, "X"),
     );
     expect(v("ab")).toEqual({ valid: true });
   });
@@ -192,7 +197,7 @@ describe("composeValidators", () => {
       (s) => {
         calls.push(s);
         return { valid: true };
-      }
+      },
     );
     expect(v("x")).toEqual({ valid: false, error: "first" });
     expect(calls).toEqual([]);
@@ -216,7 +221,7 @@ describe("profileUpdateSchema", () => {
       profileUpdateSchema.safeParse({
         ...validProfile,
         stellarAddress: VALID_ADDRESS,
-      }).success
+      }).success,
     ).toBe(true);
     const bad = profileUpdateSchema.safeParse({
       ...validProfile,
@@ -228,21 +233,21 @@ describe("profileUpdateSchema", () => {
   it("rejects invalid displayName, empty background/goals, bad pace", () => {
     expect(
       profileUpdateSchema.safeParse({ ...validProfile, displayName: "A" })
-        .success
+        .success,
     ).toBe(false);
     expect(
       profileUpdateSchema.safeParse({ ...validProfile, background: "" })
-        .success
+        .success,
     ).toBe(false);
     expect(
       profileUpdateSchema.safeParse({ ...validProfile, learningGoals: [] })
-        .success
+        .success,
     ).toBe(false);
     expect(
       profileUpdateSchema.safeParse({
         ...validProfile,
         preferredPace: "warp",
-      }).success
+      }).success,
     ).toBe(false);
   });
 });
@@ -263,35 +268,35 @@ describe("courseCreateSchema", () => {
       courseCreateSchema.safeParse({
         ...validCourse,
         imageUrl: "https://example.com/img.png",
-      }).success
+      }).success,
     ).toBe(true);
   });
 
   it("rejects short title/description, bad difficulty, non-positive hours, negative reward, bad URL", () => {
     expect(
-      courseCreateSchema.safeParse({ ...validCourse, title: "AB" }).success
+      courseCreateSchema.safeParse({ ...validCourse, title: "AB" }).success,
     ).toBe(false);
     expect(
       courseCreateSchema.safeParse({ ...validCourse, description: "short" })
-        .success
+        .success,
     ).toBe(false);
     expect(
       courseCreateSchema.safeParse({ ...validCourse, difficulty: "expert" })
-        .success
+        .success,
     ).toBe(false);
     expect(
       courseCreateSchema.safeParse({ ...validCourse, estimatedHours: 0 })
-        .success
+        .success,
     ).toBe(false);
     expect(
       courseCreateSchema.safeParse({ ...validCourse, rewardTokenAmount: -1 })
-        .success
+        .success,
     ).toBe(false);
     expect(
       courseCreateSchema.safeParse({
         ...validCourse,
         imageUrl: "not-a-url",
-      }).success
+      }).success,
     ).toBe(false);
   });
 });
@@ -307,26 +312,26 @@ describe("quizSubmitSchema", () => {
     expect(quizSubmitSchema.safeParse(validQuiz).success).toBe(true);
     expect(
       quizSubmitSchema.safeParse({ ...validQuiz, timeTakenSeconds: 42 })
-        .success
+        .success,
     ).toBe(true);
   });
 
   it("rejects empty ids, empty answers, negative time", () => {
     expect(
-      quizSubmitSchema.safeParse({ ...validQuiz, quizId: "" }).success
+      quizSubmitSchema.safeParse({ ...validQuiz, quizId: "" }).success,
     ).toBe(false);
-    expect(quizSubmitSchema.safeParse({ ...validQuiz, answers: [] }).success).toBe(
-      false
-    );
+    expect(
+      quizSubmitSchema.safeParse({ ...validQuiz, answers: [] }).success,
+    ).toBe(false);
     expect(
       quizSubmitSchema.safeParse({
         ...validQuiz,
         answers: [{ questionId: "", selectedOptionId: "o1" }],
-      }).success
+      }).success,
     ).toBe(false);
     expect(
       quizSubmitSchema.safeParse({ ...validQuiz, timeTakenSeconds: -5 })
-        .success
+        .success,
     ).toBe(false);
   });
 });
@@ -348,20 +353,20 @@ describe("rewardClaimSchema", () => {
         ...validClaim,
         decimals: 7,
         courseTitle: "Stellar Basics",
-      }).success
+      }).success,
     ).toBe(true);
   });
 
   it("rejects empty fields, bad date, bad status", () => {
     expect(rewardClaimSchema.safeParse({ ...validClaim, id: "" }).success).toBe(
-      false
+      false,
     );
     expect(
       rewardClaimSchema.safeParse({ ...validClaim, claimedAt: "yesterday" })
-        .success
+        .success,
     ).toBe(false);
     expect(
-      rewardClaimSchema.safeParse({ ...validClaim, status: "maybe" }).success
+      rewardClaimSchema.safeParse({ ...validClaim, status: "maybe" }).success,
     ).toBe(false);
   });
 });

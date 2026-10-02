@@ -2,7 +2,11 @@
 
 import { useMemo, useState, useCallback } from "react";
 import { cn } from "@/lib/utils/cn";
-import { formatDate, formatTokenBalance, truncateAddress } from "@/lib/utils/format";
+import {
+  formatDate,
+  formatTokenBalance,
+  truncateAddress,
+} from "@/lib/utils/format";
 import { useDebounce } from "@/lib/hooks/use-debounce";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -35,8 +39,8 @@ type StatusFilter = "all" | "confirmed" | "pending" | "failed";
 
 interface Filters {
   status: StatusFilter;
-  course: string;       // debounced free-text search on courseTitle
-  dateFrom: string;     // ISO date string, e.g. "2024-01-01"
+  course: string; // debounced free-text search on courseTitle
+  dateFrom: string; // ISO date string, e.g. "2024-01-01"
   dateTo: string;
 }
 
@@ -63,7 +67,10 @@ const STATUS_BADGE_VARIANTS = {
   confirmed: "success",
   pending: "warning",
   failed: "destructive",
-} as const satisfies Record<RewardClaim["status"], "success" | "warning" | "destructive">;
+} as const satisfies Record<
+  RewardClaim["status"],
+  "success" | "warning" | "destructive"
+>;
 
 const EMPTY_FILTERS: Filters = {
   status: "all",
@@ -92,13 +99,11 @@ function exportToCsv(claims: RewardClaim[]): void {
     c.txHash ?? "",
   ]);
 
-  const escape = (v: string) =>
-    `"${v.replace(/"/g, '""')}"`;
+  const escape = (v: string) => `"${v.replace(/"/g, '""')}"`;
 
-  const csv =
-    [header, ...rows]
-      .map((row) => row.map(escape).join(","))
-      .join("\n");
+  const csv = [header, ...rows]
+    .map((row) => row.map(escape).join(","))
+    .join("\n");
 
   const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
   const url = URL.createObjectURL(blob);
@@ -137,7 +142,10 @@ function SummaryStats({ claims }: SummaryStatsProps) {
   }, [claims]);
 
   return (
-    <div className="grid grid-cols-2 gap-3 sm:grid-cols-4" aria-label="Reward summary">
+    <div
+      className="grid grid-cols-2 gap-3 sm:grid-cols-4"
+      aria-label="Reward summary"
+    >
       <StatTile
         label="Total earned"
         value={`${stats.totalEarned.toLocaleString("en-US", { maximumFractionDigits: 2 })} LEARN`}
@@ -172,7 +180,9 @@ function StatTile({ label, value, valueClassName }: StatTileProps) {
   return (
     <div className="rounded-lg border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900 px-4 py-3">
       <p className="text-xs text-gray-500 dark:text-gray-400">{label}</p>
-      <p className={cn("text-sm font-semibold mt-0.5 truncate", valueClassName)}>
+      <p
+        className={cn("text-sm font-semibold mt-0.5 truncate", valueClassName)}
+      >
         {value}
       </p>
     </div>
@@ -229,7 +239,10 @@ function FilterBar({
           onValueChange={(v) => onChange({ status: v as StatusFilter })}
         >
           <SelectTrigger className="w-[140px]" aria-label="Filter by status">
-            <SlidersHorizontal className="h-3.5 w-3.5 text-gray-400 mr-1.5 flex-shrink-0" aria-hidden="true" />
+            <SlidersHorizontal
+              className="h-3.5 w-3.5 text-gray-400 mr-1.5 flex-shrink-0"
+              aria-hidden="true"
+            />
             <SelectValue placeholder="Status" />
           </SelectTrigger>
           <SelectContent>
@@ -342,7 +355,13 @@ export function RewardHistory({ claims, className }: RewardHistoryProps) {
 
       return true;
     });
-  }, [claims, filters.status, debouncedCourse, filters.dateFrom, filters.dateTo]);
+  }, [
+    claims,
+    filters.status,
+    debouncedCourse,
+    filters.dateFrom,
+    filters.dateTo,
+  ]);
 
   const handleExport = useCallback(() => {
     exportToCsv(filtered);
@@ -391,7 +410,11 @@ export function RewardHistory({ claims, className }: RewardHistoryProps) {
         </div>
       ) : (
         <ScrollArea className="h-[min(28rem,65vh)]">
-          <div className="space-y-2 pr-3" role="list" aria-label="Reward transactions">
+          <div
+            className="space-y-2 pr-3"
+            role="list"
+            aria-label="Reward transactions"
+          >
             {filtered.map((claim) => {
               const StatusIcon = STATUS_ICONS[claim.status];
               return (
@@ -405,7 +428,7 @@ export function RewardHistory({ claims, className }: RewardHistoryProps) {
                     <StatusIcon
                       className={cn(
                         "h-5 w-5 flex-shrink-0",
-                        STATUS_COLORS[claim.status]
+                        STATUS_COLORS[claim.status],
                       )}
                       aria-hidden="true"
                     />

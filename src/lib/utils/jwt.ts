@@ -22,7 +22,7 @@ function decodeBase64Url(segment: string): string | null {
   const normalized = segment.replace(/-/g, "+").replace(/_/g, "/");
   const padded = normalized.padEnd(
     normalized.length + ((4 - (normalized.length % 4)) % 4),
-    "="
+    "=",
   );
 
   try {
@@ -66,9 +66,15 @@ export function decodeJwt(token: string | null | undefined): JwtPayload | null {
  * Expiry of a token in milliseconds since the epoch, or null when the token is
  * malformed or carries no `exp` claim.
  */
-export function getTokenExpiry(token: string | null | undefined): number | null {
+export function getTokenExpiry(
+  token: string | null | undefined,
+): number | null {
   const payload = decodeJwt(token);
-  if (!payload || typeof payload.exp !== "number" || !Number.isFinite(payload.exp)) {
+  if (
+    !payload ||
+    typeof payload.exp !== "number" ||
+    !Number.isFinite(payload.exp)
+  ) {
     return null;
   }
   return payload.exp * 1000;
@@ -77,7 +83,7 @@ export function getTokenExpiry(token: string | null | undefined): number | null 
 /** Milliseconds until expiry. Negative once expired; null if unknown. */
 export function getTimeUntilExpiry(
   token: string | null | undefined,
-  now: number = Date.now()
+  now: number = Date.now(),
 ): number | null {
   const expiry = getTokenExpiry(token);
   return expiry === null ? null : expiry - now;
@@ -92,7 +98,7 @@ export function getTimeUntilExpiry(
  */
 export function isTokenExpired(
   token: string | null | undefined,
-  now: number = Date.now()
+  now: number = Date.now(),
 ): boolean {
   const remaining = getTimeUntilExpiry(token, now);
   return remaining === null ? false : remaining <= 0;
@@ -108,7 +114,7 @@ export function isTokenExpired(
 export function shouldRefreshToken(
   token: string | null | undefined,
   refreshWindowMs: number,
-  now: number = Date.now()
+  now: number = Date.now(),
 ): boolean {
   const remaining = getTimeUntilExpiry(token, now);
   if (remaining === null) return false;

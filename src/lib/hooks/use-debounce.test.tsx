@@ -19,7 +19,7 @@ describe("useDebounce", () => {
   it("should debounce the value change", () => {
     const { result, rerender } = renderHook(
       ({ value }) => useDebounce(value, 500),
-      { initialProps: { value: "initial" } }
+      { initialProps: { value: "initial" } },
     );
 
     expect(result.current).toBe("initial");
@@ -46,7 +46,7 @@ describe("useDebounce", () => {
   it("should clear timeout on unmount", () => {
     const { result, rerender, unmount } = renderHook(
       ({ value }) => useDebounce(value, 500),
-      { initialProps: { value: "initial" } }
+      { initialProps: { value: "initial" } },
     );
 
     rerender({ value: "updated" });

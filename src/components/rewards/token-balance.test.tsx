@@ -18,7 +18,7 @@ describe("TokenBalance", () => {
 
   it("applies custom className", () => {
     const { container } = render(
-      <TokenBalance balance={mockBalance} className="mt-4" />
+      <TokenBalance balance={mockBalance} className="mt-4" />,
     );
     expect(container.firstChild).toHaveClass("mt-4");
   });

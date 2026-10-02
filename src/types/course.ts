@@ -13,8 +13,6 @@ export interface Course {
   createdAt: string;
 }
 
-
-
 export interface Module {
   id: string;
   courseId: string;
@@ -93,11 +91,7 @@ export type ModuleContent =
  * on `CourseEnrollment.status`. Issue #310.
  */
 export type EnrollmentStatus =
-  | "not_enrolled"
-  | "enrolled"
-  | "in_progress"
-  | "completed"
-  | "expired";
+  "not_enrolled" | "enrolled" | "in_progress" | "completed" | "expired";
 
 /**
  * Response shape of the "mark module complete" endpoint. Hoisted out of

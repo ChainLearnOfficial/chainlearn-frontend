@@ -19,7 +19,7 @@ describe("useInterval", () => {
     const cb = vi.fn();
     const { rerender } = renderHook(
       ({ delay }: { delay: number | null }) => useInterval(cb, delay),
-      { initialProps: { delay: 1000 as number | null } }
+      { initialProps: { delay: 1000 as number | null } },
     );
 
     act(() => vi.advanceTimersByTime(2000));
@@ -39,7 +39,7 @@ describe("useInterval", () => {
     const second = vi.fn();
     const { rerender } = renderHook(
       ({ cb }: { cb: () => void }) => useInterval(cb, 1000),
-      { initialProps: { cb: first } }
+      { initialProps: { cb: first } },
     );
 
     rerender({ cb: second });
@@ -67,7 +67,10 @@ describe("useInterval", () => {
   it("skips ticks while an async callback is still pending", async () => {
     let resolve!: () => void;
     const cb = vi.fn(
-      () => new Promise<void>((r) => { resolve = r; })
+      () =>
+        new Promise<void>((r) => {
+          resolve = r;
+        }),
     );
     renderHook(() => useInterval(cb, 1000));
 

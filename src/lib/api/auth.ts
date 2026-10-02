@@ -13,12 +13,12 @@ let inFlightRefreshPromise: Promise<string | null> | null = null;
  */
 export async function getChallenge(
   walletAddress: string,
-  signal?: AbortSignal
+  signal?: AbortSignal,
 ): Promise<string> {
   const response = await apiClient.get<{ challenge: string }>(
     `/auth/challenge?address=${encodeURIComponent(walletAddress)}`,
     undefined,
-    signal
+    signal,
   );
   return response.data.challenge;
 }
@@ -29,7 +29,7 @@ export async function getChallenge(
 export async function verifySignature(
   walletAddress: string,
   signedChallenge: string,
-  signal?: AbortSignal
+  signal?: AbortSignal,
 ): Promise<AuthTokens> {
   const response = await apiClient.post<AuthTokens>(
     "/auth/verify",
@@ -38,7 +38,7 @@ export async function verifySignature(
       signedChallenge,
     },
     undefined,
-    signal
+    signal,
   );
   return response.data;
 }
@@ -48,11 +48,15 @@ export async function verifySignature(
  */
 export async function getProfile(
   jwt: string,
-  signal?: AbortSignal
+  signal?: AbortSignal,
 ): Promise<UserProfile> {
   const validToken = await getValidToken();
   const token = validToken || jwt;
-  const response = await apiClient.get<UserProfile>("/auth/profile", token, signal);
+  const response = await apiClient.get<UserProfile>(
+    "/auth/profile",
+    token,
+    signal,
+  );
   return response.data;
 }
 
@@ -62,7 +66,7 @@ export async function getProfile(
 export async function updateProfile(
   jwt: string,
   profile: Partial<UserProfile>,
-  signal?: AbortSignal
+  signal?: AbortSignal,
 ): Promise<UserProfile> {
   const validToken = await getValidToken();
   const token = validToken || jwt;
@@ -70,7 +74,7 @@ export async function updateProfile(
     "/auth/profile",
     profile,
     token,
-    signal
+    signal,
   );
   return response.data;
 }
@@ -80,14 +84,14 @@ export async function updateProfile(
  */
 export async function refreshToken(
   token: string,
-  signal?: AbortSignal
+  signal?: AbortSignal,
 ): Promise<AuthTokens> {
   try {
     const response = await apiClient.post<AuthTokens>(
       "/auth/refresh",
       { refreshToken: token },
       undefined,
-      signal
+      signal,
     );
     return response.data;
   } catch (error) {
@@ -97,7 +101,7 @@ export async function refreshToken(
         "/api/v1/auth/refresh",
         { refreshToken: token },
         undefined,
-        signal
+        signal,
       );
       return response.data;
     } catch {
@@ -150,7 +154,7 @@ async function executeRefresh(refreshTokenStr: string): Promise<string | null> {
         .applyRefreshedTokens(
           tokens.accessToken,
           tokens.expiresIn,
-          tokens.refreshToken
+          tokens.refreshToken,
         );
       return tokens.accessToken;
     } catch (error) {
@@ -174,11 +178,15 @@ async function executeRefresh(refreshTokenStr: string): Promise<string | null> {
  */
 export async function getSessions(
   jwt: string,
-  signal?: AbortSignal
+  signal?: AbortSignal,
 ): Promise<UserSession[]> {
   const validToken = await getValidToken();
   const token = validToken || jwt;
-  const response = await apiClient.get<UserSession[]>("/auth/sessions", token, signal);
+  const response = await apiClient.get<UserSession[]>(
+    "/auth/sessions",
+    token,
+    signal,
+  );
   return response.data;
 }
 
@@ -188,14 +196,14 @@ export async function getSessions(
 export async function revokeSession(
   jwt: string,
   sessionId: string,
-  signal?: AbortSignal
+  signal?: AbortSignal,
 ): Promise<{ success: boolean }> {
   const validToken = await getValidToken();
   const token = validToken || jwt;
   const response = await apiClient.delete<{ success: boolean }>(
     `/auth/sessions/${sessionId}`,
     token,
-    signal
+    signal,
   );
   return response.data;
 }

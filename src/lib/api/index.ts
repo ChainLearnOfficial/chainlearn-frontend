@@ -1,6 +1,6 @@
 /**
  * Centralized API exports for easy importing.
- * 
+ *
  * @example
  * import { getCourses, getModule, submitQuiz } from '@/lib/api';
  */

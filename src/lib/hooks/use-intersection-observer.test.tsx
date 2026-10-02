@@ -20,7 +20,7 @@ describe("useIntersectionObserver", () => {
           unobserve: vi.fn(),
           disconnect: mockDisconnect,
         };
-      })
+      }),
     );
   });
 
@@ -45,8 +45,13 @@ describe("useIntersectionObserver", () => {
 
     act(() => {
       observerCallback(
-        [{ isIntersecting: true, target: targetEl } as IntersectionObserverEntry],
-        {} as IntersectionObserver
+        [
+          {
+            isIntersecting: true,
+            target: targetEl,
+          } as IntersectionObserverEntry,
+        ],
+        {} as IntersectionObserver,
       );
     });
 

@@ -2,7 +2,15 @@
 
 import Link from "next/link";
 import { cn } from "@/lib/utils/cn";
-import { CheckCircle, Circle, PlayCircle, Lock, Video, Zap, Clock } from "lucide-react";
+import {
+  CheckCircle,
+  Circle,
+  PlayCircle,
+  Lock,
+  Video,
+  Zap,
+  Clock,
+} from "lucide-react";
 import type { Module } from "@/types/course";
 import { formatDuration } from "@/lib/utils/format";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -25,7 +33,9 @@ export function ModuleList({
   const sorted = [...modules].sort((a, b) => a.order - b.order);
   const completedIds = new Set([
     ...completedModuleIds,
-    ...modules.filter((module) => module.isCompleted).map((module) => module.id),
+    ...modules
+      .filter((module) => module.isCompleted)
+      .map((module) => module.id),
   ]);
 
   return (
@@ -54,15 +64,39 @@ export function ModuleList({
             const content = (
               <>
                 {/* Status icon */}
-                <div className="flex-shrink-0" role="status" aria-label={isCompleted ? "Completed module" : isCurrent ? "Current module in progress" : isAccessible ? "Module not started" : "Locked module"}>
+                <div
+                  className="flex-shrink-0"
+                  role="status"
+                  aria-label={
+                    isCompleted
+                      ? "Completed module"
+                      : isCurrent
+                        ? "Current module in progress"
+                        : isAccessible
+                          ? "Module not started"
+                          : "Locked module"
+                  }
+                >
                   {isCompleted ? (
-                    <CheckCircle className="h-5 w-5 text-green-500" aria-hidden="true" />
+                    <CheckCircle
+                      className="h-5 w-5 text-green-500"
+                      aria-hidden="true"
+                    />
                   ) : isCurrent ? (
-                    <PlayCircle className="h-5 w-5 text-primary-500" aria-hidden="true" />
+                    <PlayCircle
+                      className="h-5 w-5 text-primary-500"
+                      aria-hidden="true"
+                    />
                   ) : isAccessible ? (
-                    <Circle className="h-5 w-5 text-gray-300 dark:text-gray-600" aria-hidden="true" />
+                    <Circle
+                      className="h-5 w-5 text-gray-300 dark:text-gray-600"
+                      aria-hidden="true"
+                    />
                   ) : (
-                    <Lock className="h-5 w-5 text-gray-300 dark:text-gray-600" aria-hidden="true" />
+                    <Lock
+                      className="h-5 w-5 text-gray-300 dark:text-gray-600"
+                      aria-hidden="true"
+                    />
                   )}
                 </div>
 
@@ -73,7 +107,7 @@ export function ModuleList({
                       "text-sm font-medium truncate",
                       isCompleted
                         ? "text-gray-400 dark:text-gray-500"
-                        : "text-gray-900 dark:text-gray-100"
+                        : "text-gray-900 dark:text-gray-100",
                     )}
                   >
                     {index + 1}. {mod.title}
@@ -116,7 +150,7 @@ export function ModuleList({
                         "h-3.5 w-3.5",
                         mod.contentType === "interactive"
                           ? "text-violet-400 dark:text-violet-500"
-                          : "text-blue-400 dark:text-blue-500"
+                          : "text-blue-400 dark:text-blue-500",
                       )}
                       aria-hidden="true"
                     />
@@ -133,7 +167,7 @@ export function ModuleList({
                   tabIndex={-1}
                   className={cn(
                     "flex items-center gap-3 rounded-lg px-3 py-3",
-                    "opacity-50 cursor-not-allowed"
+                    "opacity-50 cursor-not-allowed",
                   )}
                 >
                   {content}
@@ -149,7 +183,8 @@ export function ModuleList({
                 aria-current={isCurrent ? "step" : undefined}
                 className={cn(
                   "flex items-center gap-3 rounded-lg px-3 py-3 transition-colors hover:bg-gray-50 cursor-pointer dark:hover:bg-gray-800 focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:outline-none",
-                  isCurrent && "bg-primary-50 border border-primary-200 dark:bg-primary-900/30 dark:border-primary-800"
+                  isCurrent &&
+                    "bg-primary-50 border border-primary-200 dark:bg-primary-900/30 dark:border-primary-800",
                 )}
               >
                 {content}

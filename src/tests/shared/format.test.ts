@@ -34,8 +34,12 @@ describe("date formatting utilities", () => {
   it("formats dates and date-times in the requested timezone", () => {
     const timestamp = "2024-01-15T00:30:00.000Z";
     expect(formatDate(timestamp, { timeZone: "UTC" })).toBe("Jan 15, 2024");
-    expect(formatDate(timestamp, { timeZone: "America/Los_Angeles" })).toBe("Jan 14, 2024");
-    expect(formatDateTime(timestamp, { timeZone: "UTC" })).toBe("Jan 15, 2024, 12:30 AM");
+    expect(formatDate(timestamp, { timeZone: "America/Los_Angeles" })).toBe(
+      "Jan 14, 2024",
+    );
+    expect(formatDateTime(timestamp, { timeZone: "UTC" })).toBe(
+      "Jan 15, 2024, 12:30 AM",
+    );
     expect(formatDate("not a date")).toBe("");
   });
 
@@ -43,8 +47,14 @@ describe("date formatting utilities", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2024-01-15T12:00:00.000Z"));
 
-    expect(formatRelativeTime(new Date("2024-01-15T10:00:00.000Z"))).toBe("2 hours ago");
-    expect(formatRelativeTime(new Date("2024-01-05T12:00:00.000Z"), { timeZone: "UTC" })).toBe("Jan 5, 2024");
+    expect(formatRelativeTime(new Date("2024-01-15T10:00:00.000Z"))).toBe(
+      "2 hours ago",
+    );
+    expect(
+      formatRelativeTime(new Date("2024-01-05T12:00:00.000Z"), {
+        timeZone: "UTC",
+      }),
+    ).toBe("Jan 5, 2024");
     expect(formatRelativeTime("invalid")).toBe("");
   });
 

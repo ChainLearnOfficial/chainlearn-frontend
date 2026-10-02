@@ -10,17 +10,26 @@ describe("ProgressBar", () => {
 
   it("sets aria-valuenow to the clamped value", () => {
     render(<ProgressBar value={75} />);
-    expect(screen.getByRole("progressbar")).toHaveAttribute("aria-valuenow", "75");
+    expect(screen.getByRole("progressbar")).toHaveAttribute(
+      "aria-valuenow",
+      "75",
+    );
   });
 
   it("clamps values above 100 to 100", () => {
     render(<ProgressBar value={150} />);
-    expect(screen.getByRole("progressbar")).toHaveAttribute("aria-valuenow", "100");
+    expect(screen.getByRole("progressbar")).toHaveAttribute(
+      "aria-valuenow",
+      "100",
+    );
   });
 
   it("clamps values below 0 to 0", () => {
     render(<ProgressBar value={-10} />);
-    expect(screen.getByRole("progressbar")).toHaveAttribute("aria-valuenow", "0");
+    expect(screen.getByRole("progressbar")).toHaveAttribute(
+      "aria-valuenow",
+      "0",
+    );
   });
 
   it("shows label when showLabel is true (default)", () => {

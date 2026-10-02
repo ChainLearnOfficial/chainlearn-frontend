@@ -7,8 +7,9 @@ import { cn } from "@/lib/utils/cn";
 export type ProgressVariant = "linear" | "circular";
 export type ProgressSize = "sm" | "md" | "lg";
 
-export interface ProgressProps
-  extends React.ComponentPropsWithoutRef<typeof ProgressPrimitive.Root> {
+export interface ProgressProps extends React.ComponentPropsWithoutRef<
+  typeof ProgressPrimitive.Root
+> {
   variant?: ProgressVariant;
   size?: ProgressSize;
   /** Tailwind color class for the fill, e.g. "bg-primary-500" or "stroke-primary-500" for circular */
@@ -23,7 +24,10 @@ const linearHeights: Record<ProgressSize, string> = {
   lg: "h-3",
 };
 
-const circularSizes: Record<ProgressSize, { box: string; stroke: number; r: number }> = {
+const circularSizes: Record<
+  ProgressSize,
+  { box: string; stroke: number; r: number }
+> = {
   sm: { box: "h-8 w-8", stroke: 3, r: 14 },
   md: { box: "h-12 w-12", stroke: 4, r: 20 },
   lg: { box: "h-16 w-16", stroke: 5, r: 28 },
@@ -45,7 +49,7 @@ const Progress = React.forwardRef<
       max = 100,
       ...props
     },
-    ref
+    ref,
   ) => {
     const clamped = Math.min(Number(max), Math.max(0, Number(value ?? 0)));
     const percent = Number(max) > 0 ? (clamped / Number(max)) * 100 : 0;
@@ -65,7 +69,7 @@ const Progress = React.forwardRef<
           className={cn(
             "relative inline-flex items-center justify-center",
             config.box,
-            className
+            className,
           )}
           {...props}
         >
@@ -85,7 +89,7 @@ const Progress = React.forwardRef<
             <circle
               className={cn(
                 "stroke-primary-500 transition-[stroke-dashoffset] duration-500 ease-out",
-                indicatorClassName
+                indicatorClassName,
               )}
               cx={center}
               cy={center}
@@ -115,23 +119,21 @@ const Progress = React.forwardRef<
           "relative w-full overflow-hidden rounded-full bg-gray-100",
           linearHeights[size],
           trackClassName,
-          className
+          className,
         )}
         {...props}
       >
         <ProgressPrimitive.Indicator
           className={cn(
             "h-full w-full flex-1 rounded-full bg-primary-500 transition-transform duration-500 ease-out",
-            indicatorClassName
+            indicatorClassName,
           )}
           style={{ transform: `translateX(-${100 - percent}%)` }}
         />
-        {showValue && (
-          <span className="sr-only">{Math.round(percent)}%</span>
-        )}
+        {showValue && <span className="sr-only">{Math.round(percent)}%</span>}
       </ProgressPrimitive.Root>
     );
-  }
+  },
 );
 Progress.displayName = ProgressPrimitive.Root.displayName;
 

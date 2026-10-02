@@ -28,7 +28,7 @@ export function useIntersectionObserver(
     root = null,
     rootMargin = "0px",
     freezeOnceVisible = false,
-  }: UseIntersectionObserverOptions = {}
+  }: UseIntersectionObserverOptions = {},
 ): UseIntersectionObserverResult {
   const [entry, setEntry] = useState<IntersectionObserverEntry>();
 
@@ -37,7 +37,12 @@ export function useIntersectionObserver(
 
   useEffect(() => {
     const node = elementRef?.current;
-    if (!node || frozen || typeof window === "undefined" || !("IntersectionObserver" in window)) {
+    if (
+      !node ||
+      frozen ||
+      typeof window === "undefined" ||
+      !("IntersectionObserver" in window)
+    ) {
       return;
     }
 
@@ -45,7 +50,7 @@ export function useIntersectionObserver(
       ([newEntry]) => {
         setEntry(newEntry);
       },
-      { threshold, root, rootMargin }
+      { threshold, root, rootMargin },
     );
 
     observer.observe(node);

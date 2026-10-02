@@ -32,7 +32,7 @@ const AccordionTrigger = React.forwardRef<
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 rounded-sm",
         "disabled:pointer-events-none disabled:opacity-50",
         "[&[data-state=open]>svg]:rotate-180",
-        className
+        className,
       )}
       {...props}
     >

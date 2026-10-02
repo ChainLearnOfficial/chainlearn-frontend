@@ -33,7 +33,8 @@ export function useCredentials() {
       setCredentials(data);
     } catch (err) {
       if (isAbortError(err)) return;
-      const message = err instanceof Error ? err.message : "Failed to fetch credentials";
+      const message =
+        err instanceof Error ? err.message : "Failed to fetch credentials";
       setError(message);
       console.error("Failed to fetch credentials:", err);
     } finally {
@@ -50,12 +51,13 @@ export function useCredentials() {
         setCredentials((prev) => [credential, ...prev]);
         return credential;
       } catch (err) {
-        const message = err instanceof Error ? err.message : "Failed to mint credential";
+        const message =
+          err instanceof Error ? err.message : "Failed to mint credential";
         setError(message);
         throw err;
       }
     },
-    [jwt]
+    [jwt],
   );
 
   useEffect(() => {
@@ -84,7 +86,8 @@ export function useCredentialDetail(credentialId: string) {
       .then(setCredential)
       .catch((err) => {
         if (isAbortError(err)) return;
-        const message = err instanceof Error ? err.message : "Failed to load credential";
+        const message =
+          err instanceof Error ? err.message : "Failed to load credential";
         setError(message);
         console.error(message, err);
       })
@@ -96,7 +99,8 @@ export function useCredentialDetail(credentialId: string) {
 }
 
 export function useVerifyCredential(credentialId: string) {
-  const [verification, setVerification] = useState<VerifyCredentialResult | null>(null);
+  const [verification, setVerification] =
+    useState<VerifyCredentialResult | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -108,9 +112,7 @@ export function useVerifyCredential(credentialId: string) {
       .then(setVerification)
       .catch((err) => {
         if (isAbortError(err)) return;
-        setError(
-          err instanceof Error ? err.message : "Verification failed"
-        );
+        setError(err instanceof Error ? err.message : "Verification failed");
       })
       .finally(() => setLoading(false));
     return () => controller.abort();

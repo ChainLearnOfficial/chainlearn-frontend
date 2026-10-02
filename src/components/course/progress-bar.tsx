@@ -2,7 +2,12 @@
 
 import { memo } from "react";
 import { cn } from "@/lib/utils/cn";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface ProgressBarProps {
   value: number; // 0-100
@@ -32,14 +37,19 @@ export const ProgressBar = memo(function ProgressBar({
           <div className={cn("w-full cursor-help", className)}>
             {showLabel && (
               <div className="flex items-center justify-between mb-1">
-                <span className="text-xs text-gray-500 dark:text-gray-400">Progress</span>
+                <span className="text-xs text-gray-500 dark:text-gray-400">
+                  Progress
+                </span>
                 <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
                   {Math.round(clamped)}%
                 </span>
               </div>
             )}
             <div
-              className={cn("w-full rounded-full bg-gray-100 dark:bg-gray-800", heights[size])}
+              className={cn(
+                "w-full rounded-full bg-gray-100 dark:bg-gray-800",
+                heights[size],
+              )}
               role="progressbar"
               aria-valuemin={0}
               aria-valuemax={100}
@@ -49,7 +59,7 @@ export const ProgressBar = memo(function ProgressBar({
               <div
                 className={cn(
                   "rounded-full bg-primary-500 transition-all duration-500",
-                  heights[size]
+                  heights[size],
                 )}
                 style={{ width: `${clamped}%` }}
               />

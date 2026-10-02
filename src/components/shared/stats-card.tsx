@@ -7,12 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils/cn";
 
 export type StatsCardColor =
-  | "primary"
-  | "success"
-  | "warning"
-  | "danger"
-  | "purple"
-  | "muted";
+  "primary" | "success" | "warning" | "danger" | "purple" | "muted";
 
 export type StatsCardTrend = "up" | "down" | "flat";
 
@@ -31,7 +26,10 @@ const colorThemes: Record<
   muted: { iconContainer: "bg-gray-100", icon: "text-gray-600" },
 };
 
-const trendStyles: Record<StatsCardTrend, { icon: LucideIcon; className: string }> = {
+const trendStyles: Record<
+  StatsCardTrend,
+  { icon: LucideIcon; className: string }
+> = {
   up: { icon: TrendingUp, className: "text-green-600 dark:text-green-400" },
   down: { icon: TrendingDown, className: "text-red-600 dark:text-red-400" },
   flat: { icon: Minus, className: "text-gray-500 dark:text-gray-400" },
@@ -71,7 +69,7 @@ export function StatsCard({
         <div
           className={cn(
             "flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg",
-            theme.iconContainer
+            theme.iconContainer,
           )}
           aria-hidden="true"
         >

@@ -43,7 +43,7 @@ function renderHeader() {
   return render(
     <ThemeProvider>
       <Header />
-    </ThemeProvider>
+    </ThemeProvider>,
   );
 }
 
@@ -55,23 +55,32 @@ describe("Header", () => {
 
   it("renders the ChainLearn logo link", () => {
     renderHeader();
-    expect(screen.getByRole("link", { name: /chainlearn/i })).toHaveAttribute("href", "/");
+    expect(screen.getByRole("link", { name: /chainlearn/i })).toHaveAttribute(
+      "href",
+      "/",
+    );
   });
 
   it("renders the ConnectButton", () => {
     renderHeader();
-    expect(screen.getByRole("button", { name: /connect wallet/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /connect wallet/i }),
+    ).toBeInTheDocument();
   });
 
   it("does not show nav links when unauthenticated", () => {
     renderHeader();
-    expect(screen.queryByRole("link", { name: /dashboard/i })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("link", { name: /dashboard/i }),
+    ).not.toBeInTheDocument();
   });
 
   it("shows nav links when authenticated", () => {
     authState.isAuthenticated = true;
     renderHeader();
-    expect(screen.getByRole("link", { name: /dashboard/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: /dashboard/i }),
+    ).toBeInTheDocument();
   });
 
   it("shows wallet address when authenticated", () => {

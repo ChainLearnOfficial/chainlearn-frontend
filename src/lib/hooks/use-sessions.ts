@@ -17,40 +17,48 @@ export function useSessions() {
   const [error, setError] = useState<string | null>(null);
   const [revokingId, setRevokingId] = useState<string | null>(null);
 
-  const fetchSessions = useCallback(async (controller?: AbortController) => {
-    if (!jwt) {
-      setLoading(false);
-      return;
-    }
+  const fetchSessions = useCallback(
+    async (controller?: AbortController) => {
+      if (!jwt) {
+        setLoading(false);
+        return;
+      }
 
-    setLoading(true);
-    setError(null);
+      setLoading(true);
+      setError(null);
 
-    const signal = controller?.signal;
+      const signal = controller?.signal;
 
-    try {
-      const data = await getSessions(jwt, signal);
-      setSessions(data || []);
-    } catch (err) {
-      if (isAbortError(err)) return;
+      try {
+        const data = await getSessions(jwt, signal);
+        setSessions(data || []);
+      } catch (err) {
+        if (isAbortError(err)) return;
 
-      // Fallback to current session if endpoint is not available
-      const fallbackSession: UserSession = {
-        id: "current-session",
-        device: "Current Device",
-        browser: typeof navigator !== "undefined" ? navigator.userAgent.split(" ")[0] : "Browser",
-        os: "Web",
-        lastActive: "Just now",
-        createdAt: new Date().toISOString(),
-        isCurrent: true,
-      };
+        // Fallback to current session if endpoint is not available
+        const fallbackSession: UserSession = {
+          id: "current-session",
+          device: "Current Device",
+          browser:
+            typeof navigator !== "undefined"
+              ? navigator.userAgent.split(" ")[0]
+              : "Browser",
+          os: "Web",
+          lastActive: "Just now",
+          createdAt: new Date().toISOString(),
+          isCurrent: true,
+        };
 
-      setSessions([fallbackSession]);
-      setError(err instanceof Error ? err.message : "Failed to fetch sessions");
-    } finally {
-      setLoading(false);
-    }
-  }, [jwt]);
+        setSessions([fallbackSession]);
+        setError(
+          err instanceof Error ? err.message : "Failed to fetch sessions",
+        );
+      } finally {
+        setLoading(false);
+      }
+    },
+    [jwt],
+  );
 
   const revoke = useCallback(
     async (sessionId: string) => {
@@ -64,14 +72,15 @@ export function useSessions() {
         setSessions((prev) => prev.filter((s) => s.id !== sessionId));
         return true;
       } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : "Failed to revoke session";
+        const errorMessage =
+          err instanceof Error ? err.message : "Failed to revoke session";
         setError(errorMessage);
         throw new Error(errorMessage);
       } finally {
         setRevokingId(null);
       }
     },
-    [jwt]
+    [jwt],
   );
 
   useEffect(() => {

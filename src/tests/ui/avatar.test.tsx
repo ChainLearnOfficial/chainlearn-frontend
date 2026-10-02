@@ -1,13 +1,18 @@
 import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
-import { Avatar, AvatarFallback, AvatarImage, getInitials } from "@/components/ui/avatar";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+  getInitials,
+} from "@/components/ui/avatar";
 
 describe("Avatar", () => {
   it("renders fallback initials", () => {
     render(
       <Avatar>
         <AvatarFallback>JD</AvatarFallback>
-      </Avatar>
+      </Avatar>,
     );
     expect(screen.getByText("JD")).toBeInTheDocument();
   });
@@ -20,7 +25,7 @@ describe("Avatar", () => {
     const { container } = render(
       <Avatar size={size}>
         <AvatarFallback>AB</AvatarFallback>
-      </Avatar>
+      </Avatar>,
     );
     expect((container.firstChild as HTMLElement).className).toContain(cls);
   });
@@ -29,9 +34,11 @@ describe("Avatar", () => {
     const { container } = render(
       <Avatar className="custom-class">
         <AvatarFallback>AB</AvatarFallback>
-      </Avatar>
+      </Avatar>,
     );
-    expect((container.firstChild as HTMLElement).className).toContain("custom-class");
+    expect((container.firstChild as HTMLElement).className).toContain(
+      "custom-class",
+    );
   });
 
   it("forwards ref", () => {
@@ -39,7 +46,7 @@ describe("Avatar", () => {
     render(
       <Avatar ref={ref}>
         <AvatarFallback>AB</AvatarFallback>
-      </Avatar>
+      </Avatar>,
     );
     expect(ref.current).not.toBeNull();
   });
@@ -49,7 +56,7 @@ describe("Avatar", () => {
       <Avatar>
         <AvatarImage src="/avatar.png" alt="User avatar" />
         <AvatarFallback>AB</AvatarFallback>
-      </Avatar>
+      </Avatar>,
     );
     // jsdom won't actually load the image, so the fallback still renders,
     // but the component tree should not throw when an image is supplied.

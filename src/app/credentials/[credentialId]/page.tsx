@@ -1,7 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useCredentialDetail, useVerifyCredential } from "@/lib/hooks/use-credentials";
+import {
+  useCredentialDetail,
+  useVerifyCredential,
+} from "@/lib/hooks/use-credentials";
 import { CredentialBadge } from "@/components/credentials/credential-badge";
 import { QrCode } from "@/components/credentials/qr-code";
 import { BackButton } from "@/components/shared/back-button";
@@ -34,12 +37,14 @@ export default function CredentialDetailPage({
 }) {
   const { credentialId } = params;
   const { credential, loading, error } = useCredentialDetail(credentialId);
-  const { verification, loading: verificationLoading } = useVerifyCredential(credentialId);
+  const { verification, loading: verificationLoading } =
+    useVerifyCredential(credentialId);
   const [copied, setCopied] = useState(false);
 
-  const verificationUrl = typeof window !== "undefined"
-    ? `${window.location.origin}/verify/${credentialId}`
-    : "";
+  const verificationUrl =
+    typeof window !== "undefined"
+      ? `${window.location.origin}/verify/${credentialId}`
+      : "";
 
   const copyAddress = async (address: string) => {
     try {
@@ -130,7 +135,9 @@ export default function CredentialDetailPage({
       {/* Details */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-center">{credential.courseTitle}</CardTitle>
+          <CardTitle className="text-center">
+            {credential.courseTitle}
+          </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
@@ -138,9 +145,7 @@ export default function CredentialDetailPage({
               <Calendar className="h-4 w-4 text-gray-400" />
               <div>
                 <p className="text-gray-500">Issued</p>
-                <p className="font-medium">
-                  {formatDate(credential.issuedAt)}
-                </p>
+                <p className="font-medium">{formatDate(credential.issuedAt)}</p>
               </div>
             </div>
             <div className="flex items-center gap-2 text-sm">
@@ -197,9 +202,7 @@ export default function CredentialDetailPage({
                 <span className="text-gray-500">Learner</span>
               </div>
               <button
-                onClick={() =>
-                  copyAddress(credential.metadata.learnerAddress)
-                }
+                onClick={() => copyAddress(credential.metadata.learnerAddress)}
                 className="flex items-center gap-1 text-xs font-mono text-gray-600 hover:text-gray-900"
               >
                 {truncateAddress(credential.metadata.learnerAddress, 6)}
@@ -213,7 +216,9 @@ export default function CredentialDetailPage({
           </div>
 
           {/* On-chain Verification */}
-          <div className={`rounded-lg border p-3 ${verification?.isValid ? "bg-green-50 border-green-200" : verificationLoading ? "bg-gray-50 border-gray-200" : "bg-red-50 border-red-200"}`}>
+          <div
+            className={`rounded-lg border p-3 ${verification?.isValid ? "bg-green-50 border-green-200" : verificationLoading ? "bg-gray-50 border-gray-200" : "bg-red-50 border-red-200"}`}
+          >
             <div className="flex items-center gap-2 text-sm">
               {verificationLoading ? (
                 <Loader2 className="h-4 w-4 animate-spin text-gray-500" />
@@ -223,11 +228,19 @@ export default function CredentialDetailPage({
                 <ShieldAlert className="h-4 w-4 text-red-600" />
               )}
               <div>
-                <p className={`font-medium ${verification?.isValid ? "text-green-700" : verificationLoading ? "text-gray-700" : "text-red-700"}`}>
-                  {verificationLoading ? "Verifying On-Chain..." : verification?.isValid ? "On-Chain Verified" : "Verification Failed"}
+                <p
+                  className={`font-medium ${verification?.isValid ? "text-green-700" : verificationLoading ? "text-gray-700" : "text-red-700"}`}
+                >
+                  {verificationLoading
+                    ? "Verifying On-Chain..."
+                    : verification?.isValid
+                      ? "On-Chain Verified"
+                      : "Verification Failed"}
                 </p>
                 {credential.contractAddress && (
-                  <p className={`text-xs font-mono ${verification?.isValid ? "text-green-600" : verificationLoading ? "text-gray-500" : "text-red-600"}`}>
+                  <p
+                    className={`text-xs font-mono ${verification?.isValid ? "text-green-600" : verificationLoading ? "text-gray-500" : "text-red-600"}`}
+                  >
                     Contract: {truncateAddress(credential.contractAddress, 8)}
                   </p>
                 )}
@@ -241,9 +254,7 @@ export default function CredentialDetailPage({
               <p className="text-sm text-gray-500 mb-2">Skills Demonstrated</p>
               <div className="flex flex-wrap gap-2">
                 {credential.metadata.skills.map((skill) => (
-                  <Badge key={skill}>
-                    {skill}
-                  </Badge>
+                  <Badge key={skill}>{skill}</Badge>
                 ))}
               </div>
             </div>

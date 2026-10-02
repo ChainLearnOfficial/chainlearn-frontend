@@ -55,7 +55,10 @@ describe("CredentialCard", () => {
 
   it("links to the credential detail page", () => {
     render(<CredentialCard credential={credential} />);
-    expect(screen.getByRole("link")).toHaveAttribute("href", "/credentials/cred-1");
+    expect(screen.getByRole("link")).toHaveAttribute(
+      "href",
+      "/credentials/cred-1",
+    );
   });
 
   it("renders no skill tags when skills array is empty", () => {

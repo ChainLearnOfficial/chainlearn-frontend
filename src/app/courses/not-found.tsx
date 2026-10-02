@@ -13,8 +13,8 @@ export default function NotFound() {
         Course Not Found
       </h2>
       <p className="mb-8 max-w-md text-gray-500">
-        The course you are looking for does not exist or has been removed. Browse
-        our available courses to get started.
+        The course you are looking for does not exist or has been removed.
+        Browse our available courses to get started.
       </p>
       <div className="flex items-center gap-4">
         <Link href="/courses">

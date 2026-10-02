@@ -19,7 +19,7 @@ export function CredentialCard({ credential, className }: CredentialCardProps) {
       <Card
         className={cn(
           "group cursor-pointer transition-all hover:shadow-md hover:-translate-y-0.5",
-          className
+          className,
         )}
       >
         <CardContent className="p-5">

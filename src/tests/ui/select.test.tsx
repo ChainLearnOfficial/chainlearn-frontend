@@ -42,8 +42,12 @@ describe("Select", () => {
     render(<Harness />);
     await userEvent.click(screen.getByRole("combobox"));
     expect(screen.getByRole("listbox")).toBeInTheDocument();
-    expect(screen.getByRole("option", { name: "Beginner" })).toBeInTheDocument();
-    expect(screen.getByRole("option", { name: "Advanced" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("option", { name: "Beginner" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("option", { name: "Advanced" }),
+    ).toBeInTheDocument();
   });
 
   it("selects an option via click and calls onValueChange", async () => {

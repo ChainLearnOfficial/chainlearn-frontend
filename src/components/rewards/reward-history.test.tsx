@@ -47,7 +47,7 @@ describe("RewardHistory", () => {
     const link = screen.getByRole("link");
     expect(link).toHaveAttribute(
       "href",
-      "https://stellar.expert/explorer/testnet/tx/abc123"
+      "https://stellar.expert/explorer/testnet/tx/abc123",
     );
   });
 

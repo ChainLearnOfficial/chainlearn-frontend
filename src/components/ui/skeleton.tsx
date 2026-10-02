@@ -19,7 +19,8 @@ const ANIMATION_CLASSES: Record<SkeletonAnimation, string> = {
   // to a static fill when the viewer prefers reduced motion.
   shimmer:
     "animate-shimmer bg-[length:200%_100%] bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 motion-reduce:animate-none motion-reduce:bg-gray-200 dark:from-gray-800 dark:via-gray-700 dark:to-gray-800 dark:motion-reduce:bg-gray-800",
-  pulse: "animate-pulse bg-gray-200 motion-reduce:animate-none dark:bg-gray-800",
+  pulse:
+    "animate-pulse bg-gray-200 motion-reduce:animate-none dark:bg-gray-800",
   none: "bg-gray-200 dark:bg-gray-800",
 };
 
@@ -47,7 +48,7 @@ function Skeleton({
         variant === "text" && "h-4 w-full rounded",
         variant === "circle" && "rounded-full",
         variant === "rectangle" && "rounded-md",
-        className
+        className,
       )}
       {...props}
     />
@@ -57,10 +58,7 @@ function Skeleton({
 Skeleton.displayName = "Skeleton";
 
 /** Shortcut for a single line of text-shaped skeleton. */
-function SkeletonText({
-  className,
-  ...props
-}: Omit<SkeletonProps, "variant">) {
+function SkeletonText({ className, ...props }: Omit<SkeletonProps, "variant">) {
   return <Skeleton variant="text" className={className} {...props} />;
 }
 
@@ -110,10 +108,7 @@ function SkeletonStack({
 SkeletonStack.displayName = "SkeletonStack";
 
 /** Shortcut for a rectangular skeleton. */
-function SkeletonRect({
-  className,
-  ...props
-}: Omit<SkeletonProps, "variant">) {
+function SkeletonRect({ className, ...props }: Omit<SkeletonProps, "variant">) {
   return <Skeleton variant="rectangle" className={className} {...props} />;
 }
 
@@ -129,7 +124,7 @@ function SkeletonCard({
     <div
       className={cn(
         "rounded-xl border border-gray-200 bg-white overflow-hidden dark:border-gray-800 dark:bg-gray-950",
-        className
+        className,
       )}
       {...props}
     >

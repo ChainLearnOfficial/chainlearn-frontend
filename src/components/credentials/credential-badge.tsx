@@ -2,7 +2,12 @@
 
 import { cn } from "@/lib/utils/cn";
 import { Award, Shield, CheckCircle } from "lucide-react";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface CredentialBadgeProps {
   courseTitle: string;
@@ -32,16 +37,14 @@ export function CredentialBadge({
         "bg-gradient-to-br from-stellar-purple/10 to-stellar-blue/10",
         "border-2 border-dashed border-stellar-purple/30",
         sizes[size].container,
-        className
+        className,
       )}
     >
-      <Award
-        className={cn("text-stellar-purple", sizes[size].icon)}
-      />
+      <Award className={cn("text-stellar-purple", sizes[size].icon)} />
       <p
         className={cn(
           "mt-1 font-medium text-gray-900 text-center px-2 line-clamp-2",
-          sizes[size].text
+          sizes[size].text,
         )}
       >
         {courseTitle}

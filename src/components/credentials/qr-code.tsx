@@ -40,8 +40,14 @@ export function QrCode({
             col === moduleCount - 1;
           const isInner =
             (row >= 2 && row <= 4 && col >= 2 && col <= 4) ||
-            (row >= 2 && row <= 4 && col >= moduleCount - 5 && col <= moduleCount - 3) ||
-            (row >= moduleCount - 5 && row <= moduleCount - 3 && col >= 2 && col <= 4);
+            (row >= 2 &&
+              row <= 4 &&
+              col >= moduleCount - 5 &&
+              col <= moduleCount - 3) ||
+            (row >= moduleCount - 5 &&
+              row <= moduleCount - 3 &&
+              col >= 2 &&
+              col <= 4);
           grid[row][col] = isOuter || isInner;
         } else {
           // Data area: deterministic pattern from value hash
@@ -80,8 +86,8 @@ export function QrCode({
               height={cellSize}
               fill="black"
             />
-          ) : null
-        )
+          ) : null,
+        ),
       )}
     </svg>
   );

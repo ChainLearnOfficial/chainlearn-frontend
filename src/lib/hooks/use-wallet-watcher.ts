@@ -42,7 +42,7 @@ export function useWalletWatcher(): void {
       if (change.address && change.address !== walletAddressRef.current) {
         addToast(
           "Your Freighter account changed. Please reconnect to continue.",
-          "warning"
+          "warning",
         );
         disconnect();
         return;

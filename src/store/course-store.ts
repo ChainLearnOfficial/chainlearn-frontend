@@ -27,7 +27,7 @@ export const useCourseStore = create<CourseState>()(
       enroll: (enrollment) =>
         set((state) => {
           const exists = state.enrollments.some(
-            (e) => e.courseId === enrollment.courseId || e.id === enrollment.id
+            (e) => e.courseId === enrollment.courseId || e.id === enrollment.id,
           );
           if (exists) return state;
           return {
@@ -44,7 +44,8 @@ export const useCourseStore = create<CourseState>()(
             : [...prevModuleIds, moduleId];
           const completedCount = completedModuleIds.length;
           const course = state.currentCourse;
-          const totalModules = existing?.totalModules ?? course?.totalModules ?? 0;
+          const totalModules =
+            existing?.totalModules ?? course?.totalModules ?? 0;
           const progressPercent =
             totalModules > 0
               ? Math.round((completedCount / totalModules) * 100)
@@ -74,6 +75,6 @@ export const useCourseStore = create<CourseState>()(
         enrollments: state.enrollments,
         progress: state.progress,
       }),
-    }
-  )
+    },
+  ),
 );

@@ -57,7 +57,9 @@ export default function CredentialsPage() {
       result = result.filter(
         (cred) =>
           cred.courseTitle.toLowerCase().includes(query) ||
-          cred.metadata.skills.some((skill) => skill.toLowerCase().includes(query))
+          cred.metadata.skills.some((skill) =>
+            skill.toLowerCase().includes(query),
+          ),
       );
     }
 
@@ -65,14 +67,18 @@ export default function CredentialsPage() {
     sorted.sort((a, b) => {
       switch (sort) {
         case "date_asc":
-          return new Date(a.issuedAt).getTime() - new Date(b.issuedAt).getTime();
+          return (
+            new Date(a.issuedAt).getTime() - new Date(b.issuedAt).getTime()
+          );
         case "score_desc":
           return (b.metadata.score ?? 0) - (a.metadata.score ?? 0);
         case "score_asc":
           return (a.metadata.score ?? 0) - (b.metadata.score ?? 0);
         case "date_desc":
         default:
-          return new Date(b.issuedAt).getTime() - new Date(a.issuedAt).getTime();
+          return (
+            new Date(b.issuedAt).getTime() - new Date(a.issuedAt).getTime()
+          );
       }
     });
 
@@ -146,7 +152,10 @@ export default function CredentialsPage() {
                 </SelectContent>
               </Select>
 
-              <Select value={sort} onValueChange={(value) => setSort(value as SortOption)}>
+              <Select
+                value={sort}
+                onValueChange={(value) => setSort(value as SortOption)}
+              >
                 <SelectTrigger className="w-44">
                   <SelectValue placeholder="Sort by" />
                 </SelectTrigger>
@@ -163,7 +172,9 @@ export default function CredentialsPage() {
 
           {filtered.length === 0 ? (
             <div className="text-center py-16">
-              <p className="text-gray-500">No credentials match your filters.</p>
+              <p className="text-gray-500">
+                No credentials match your filters.
+              </p>
               <Button
                 variant="outline"
                 className="mt-4"

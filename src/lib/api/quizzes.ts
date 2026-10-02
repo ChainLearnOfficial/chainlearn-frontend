@@ -32,12 +32,12 @@ export interface GenerateQuizParams {
 export async function getQuiz(
   courseId: string,
   jwt?: string,
-  signal?: AbortSignal
+  signal?: AbortSignal,
 ): Promise<Quiz> {
   const response = await apiClient.get<Quiz>(
     `/courses/${courseId}/quiz`,
     jwt,
-    signal
+    signal,
   );
   return response.data;
 }
@@ -60,7 +60,7 @@ export async function getQuiz(
 export async function generateQuiz(
   params: GenerateQuizParams,
   jwt: string,
-  signal?: AbortSignal
+  signal?: AbortSignal,
 ): Promise<Quiz> {
   const validToken = await getValidToken();
   const token = validToken || jwt;
@@ -68,7 +68,7 @@ export async function generateQuiz(
     "/quizzes/generate",
     params,
     token,
-    signal
+    signal,
   );
   return response.data;
 }
@@ -93,7 +93,7 @@ export async function generateQuiz(
 export async function submitQuiz(
   submission: QuizSubmission,
   jwt: string,
-  signal?: AbortSignal
+  signal?: AbortSignal,
 ): Promise<QuizAttempt> {
   const validToken = await getValidToken();
   const token = validToken || jwt;
@@ -101,7 +101,7 @@ export async function submitQuiz(
     `/quizzes/${submission.quizId}/submit`,
     submission,
     token,
-    signal
+    signal,
   );
   return response.data;
 }
@@ -120,14 +120,14 @@ export async function submitQuiz(
 export async function getQuizAttempts(
   quizId: string,
   jwt: string,
-  signal?: AbortSignal
+  signal?: AbortSignal,
 ): Promise<QuizAttempt[]> {
   const validToken = await getValidToken();
   const token = validToken || jwt;
   const response = await apiClient.get<QuizAttempt[]>(
     `/quizzes/${quizId}/attempts`,
     token,
-    signal
+    signal,
   );
   return response.data;
 }

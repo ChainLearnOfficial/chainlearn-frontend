@@ -17,7 +17,10 @@ const ORIGIN = "https://chainlearn.test";
  * `nextUrl` is a URL plus the `clone()` NextURL adds, which the middleware uses
  * to build redirect targets.
  */
-function makeNextUrl(pathname: string, search: string): URL & { clone: () => URL } {
+function makeNextUrl(
+  pathname: string,
+  search: string,
+): URL & { clone: () => URL } {
   const url = new URL(`${pathname}${search}`, ORIGIN) as URL & {
     clone: () => URL;
   };
@@ -59,20 +62,25 @@ const PROTECTED = [
 const PUBLIC = ["/", "/courses", "/verify/cred-123"];
 
 describe("protected routes", () => {
-  it.each(PROTECTED)("redirects %s to /connect without a session", (pathname) => {
-    const target = redirectTarget(middleware(makeRequest(pathname)));
+  it.each(PROTECTED)(
+    "redirects %s to /connect without a session",
+    (pathname) => {
+      const target = redirectTarget(middleware(makeRequest(pathname)));
 
-    expect(target).not.toBeNull();
-    expect(target?.pathname).toBe("/connect");
-  });
+      expect(target).not.toBeNull();
+      expect(target?.pathname).toBe("/connect");
+    },
+  );
 
   it.each(PROTECTED)("allows %s with a session", (pathname) => {
-    expect(redirectTarget(middleware(makeRequest(pathname, "jwt-abc")))).toBeNull();
+    expect(
+      redirectTarget(middleware(makeRequest(pathname, "jwt-abc"))),
+    ).toBeNull();
   });
 
   it("preserves the intended destination so login can return there", () => {
     const target = redirectTarget(
-      middleware(makeRequest("/courses/course-1/quiz"))
+      middleware(makeRequest("/courses/course-1/quiz")),
     );
 
     expect(target?.searchParams.get("redirect")).toBe("/courses/course-1/quiz");
@@ -93,15 +101,17 @@ describe("public routes", () => {
   });
 
   it.each(PUBLIC)("leaves %s accessible when signed in", (pathname) => {
-    expect(redirectTarget(middleware(makeRequest(pathname, "jwt-abc")))).toBeNull();
+    expect(
+      redirectTarget(middleware(makeRequest(pathname, "jwt-abc"))),
+    ).toBeNull();
   });
 
   it("treats the /courses listing as public but its detail pages as protected", () => {
     // The prefix check must distinguish "/courses" from "/courses/<id>".
     expect(redirectTarget(middleware(makeRequest("/courses")))).toBeNull();
-    expect(redirectTarget(middleware(makeRequest("/courses/abc")))?.pathname).toBe(
-      "/connect"
-    );
+    expect(
+      redirectTarget(middleware(makeRequest("/courses/abc")))?.pathname,
+    ).toBe("/connect");
   });
 
   it("allows /connect when signed out", () => {
@@ -111,20 +121,21 @@ describe("public routes", () => {
 
 describe("auth routes", () => {
   it("bounces a signed-in visitor away from /connect", () => {
-    expect(redirectTarget(middleware(makeRequest("/connect", "jwt-abc")))?.pathname).toBe(
-      "/dashboard"
-    );
+    expect(
+      redirectTarget(middleware(makeRequest("/connect", "jwt-abc")))?.pathname,
+    ).toBe("/dashboard");
   });
 
   it("bounces a signed-in visitor away from /onboarding", () => {
     expect(
-      redirectTarget(middleware(makeRequest("/onboarding", "jwt-abc")))?.pathname
+      redirectTarget(middleware(makeRequest("/onboarding", "jwt-abc")))
+        ?.pathname,
     ).toBe("/dashboard");
   });
 
   it("honours the redirect parameter after signing in", () => {
     const target = redirectTarget(
-      middleware(makeRequest("/connect", "jwt-abc", "?redirect=/rewards"))
+      middleware(makeRequest("/connect", "jwt-abc", "?redirect=/rewards")),
     );
 
     expect(target?.pathname).toBe("/rewards");
@@ -147,7 +158,7 @@ describe("matcher", () => {
         "/courses/:courseId/:path*",
         "/connect",
         "/onboarding",
-      ])
+      ]),
     );
   });
 

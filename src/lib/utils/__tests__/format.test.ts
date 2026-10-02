@@ -19,7 +19,7 @@ import {
 describe("formatDate", () => {
   it("formats a date string", () => {
     expect(formatDate("2024-01-15T00:00:00Z", { timeZone: "UTC" })).toBe(
-      "Jan 15, 2024"
+      "Jan 15, 2024",
     );
   });
 
@@ -30,9 +30,9 @@ describe("formatDate", () => {
 
 describe("formatDateTime", () => {
   it("formats a date and time", () => {
-    expect(
-      formatDateTime("2024-01-15T14:30:00Z", { timeZone: "UTC" })
-    ).toBe("Jan 15, 2024, 2:30 PM");
+    expect(formatDateTime("2024-01-15T14:30:00Z", { timeZone: "UTC" })).toBe(
+      "Jan 15, 2024, 2:30 PM",
+    );
   });
 });
 

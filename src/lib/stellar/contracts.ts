@@ -16,7 +16,10 @@ import { xdr, scValToNative } from "@stellar/stellar-sdk";
  * accesses: Next.js only inlines public env vars into the client bundle for
  * literal references, not for `process.env[name]`.
  */
-function readContractAddresses(): Record<NetworkType, Record<string, string | undefined>> {
+function readContractAddresses(): Record<
+  NetworkType,
+  Record<string, string | undefined>
+> {
   return {
     testnet: {
       rewards: process.env.NEXT_PUBLIC_REWARDS_CONTRACT_TESTNET,
@@ -37,14 +40,14 @@ function readContractAddresses(): Record<NetworkType, Record<string, string | un
  */
 export function getContractAddress(
   contractName: string,
-  network: NetworkType
+  network: NetworkType,
 ): string {
   const addr = readContractAddresses()[network]?.[contractName];
   if (!addr) {
     throw new Error(
       `Contract "${contractName}" not configured for ${network} ` +
         `(set the matching NEXT_PUBLIC_${contractName.toUpperCase()}_CONTRACT_` +
-        `${network === "public" ? "MAINNET" : "TESTNET"} environment variable)`
+        `${network === "public" ? "MAINNET" : "TESTNET"} environment variable)`,
     );
   }
   return addr;
@@ -57,7 +60,8 @@ function decodeFirstSimResult(simResult: unknown): unknown {
   }
 
   const resultArray =
-    "results" in simResult && Array.isArray((simResult as Record<string, unknown>).results)
+    "results" in simResult &&
+    Array.isArray((simResult as Record<string, unknown>).results)
       ? (simResult as Record<string, unknown>).results
       : simResult;
   if (!Array.isArray(resultArray) || resultArray.length === 0) {
@@ -79,16 +83,17 @@ function decodeFirstSimResult(simResult: unknown): unknown {
 export async function getContractBalance(
   contractName: string,
   userAddress: string,
-  network: NetworkType
+  network: NetworkType,
 ): Promise<string> {
   const contractAddr = getContractAddress(contractName, network);
   const simResult = await simulateContractCall(
     contractAddr,
     "balance",
     [userAddress],
-    network
+    network,
   );
-  const balance = decodeFirstSimResult(simResult) as unknown as bigint | number | string;
+  const balance = decodeFirstSimResult(simResult) as unknown as
+    bigint | number | string;
   return String(balance);
 }
 
@@ -97,7 +102,7 @@ export async function getContractBalance(
  */
 export async function readRewardBalance(
   userAddress: string,
-  network: NetworkType
+  network: NetworkType,
 ): Promise<string> {
   return getContractBalance("rewards", userAddress, network);
 }
@@ -109,14 +114,14 @@ export async function readRewardBalance(
  */
 export async function verifyCredentialOnChain(
   tokenId: string,
-  network: NetworkType
+  network: NetworkType,
 ): Promise<{ valid: boolean; owner?: string; issuedAt?: number }> {
   const contractAddr = getContractAddress("credentials", network);
   const simResult = await simulateContractCall(
     contractAddr,
     "verify",
     [tokenId],
-    network
+    network,
   );
   const decoded = decodeFirstSimResult(simResult);
   if (!decoded || typeof decoded !== "object") {
@@ -126,7 +131,8 @@ export async function verifyCredentialOnChain(
   return {
     valid: Boolean(record.valid ?? true),
     owner: typeof record.owner === "string" ? record.owner : undefined,
-    issuedAt: typeof record.issued_at === "number" ? record.issued_at : undefined,
+    issuedAt:
+      typeof record.issued_at === "number" ? record.issued_at : undefined,
   };
 }
 
@@ -142,14 +148,14 @@ export async function verifyCredentialOnChain(
 export async function getProgressOnChain(
   userAddress: string,
   courseId: string,
-  network: NetworkType
+  network: NetworkType,
 ): Promise<number> {
   const contractAddr = getContractAddress("credentials", network);
   const simResult = await simulateContractCall(
     contractAddr,
     "get_progress",
     [userAddress, courseId],
-    network
+    network,
   );
   const decoded = decodeFirstSimResult(simResult);
   const progress = Number(decoded);
@@ -162,7 +168,7 @@ export async function getProgressOnChain(
  */
 export async function claimRewardOnChain(
   xdr: string,
-  network: NetworkType
+  network: NetworkType,
 ): Promise<TransactionResult> {
   return signAndSubmitTransaction(xdr, network);
 }
@@ -172,14 +178,14 @@ export async function claimRewardOnChain(
  */
 export async function readCredentialMetadata(
   tokenId: string,
-  network: NetworkType
+  network: NetworkType,
 ): Promise<Record<string, unknown>> {
   const contractAddr = getContractAddress("credentials", network);
   const result = await simulateContractCall(
     contractAddr,
     "get_metadata",
     [tokenId],
-    network
+    network,
   );
   return result as Record<string, unknown>;
 }
@@ -189,7 +195,7 @@ export async function readCredentialMetadata(
  */
 export async function mintCredentialOnChain(
   xdr: string,
-  network: NetworkType
+  network: NetworkType,
 ): Promise<TransactionResult> {
   return signAndSubmitTransaction(xdr, network);
 }

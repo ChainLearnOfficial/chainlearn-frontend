@@ -6,12 +6,14 @@ interface PageProps {
   params: { credentialId: string };
 }
 
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: PageProps): Promise<Metadata> {
   const { credentialId } = params;
 
   try {
     const response = await apiClient.get<CredentialNFT>(
-      `/credentials/${credentialId}`
+      `/credentials/${credentialId}`,
     );
     const credential = response.data;
     const title = `${credential.courseTitle} - Credential`;

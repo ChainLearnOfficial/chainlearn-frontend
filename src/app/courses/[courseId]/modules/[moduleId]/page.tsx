@@ -30,7 +30,7 @@ export default function ModulePage({
   const { course } = useCourseDetail(courseId);
   const courseProgress = useCourseStore((s) => s.progress[courseId]);
   const enrollment = useCourseStore((s) =>
-    s.enrollments.find((item) => item.courseId === courseId)
+    s.enrollments.find((item) => item.courseId === courseId),
   );
   const { addToast } = useToastContext();
   const [completing, setCompleting] = useState(false);
@@ -41,8 +41,7 @@ export default function ModulePage({
     ? [...course.modules].sort((a, b) => a.order - b.order)
     : [];
   const currentIndex = sortedModules.findIndex((m) => m.id === moduleId);
-  const prevModule =
-    currentIndex > 0 ? sortedModules[currentIndex - 1] : null;
+  const prevModule = currentIndex > 0 ? sortedModules[currentIndex - 1] : null;
   const nextModule =
     currentIndex >= 0 && currentIndex < sortedModules.length - 1
       ? sortedModules[currentIndex + 1]
@@ -94,7 +93,10 @@ export default function ModulePage({
       {(courseProgress || enrollment) && (
         <div className="mb-6">
           <ProgressBar value={progressPercent} size="sm" />
-          <p className="mt-1 text-right text-xs text-gray-500" aria-live="polite">
+          <p
+            className="mt-1 text-right text-xs text-gray-500"
+            aria-live="polite"
+          >
             {progressPercent}% complete
           </p>
         </div>
@@ -106,13 +108,19 @@ export default function ModulePage({
           <h1 className="text-2xl font-bold text-gray-900 mb-2 dark:text-gray-100">
             {module.title}
           </h1>
-          <p className="text-gray-500 mb-6 dark:text-gray-400">{module.description}</p>
+          <p className="text-gray-500 mb-6 dark:text-gray-400">
+            {module.description}
+          </p>
 
           <div className="prose prose-gray max-w-none dark:prose-invert">
             {content.type === "video" ? (
               <div className="aspect-video w-full bg-black rounded-lg overflow-hidden flex items-center justify-center mb-6">
                 {content.url ? (
-                  <video src={content.url} controls className="w-full h-full object-cover" />
+                  <video
+                    src={content.url}
+                    controls
+                    className="w-full h-full object-cover"
+                  />
                 ) : (
                   <div className="text-gray-500 flex flex-col items-center">
                     <PlayCircle className="h-12 w-12 mb-2 opacity-50" />
@@ -123,17 +131,27 @@ export default function ModulePage({
             ) : content.type === "interactive" ? (
               <div className="p-8 border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-lg text-center mb-6">
                 <CheckCircle className="h-12 w-12 mx-auto text-blue-500 mb-4" />
-                <h3 className="text-lg font-semibold mb-2">Interactive Challenge</h3>
+                <h3 className="text-lg font-semibold mb-2">
+                  Interactive Challenge
+                </h3>
                 {content.instructions ? (
-                  <p className="text-gray-500 dark:text-gray-400">{content.instructions}</p>
+                  <p className="text-gray-500 dark:text-gray-400">
+                    {content.instructions}
+                  </p>
                 ) : (
                   <p className="text-gray-500 dark:text-gray-400">
-                    Complete challenge <span className="font-mono">{content.challengeId}</span>, then mark this module complete.
+                    Complete challenge{" "}
+                    <span className="font-mono">{content.challengeId}</span>,
+                    then mark this module complete.
                   </p>
                 )}
               </div>
             ) : (
-              <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(content.body) }} />
+              <div
+                dangerouslySetInnerHTML={{
+                  __html: DOMPurify.sanitize(content.body),
+                }}
+              />
             )}
           </div>
         </CardContent>
@@ -176,7 +194,11 @@ export default function ModulePage({
               </Link>
             )
           ) : (
-            <Button onClick={handleComplete} disabled={completing} className="gap-1">
+            <Button
+              onClick={handleComplete}
+              disabled={completing}
+              className="gap-1"
+            >
               {completing ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" />

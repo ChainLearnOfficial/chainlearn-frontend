@@ -217,7 +217,11 @@ export function RewardsSkeleton() {
 
 export function VerifySkeleton() {
   return (
-    <div className="mx-auto max-w-lg space-y-4 text-center" role="status" aria-busy="true">
+    <div
+      className="mx-auto max-w-lg space-y-4 text-center"
+      role="status"
+      aria-busy="true"
+    >
       <span className="sr-only">Verifying…</span>
       <SkeletonCircle className="mx-auto h-16 w-16" />
       <SkeletonText className="mx-auto h-6 w-2/3" />

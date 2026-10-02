@@ -25,16 +25,22 @@ export type BadgeVariant =
   | "advanced";
 
 const variants: Record<BadgeVariant, string> = {
-  default: "bg-primary-100 text-primary-700 dark:bg-primary-900/40 dark:text-primary-200",
+  default:
+    "bg-primary-100 text-primary-700 dark:bg-primary-900/40 dark:text-primary-200",
   secondary: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-200",
   destructive: "bg-red-100 text-red-700 dark:bg-red-950/60 dark:text-red-200",
-  outline: "border border-gray-300 bg-transparent text-gray-700 dark:border-gray-600 dark:text-gray-200",
-  success: "bg-green-100 text-green-700 dark:bg-green-950/60 dark:text-green-200",
-  warning: "bg-yellow-100 text-yellow-800 dark:bg-yellow-950/60 dark:text-yellow-200",
+  outline:
+    "border border-gray-300 bg-transparent text-gray-700 dark:border-gray-600 dark:text-gray-200",
+  success:
+    "bg-green-100 text-green-700 dark:bg-green-950/60 dark:text-green-200",
+  warning:
+    "bg-yellow-100 text-yellow-800 dark:bg-yellow-950/60 dark:text-yellow-200",
   // Difficulty levels, kept as named variants so call sites read as the domain
   // concept rather than a colour.
-  beginner: "bg-green-100 text-green-700 dark:bg-green-950/60 dark:text-green-200",
-  intermediate: "bg-yellow-100 text-yellow-800 dark:bg-yellow-950/60 dark:text-yellow-200",
+  beginner:
+    "bg-green-100 text-green-700 dark:bg-green-950/60 dark:text-green-200",
+  intermediate:
+    "bg-yellow-100 text-yellow-800 dark:bg-yellow-950/60 dark:text-yellow-200",
   advanced: "bg-red-100 text-red-700 dark:bg-red-950/60 dark:text-red-200",
 };
 
@@ -49,11 +55,11 @@ const Badge = React.forwardRef<HTMLSpanElement, BadgeProps>(
       className={cn(
         "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium",
         variants[variant],
-        className
+        className,
       )}
       {...props}
     />
-  )
+  ),
 );
 
 Badge.displayName = "Badge";

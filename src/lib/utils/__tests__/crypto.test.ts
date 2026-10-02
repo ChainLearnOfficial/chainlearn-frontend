@@ -4,7 +4,7 @@ import { sha256, hmacSign, verifySignature } from "../crypto";
 describe("sha256", () => {
   it("hashes a known string to its expected digest", async () => {
     expect(await sha256("hello")).toBe(
-      "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824"
+      "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824",
     );
   });
 
@@ -26,15 +26,13 @@ describe("hmacSign / verifySignature", () => {
   it("fails verification with a different secret", async () => {
     const signature = await hmacSign("payload", "secret");
     expect(await verifySignature("payload", signature, "wrong-secret")).toBe(
-      false
+      false,
     );
   });
 
   it("fails verification when the data is tampered with", async () => {
     const signature = await hmacSign("payload", "secret");
-    expect(await verifySignature("tampered", signature, "secret")).toBe(
-      false
-    );
+    expect(await verifySignature("tampered", signature, "secret")).toBe(false);
   });
 
   it("fails verification for a malformed signature", async () => {

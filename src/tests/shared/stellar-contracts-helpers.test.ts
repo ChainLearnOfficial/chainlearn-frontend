@@ -7,7 +7,8 @@ const signAndSubmitTransaction = vi.fn();
 
 vi.mock("@/lib/stellar/transactions", () => ({
   simulateContractCall: (...args: unknown[]) => simulateContractCall(...args),
-  signAndSubmitTransaction: (...args: unknown[]) => signAndSubmitTransaction(...args),
+  signAndSubmitTransaction: (...args: unknown[]) =>
+    signAndSubmitTransaction(...args),
 }));
 
 /**
@@ -137,7 +138,9 @@ describe("verifyCredentialOnChain (#359)", () => {
       }),
     );
 
-    await expect(verifyCredentialOnChain("token-1", "testnet")).resolves.toEqual({
+    await expect(
+      verifyCredentialOnChain("token-1", "testnet"),
+    ).resolves.toEqual({
       valid: true,
       owner: "GOWNER",
       issuedAt: 1700000000,
@@ -146,7 +149,9 @@ describe("verifyCredentialOnChain (#359)", () => {
 
   it("returns valid: false when the contract reports it false", async () => {
     const { verifyCredentialOnChain } = await import("@/lib/stellar/contracts");
-    simulateContractCall.mockResolvedValue(simResult({ valid: false, owner: "GOWNER" }));
+    simulateContractCall.mockResolvedValue(
+      simResult({ valid: false, owner: "GOWNER" }),
+    );
 
     await expect(
       verifyCredentialOnChain("token-1", "testnet"),
@@ -157,7 +162,9 @@ describe("verifyCredentialOnChain (#359)", () => {
     const { verifyCredentialOnChain } = await import("@/lib/stellar/contracts");
     simulateContractCall.mockResolvedValue(simResult(true));
 
-    await expect(verifyCredentialOnChain("token-1", "testnet")).resolves.toEqual({
+    await expect(
+      verifyCredentialOnChain("token-1", "testnet"),
+    ).resolves.toEqual({
       valid: false,
     });
   });
@@ -169,7 +176,10 @@ describe("verifyCredentialOnChain (#359)", () => {
     // the current behavior; it is not fixed by this test-only PR.
     const { verifyCredentialOnChain } = await import("@/lib/stellar/contracts");
     simulateContractCall.mockResolvedValue(
-      simResult({ owner: "GOWNER", issued_at: nativeToScVal(1, { type: "u32" }) }),
+      simResult({
+        owner: "GOWNER",
+        issued_at: nativeToScVal(1, { type: "u32" }),
+      }),
     );
 
     await expect(
@@ -271,8 +281,13 @@ describe("claimRewardOnChain / mintCredentialOnChain (#359)", () => {
     const txResult = { hash: "abc123", success: true };
     signAndSubmitTransaction.mockResolvedValue(txResult);
 
-    await expect(claimRewardOnChain("SIGNED_XDR", "testnet")).resolves.toBe(txResult);
-    expect(signAndSubmitTransaction).toHaveBeenCalledWith("SIGNED_XDR", "testnet");
+    await expect(claimRewardOnChain("SIGNED_XDR", "testnet")).resolves.toBe(
+      txResult,
+    );
+    expect(signAndSubmitTransaction).toHaveBeenCalledWith(
+      "SIGNED_XDR",
+      "testnet",
+    );
   });
 
   it("mintCredentialOnChain delegates to signAndSubmitTransaction and returns its result", async () => {
@@ -280,8 +295,13 @@ describe("claimRewardOnChain / mintCredentialOnChain (#359)", () => {
     const txResult = { hash: "def456", success: true };
     signAndSubmitTransaction.mockResolvedValue(txResult);
 
-    await expect(mintCredentialOnChain("SIGNED_XDR", "testnet")).resolves.toBe(txResult);
-    expect(signAndSubmitTransaction).toHaveBeenCalledWith("SIGNED_XDR", "testnet");
+    await expect(mintCredentialOnChain("SIGNED_XDR", "testnet")).resolves.toBe(
+      txResult,
+    );
+    expect(signAndSubmitTransaction).toHaveBeenCalledWith(
+      "SIGNED_XDR",
+      "testnet",
+    );
   });
 
   it("propagates a failed transaction result (not a throw) unchanged", async () => {
@@ -289,6 +309,8 @@ describe("claimRewardOnChain / mintCredentialOnChain (#359)", () => {
     const failure = { hash: "", success: false, error: "insufficient balance" };
     signAndSubmitTransaction.mockResolvedValue(failure);
 
-    await expect(claimRewardOnChain("SIGNED_XDR", "testnet")).resolves.toBe(failure);
+    await expect(claimRewardOnChain("SIGNED_XDR", "testnet")).resolves.toBe(
+      failure,
+    );
   });
 });

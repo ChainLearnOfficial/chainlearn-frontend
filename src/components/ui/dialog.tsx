@@ -50,15 +50,16 @@ const DialogOverlay = React.forwardRef<
     className={cn(
       "fixed inset-0 z-50 bg-black/50",
       "data-[state=open]:animate-overlay-in data-[state=closed]:animate-overlay-out",
-      className
+      className,
     )}
     {...props}
   />
 ));
 DialogOverlay.displayName = DialogPrimitive.Overlay.displayName;
 
-export interface DialogContentProps
-  extends React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content> {
+export interface DialogContentProps extends React.ComponentPropsWithoutRef<
+  typeof DialogPrimitive.Content
+> {
   /**
    * Hide the built-in close button. Only do this when the dialog provides its
    * own dismiss control — removing every close affordance strands keyboard and
@@ -80,7 +81,7 @@ const DialogContent = React.forwardRef<
         "rounded-xl border border-gray-200 bg-white p-6 shadow-lg",
         "focus:outline-none",
         "data-[state=open]:animate-content-in data-[state=closed]:animate-content-out",
-        className
+        className,
       )}
       {...props}
     >
@@ -91,7 +92,7 @@ const DialogContent = React.forwardRef<
             "absolute right-4 top-4 rounded-md p-1 text-gray-500 transition-colors",
             "hover:bg-gray-100 hover:text-gray-900",
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2",
-            "disabled:pointer-events-none"
+            "disabled:pointer-events-none",
           )}
         >
           <X className="h-4 w-4" aria-hidden="true" />
@@ -103,7 +104,10 @@ const DialogContent = React.forwardRef<
 ));
 DialogContent.displayName = DialogPrimitive.Content.displayName;
 
-function DialogHeader({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
+function DialogHeader({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div
       className={cn("flex flex-col space-y-1.5 text-left", className)}
@@ -113,12 +117,15 @@ function DialogHeader({ className, ...props }: React.HTMLAttributes<HTMLDivEleme
 }
 DialogHeader.displayName = "DialogHeader";
 
-function DialogFooter({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
+function DialogFooter({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div
       className={cn(
         "mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end",
-        className
+        className,
       )}
       {...props}
     />

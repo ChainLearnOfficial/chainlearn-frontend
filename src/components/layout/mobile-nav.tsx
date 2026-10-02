@@ -53,10 +53,14 @@ export function MobileNav() {
       <div className="border-b border-gray-200 px-4 py-3 dark:border-gray-800">
         <div className="flex items-center gap-2">
           <Avatar size="sm">
-            <AvatarFallback>{walletAddress ? getInitials(walletAddress) : "U"}</AvatarFallback>
+            <AvatarFallback>
+              {walletAddress ? getInitials(walletAddress) : "U"}
+            </AvatarFallback>
           </Avatar>
           <div className="min-w-0">
-            <p className="text-xs font-medium text-gray-900 dark:text-gray-100">Account</p>
+            <p className="text-xs font-medium text-gray-900 dark:text-gray-100">
+              Account
+            </p>
             <p className="truncate text-[10px] text-gray-500 dark:text-gray-400">
               {walletAddress ? truncateAddress(walletAddress) : "Not connected"}
             </p>
@@ -78,10 +82,13 @@ export function MobileNav() {
                 "flex h-14 w-14 flex-col items-center gap-0.5 rounded-lg text-[10px] font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 sm:h-16 sm:w-16 sm:text-xs",
                 isActive
                   ? "bg-stellar-purple/10 text-stellar-purple dark:bg-stellar-purple/20"
-                  : "text-gray-500 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-100"
+                  : "text-gray-500 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-100",
               )}
             >
-              <link.icon className="h-5 w-5 shrink-0 transition-transform duration-200" aria-hidden="true" />
+              <link.icon
+                className="h-5 w-5 shrink-0 transition-transform duration-200"
+                aria-hidden="true"
+              />
               <span className="max-sm:hidden">{link.label}</span>
             </Link>
           );

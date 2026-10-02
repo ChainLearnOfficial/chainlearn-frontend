@@ -27,8 +27,7 @@ const TableHeader = React.forwardRef<
 ));
 TableHeader.displayName = "TableHeader";
 
-export interface TableBodyProps
-  extends React.HTMLAttributes<HTMLTableSectionElement> {
+export interface TableBodyProps extends React.HTMLAttributes<HTMLTableSectionElement> {
   striped?: boolean;
 }
 
@@ -39,11 +38,11 @@ const TableBody = React.forwardRef<HTMLTableSectionElement, TableBodyProps>(
       className={cn(
         "[&_tr:last-child]:border-0",
         striped && "[&_tr:nth-child(even)]:bg-gray-50",
-        className
+        className,
       )}
       {...props}
     />
-  )
+  ),
 );
 TableBody.displayName = "TableBody";
 
@@ -53,10 +52,7 @@ const TableFooter = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <tfoot
     ref={ref}
-    className={cn(
-      "border-t border-gray-200 bg-gray-50 font-medium",
-      className
-    )}
+    className={cn("border-t border-gray-200 bg-gray-50 font-medium", className)}
     {...props}
   />
 ));
@@ -74,11 +70,11 @@ const TableRow = React.forwardRef<HTMLTableRowElement, TableRowProps>(
         "border-b border-gray-200 transition-colors",
         hoverable && "hover:bg-gray-50",
         "data-[state=selected]:bg-gray-100",
-        className
+        className,
       )}
       {...props}
     />
-  )
+  ),
 );
 TableRow.displayName = "TableRow";
 
@@ -91,7 +87,7 @@ const TableHead = React.forwardRef<
     className={cn(
       "h-11 px-4 text-left align-middle text-xs font-medium uppercase tracking-wide text-gray-500",
       "[&:has([role=checkbox])]:pr-0",
-      className
+      className,
     )}
     {...props}
   />
@@ -107,7 +103,7 @@ const TableCell = React.forwardRef<
     className={cn(
       "p-4 align-middle text-gray-700",
       "[&:has([role=checkbox])]:pr-0",
-      className
+      className,
     )}
     {...props}
   />

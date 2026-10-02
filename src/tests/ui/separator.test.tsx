@@ -33,7 +33,9 @@ describe("Separator", () => {
 
   it("merges custom className", () => {
     const { container } = render(<Separator className="my-class" />);
-    expect((container.firstChild as HTMLElement).className).toContain("my-class");
+    expect((container.firstChild as HTMLElement).className).toContain(
+      "my-class",
+    );
   });
 
   it("forwards ref", () => {

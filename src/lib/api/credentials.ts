@@ -28,14 +28,14 @@ import type { CredentialNFT, CredentialMetadata } from "@/types/stellar";
  */
 export async function getCredentials(
   jwt: string,
-  signal?: AbortSignal
+  signal?: AbortSignal,
 ): Promise<CredentialNFT[]> {
   const validToken = await getValidToken();
   const token = validToken || jwt;
   const response = await apiClient.get<CredentialNFT[]>(
     "/credentials",
     token,
-    signal
+    signal,
   );
   return response.data;
 }
@@ -46,12 +46,12 @@ export async function getCredentials(
 export async function getCredential(
   credentialId: string,
   jwt?: string,
-  signal?: AbortSignal
+  signal?: AbortSignal,
 ): Promise<CredentialNFT> {
   const response = await apiClient.get<CredentialNFT>(
     `/credentials/${credentialId}`,
     jwt,
-    signal
+    signal,
   );
   return response.data;
 }
@@ -69,13 +69,13 @@ export async function getCredential(
  */
 export async function verifyCredential(
   credentialId: string,
-  signal?: AbortSignal
+  signal?: AbortSignal,
 ): Promise<VerifyCredentialResult> {
   try {
     const response = await apiClient.get<VerifyCredentialResult>(
       `/credentials/verify/${credentialId}`,
       undefined,
-      signal
+      signal,
     );
     return response.data;
   } catch (err) {
@@ -92,7 +92,7 @@ export async function verifyCredential(
 export async function mintCredential(
   courseId: string,
   jwt: string,
-  signal?: AbortSignal
+  signal?: AbortSignal,
 ): Promise<CredentialNFT> {
   const validToken = await getValidToken();
   const token = validToken || jwt;
@@ -100,7 +100,7 @@ export async function mintCredential(
     "/credentials/mint",
     { courseId },
     token,
-    signal
+    signal,
   );
   return response.data;
 }

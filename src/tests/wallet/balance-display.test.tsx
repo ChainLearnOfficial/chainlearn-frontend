@@ -49,7 +49,7 @@ describe("BalanceDisplay", () => {
     render(<BalanceDisplay />);
     // 5 LEARN * $0.15 = $0.75
     const matches = screen.getAllByText((_, el) =>
-      (el?.textContent ?? "").includes("≈ $0.75")
+      (el?.textContent ?? "").includes("≈ $0.75"),
     );
     expect(matches.length).toBeGreaterThan(0);
   });

@@ -24,7 +24,9 @@ describe("ConnectButton", () => {
 
   it("shows 'Connect Wallet' when unauthenticated", () => {
     render(<ConnectButton />);
-    expect(screen.getByRole("button", { name: /connect wallet/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /connect wallet/i }),
+    ).toBeInTheDocument();
   });
 
   it("calls connectWallet when clicked and unauthenticated", async () => {

@@ -42,7 +42,7 @@ export const CourseProgressCard = memo(function CourseProgressCard({
     <Card
       className={cn(
         "flex h-full flex-col transition-shadow hover:shadow-md",
-        className
+        className,
       )}
     >
       <CardContent className="flex flex-1 flex-col p-4">

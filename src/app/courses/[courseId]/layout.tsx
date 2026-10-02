@@ -6,7 +6,9 @@ interface PageProps {
   params: { courseId: string };
 }
 
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: PageProps): Promise<Metadata> {
   const { courseId } = params;
 
   try {

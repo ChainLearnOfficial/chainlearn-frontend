@@ -48,7 +48,7 @@ function RankCell({ rank, compact }: { rank: number; compact: boolean }) {
       <span
         className={cn(
           "font-mono font-medium text-gray-500 dark:text-gray-400",
-          compact ? "text-xs" : "text-sm"
+          compact ? "text-xs" : "text-sm",
         )}
       >
         {rank}
@@ -60,7 +60,7 @@ function RankCell({ rank, compact }: { rank: number; compact: boolean }) {
     <span
       className={cn(
         "inline-flex h-6 w-6 items-center justify-center rounded-full font-medium text-xs",
-        styles
+        styles,
       )}
       aria-label={`Rank ${rank}`}
     >
@@ -82,10 +82,7 @@ export const LeaderboardTable = memo(function LeaderboardTable({
 }: LeaderboardTableProps) {
   return (
     <Table
-      className={cn(
-        compact && "[&_td]:p-3 [&_th]:px-3 [&_th]:py-2",
-        className
-      )}
+      className={cn(compact && "[&_td]:p-3 [&_th]:px-3 [&_th]:py-2", className)}
       aria-label="Leaderboard"
     >
       <TableHeader>
@@ -105,7 +102,7 @@ export const LeaderboardTable = memo(function LeaderboardTable({
               hoverable
               className={cn(
                 isCurrent &&
-                  "bg-primary-50 dark:bg-primary-950/40 hover:bg-primary-100/70 dark:hover:bg-primary-900/40"
+                  "bg-primary-50 dark:bg-primary-950/40 hover:bg-primary-100/70 dark:hover:bg-primary-900/40",
               )}
             >
               <TableCell className={cn(compact && "py-2.5")}>
@@ -128,10 +125,7 @@ export const LeaderboardTable = memo(function LeaderboardTable({
                     {entry.name}
                   </span>
                   {isCurrent && (
-                    <Badge
-                      variant="default"
-                      className="hidden sm:inline-flex"
-                    >
+                    <Badge variant="default" className="hidden sm:inline-flex">
                       You
                     </Badge>
                   )}
@@ -140,7 +134,7 @@ export const LeaderboardTable = memo(function LeaderboardTable({
               <TableCell
                 className={cn(
                   "text-right text-sm font-semibold tabular-nums",
-                  compact && "py-2.5"
+                  compact && "py-2.5",
                 )}
               >
                 {formatNumber(entry.score)}

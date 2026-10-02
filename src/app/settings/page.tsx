@@ -10,7 +10,13 @@ import { getProfile, updateProfile } from "@/lib/api/auth";
 import { AvatarUpload } from "@/components/shared/avatar-upload";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
   Select,
@@ -19,7 +25,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Loader2, Save, Laptop, Smartphone, Globe, Trash2, ShieldCheck } from "lucide-react";
+import {
+  Loader2,
+  Save,
+  Laptop,
+  Smartphone,
+  Globe,
+  Trash2,
+  ShieldCheck,
+} from "lucide-react";
 
 const PACE_OPTIONS = [
   { value: "slow", label: "Slow — take my time" },
@@ -44,7 +58,12 @@ export default function SettingsPage() {
   const { jwt, isAuthenticated, walletAddress } = useAuth();
   const { addToast } = useToastContext();
   const router = useRouter();
-  const { sessions, loading: loadingSessions, revokingId, revoke } = useSessions();
+  const {
+    sessions,
+    loading: loadingSessions,
+    revokingId,
+    revoke,
+  } = useSessions();
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -202,7 +221,10 @@ export default function SettingsPage() {
             <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
               Learning Pace
             </label>
-            <Select value={pace} onValueChange={(v) => setPace(v as typeof pace)}>
+            <Select
+              value={pace}
+              onValueChange={(v) => setPace(v as typeof pace)}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Select pace" />
               </SelectTrigger>

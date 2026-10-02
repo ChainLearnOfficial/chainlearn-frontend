@@ -19,7 +19,7 @@ export default async function Image({ params }: ImageProps) {
   try {
     const response = await fetch(
       `${API_URL}/credentials/${credentialId}/verify`,
-      { next: { revalidate: 3600 } }
+      { next: { revalidate: 3600 } },
     );
     if (response.ok) {
       const payload = (await response.json()) as {

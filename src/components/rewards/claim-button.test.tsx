@@ -11,9 +11,11 @@ describe("ClaimButton", () => {
         amount="25"
         sourceTitle="Quiz"
         onClaim={vi.fn()}
-      />
+      />,
     );
-    expect(screen.getByRole("button", { name: /Claim 25 LEARN/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /Claim 25 LEARN/i }),
+    ).toBeInTheDocument();
   });
 
   it("calls onClaim and shows claimed state", async () => {
@@ -26,7 +28,7 @@ describe("ClaimButton", () => {
         amount="25"
         sourceTitle="Quiz"
         onClaim={onClaim}
-      />
+      />,
     );
 
     await user.click(screen.getByRole("button", { name: /Claim 25 LEARN/i }));
@@ -44,7 +46,7 @@ describe("ClaimButton", () => {
       () =>
         new Promise<void>((resolve) => {
           resolveClaim = resolve;
-        })
+        }),
     );
 
     render(
@@ -53,7 +55,7 @@ describe("ClaimButton", () => {
         amount="10"
         sourceTitle="Course"
         onClaim={onClaim}
-      />
+      />,
     );
 
     await user.click(screen.getByRole("button"));

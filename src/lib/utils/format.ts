@@ -17,7 +17,7 @@ export function formatAddress(address: string, chars = 4): string {
 export function formatTokenBalance(
   balance: string | number,
   decimals = 7,
-  displayDecimals = 2
+  displayDecimals = 2,
 ): string {
   const num = typeof balance === "string" ? parseFloat(balance) : balance;
   if (isNaN(num)) return "0";
@@ -35,7 +35,7 @@ export function formatTokenAmount(
     locale?: string;
     minimumFractionDigits?: number;
     maximumFractionDigits?: number;
-  }
+  },
 ): string {
   const value = typeof amount === "string" ? Number(amount) : amount;
   if (!Number.isFinite(value)) return "";
@@ -53,7 +53,7 @@ export function formatTokenAmount(
  */
 export function formatDate(
   date: string | number | Date,
-  options?: { timeZone?: string; locale?: string }
+  options?: { timeZone?: string; locale?: string },
 ): string {
   const d = date instanceof Date ? date : new Date(date);
   if (isNaN(d.getTime())) return "";
@@ -71,7 +71,7 @@ export function formatDate(
  */
 export function formatDateTime(
   date: string | number | Date,
-  options?: { timeZone?: string; locale?: string }
+  options?: { timeZone?: string; locale?: string },
 ): string {
   const d = date instanceof Date ? date : new Date(date);
   if (isNaN(d.getTime())) return "";
@@ -91,7 +91,7 @@ export function formatDateTime(
  */
 export function formatRelativeTime(
   date: string | number | Date,
-  options?: { locale?: string; timeZone?: string }
+  options?: { locale?: string; timeZone?: string },
 ): string {
   const d = date instanceof Date ? date : new Date(date);
   if (isNaN(d.getTime())) return "";
@@ -145,7 +145,7 @@ export function formatDuration(minutes: number): string {
  */
 export function formatNumber(
   num: number,
-  options?: { locale?: string; maximumFractionDigits?: number }
+  options?: { locale?: string; maximumFractionDigits?: number },
 ): string {
   if (!isFinite(num)) return "";
   return num.toLocaleString(options?.locale ?? "en-US", {
@@ -158,7 +158,7 @@ export function formatNumber(
  */
 export function formatCompactNumber(
   num: number,
-  options?: { locale?: string; maximumFractionDigits?: number }
+  options?: { locale?: string; maximumFractionDigits?: number },
 ): string {
   if (!isFinite(num)) return "";
   return new Intl.NumberFormat(options?.locale ?? "en-US", {
@@ -169,7 +169,7 @@ export function formatCompactNumber(
 
 export function formatLargeNumber(
   num: number,
-  options?: { locale?: string; maximumFractionDigits?: number }
+  options?: { locale?: string; maximumFractionDigits?: number },
 ): string {
   return formatCompactNumber(num, options);
 }
@@ -180,7 +180,11 @@ export function formatLargeNumber(
  */
 export function formatPercent(
   value: number,
-  options?: { locale?: string; maximumFractionDigits?: number; isPercentValue?: boolean }
+  options?: {
+    locale?: string;
+    maximumFractionDigits?: number;
+    isPercentValue?: boolean;
+  },
 ): string {
   if (!isFinite(value)) return "";
   const ratio = options?.isPercentValue ? value / 100 : value;
@@ -196,7 +200,7 @@ export function formatPercentage(
     locale?: string;
     maximumFractionDigits?: number;
     isPercentValue?: boolean;
-  }
+  },
 ): string {
   if (!Number.isFinite(value)) return "";
   return formatPercent(value, options);
@@ -213,7 +217,11 @@ export function capitalize(str: string): string {
 /**
  * Truncate text to a maximum length, appending an ellipsis when truncated.
  */
-export function truncate(text: string, maxLength: number, suffix = "..."): string {
+export function truncate(
+  text: string,
+  maxLength: number,
+  suffix = "...",
+): string {
   if (!text) return "";
   if (!Number.isFinite(maxLength) || maxLength <= 0) return "";
   if (text.length <= maxLength) return text;
@@ -229,8 +237,12 @@ export function truncate(text: string, maxLength: number, suffix = "..."): strin
  * pluralize(3, "item") -> "3 items". Accepts an optional explicit plural form
  * for irregular words.
  */
-export function pluralize(count: number, singular: string, plural?: string): string {
-  const word = count === 1 ? singular : plural ?? `${singular}s`;
+export function pluralize(
+  count: number,
+  singular: string,
+  plural?: string,
+): string {
+  const word = count === 1 ? singular : (plural ?? `${singular}s`);
   return `${formatNumber(count)} ${word}`;
 }
 
@@ -252,7 +264,10 @@ export function slugify(text: string): string {
 /**
  * Format a numeric value as USD currency, e.g. formatUSD(1234.5) -> "$1,234.50".
  */
-export function formatUSD(value: number, options?: { locale?: string }): string {
+export function formatUSD(
+  value: number,
+  options?: { locale?: string },
+): string {
   return formatCurrency(value, "USD", options);
 }
 
@@ -262,7 +277,11 @@ export function formatUSD(value: number, options?: { locale?: string }): string 
 export function formatCurrency(
   value: number,
   currency = "USD",
-  options?: { locale?: string; minimumFractionDigits?: number; maximumFractionDigits?: number }
+  options?: {
+    locale?: string;
+    minimumFractionDigits?: number;
+    maximumFractionDigits?: number;
+  },
 ): string {
   if (!isFinite(value)) return "";
   return new Intl.NumberFormat(options?.locale ?? "en-US", {
@@ -277,7 +296,11 @@ export function formatCurrency(
  * Format a price value, using more decimal places for very small amounts
  * (e.g. sub-cent token prices) and standard currency formatting otherwise.
  */
-export function formatPrice(value: number, currency = "USD", options?: { locale?: string }): string {
+export function formatPrice(
+  value: number,
+  currency = "USD",
+  options?: { locale?: string },
+): string {
   if (!isFinite(value)) return "";
   if (value > 0 && value < 0.01) {
     return formatCurrency(value, currency, {

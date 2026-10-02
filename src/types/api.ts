@@ -19,7 +19,7 @@ export interface ApiErrorResponse {
   details?: unknown;
 }
 
-export interface RequestConfig extends Omit<RequestInit, 'body'> {
+export interface RequestConfig extends Omit<RequestInit, "body"> {
   body?: unknown;
   timeout?: number;
   params?: Record<string, string | number | boolean | undefined>;

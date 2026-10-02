@@ -1,6 +1,9 @@
 import { beforeEach, describe, it, expect, vi } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
-import { WalletProvider, useWalletContext } from "@/components/wallet/wallet-provider";
+import {
+  WalletProvider,
+  useWalletContext,
+} from "@/components/wallet/wallet-provider";
 
 const mocks = vi.hoisted(() => ({
   getWalletAddress: vi.fn(),
@@ -42,7 +45,7 @@ describe("WalletProvider", () => {
     render(
       <WalletProvider>
         <p>child content</p>
-      </WalletProvider>
+      </WalletProvider>,
     );
     expect(screen.getByText("child content")).toBeInTheDocument();
   });
@@ -51,7 +54,7 @@ describe("WalletProvider", () => {
     render(
       <WalletProvider>
         <ContextProbe />
-      </WalletProvider>
+      </WalletProvider>,
     );
     expect(screen.getByTestId("ready").textContent).toBe("true");
   });
@@ -63,7 +66,7 @@ describe("WalletProvider", () => {
     render(
       <WalletProvider>
         <span>child</span>
-      </WalletProvider>
+      </WalletProvider>,
     );
 
     await waitFor(() => {

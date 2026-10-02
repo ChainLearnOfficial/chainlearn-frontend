@@ -3,7 +3,15 @@
 import { useAuth } from "@/lib/hooks/use-auth";
 import { useAuthStore } from "@/store/auth-store";
 import { Button } from "@/components/ui/button";
-import { Wallet, LogOut, Loader2, Copy, Check, Globe, RefreshCw } from "lucide-react";
+import {
+  Wallet,
+  LogOut,
+  Loader2,
+  Copy,
+  Check,
+  Globe,
+  RefreshCw,
+} from "lucide-react";
 import { truncateAddress } from "@/lib/utils/format";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { useState, useRef, useEffect, useCallback } from "react";
@@ -39,7 +47,10 @@ export function ConnectButton() {
     if (!showDropdown) return;
 
     const handleClickOutside = (e: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(e.target as Node)
+      ) {
         closeDropdown();
       }
     };
@@ -120,9 +131,16 @@ export function ConnectButton() {
             role="menu"
           >
             <div className="px-3 py-2 border-b border-gray-100 dark:border-gray-800">
-              <div className="text-xs text-gray-400 font-medium">Connected Wallet</div>
+              <div className="text-xs text-gray-400 font-medium">
+                Connected Wallet
+              </div>
               <div className="text-sm font-semibold text-gray-800 dark:text-gray-200 flex items-center justify-between">
-                <span>{walletProviderId ? WALLET_LABELS[walletProviderId] : "Wallet"} Wallet</span>
+                <span>
+                  {walletProviderId
+                    ? WALLET_LABELS[walletProviderId]
+                    : "Wallet"}{" "}
+                  Wallet
+                </span>
                 <span className="text-[10px] text-green-600 bg-green-50 px-1.5 py-0.5 rounded font-mono font-bold">
                   ACTIVE
                 </span>

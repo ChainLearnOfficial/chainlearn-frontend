@@ -26,7 +26,7 @@ export interface UseIntervalOptions {
 export function useInterval(
   callback: () => void | Promise<void>,
   delay: number | null,
-  options: UseIntervalOptions = {}
+  options: UseIntervalOptions = {},
 ): void {
   const { immediate = false, skipWhilePending = true } = options;
   const callbackRef = useRef(callback);

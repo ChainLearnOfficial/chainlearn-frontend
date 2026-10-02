@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useCourses, useInfiniteCourses } from "@/lib/hooks/use-courses";
+import { useEnrollments, useInfiniteCourses } from "@/lib/hooks/use-courses";
 import { useDebounce } from "@/lib/hooks/use-debounce";
 import { useCourseStore } from "@/store/course-store";
 import { CourseCard } from "@/components/course/course-card";
@@ -29,26 +29,19 @@ const categories = [
 const difficulties = ["All", "Beginner", "Intermediate", "Advanced"];
 
 export default function CoursesPage() {
-  const { enrollments } = useCourses();
+  const { enrollments } = useEnrollments();
   const progress = useCourseStore((s) => s.progress);
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, 300);
   const [category, setCategory] = useState("All");
   const [difficulty, setDifficulty] = useState("All");
 
-  const {
-    courses,
-    hasMore,
-    loading,
-    loadingMore,
-    error,
-    loadMore,
-    total,
-  } = useInfiniteCourses({ category, difficulty });
+  const { courses, hasMore, loading, loadingMore, error, loadMore, total } =
+    useInfiniteCourses({ category, difficulty });
 
   const enrolledIds = useMemo(
     () => new Set(enrollments.map((e) => e.courseId)),
-    [enrollments]
+    [enrollments],
   );
 
   const filtered = useMemo(() => {
@@ -57,7 +50,7 @@ export default function CoursesPage() {
     return courses.filter(
       (course) =>
         course.title.toLowerCase().includes(query) ||
-        course.description.toLowerCase().includes(query)
+        course.description.toLowerCase().includes(query),
     );
   }, [courses, debouncedSearch]);
 
@@ -73,7 +66,7 @@ export default function CoursesPage() {
           loadMore();
         }
       },
-      { rootMargin: "200px" }
+      { rootMargin: "200px" },
     );
     observer.observe(node);
     return () => observer.disconnect();
@@ -88,7 +81,9 @@ export default function CoursesPage() {
         </h1>
         <p className="text-gray-500 mt-1 dark:text-gray-400">
           Browse courses and start earning tokens and credentials.
-          {!loading && total > 0 && ` ${total} course${total !== 1 ? 's' : ''} available.`}
+          {!loading &&
+            total > 0 &&
+            ` ${total} course${total !== 1 ? "s" : ""} available.`}
         </p>
       </div>
 
@@ -131,7 +126,7 @@ export default function CoursesPage() {
                     "rounded-full px-3 py-1 text-xs font-medium transition-colors",
                     category === cat
                       ? "bg-primary-100 text-primary-700 dark:bg-primary-900/40 dark:text-primary-300"
-                      : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+                      : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700",
                   )}
                 >
                   {cat}
@@ -172,7 +167,11 @@ export default function CoursesPage() {
         </div>
       ) : error ? (
         <div className="text-center py-16">
-          <p role="alert" aria-live="polite" className="text-gray-500 dark:text-gray-400">
+          <p
+            role="alert"
+            aria-live="polite"
+            className="text-gray-500 dark:text-gray-400"
+          >
             {error}
           </p>
           <Button

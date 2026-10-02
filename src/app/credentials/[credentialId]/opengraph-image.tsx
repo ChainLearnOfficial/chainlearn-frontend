@@ -14,7 +14,8 @@ interface ImageProps {
 export default async function Image({ params }: ImageProps) {
   const { credentialId } = params;
   let title = "Credential on ChainLearn";
-  let description = "On-chain verifiable credential issued on the Stellar network.";
+  let description =
+    "On-chain verifiable credential issued on the Stellar network.";
 
   try {
     const response = await fetch(`${API_URL}/credentials/${credentialId}`, {

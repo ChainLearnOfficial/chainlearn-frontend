@@ -11,12 +11,22 @@ describe("Toast", () => {
 
   it("applies success and error variants", () => {
     const { rerender, container } = render(
-      <Toast message="Saved" variant="success" onClose={vi.fn()} autoClose={0} />
+      <Toast
+        message="Saved"
+        variant="success"
+        onClose={vi.fn()}
+        autoClose={0}
+      />,
     );
     expect(container.firstChild).toHaveClass("bg-green-50");
 
     rerender(
-      <Toast message="Failed" variant="error" onClose={vi.fn()} autoClose={0} />
+      <Toast
+        message="Failed"
+        variant="error"
+        onClose={vi.fn()}
+        autoClose={0}
+      />,
     );
     expect(container.firstChild).toHaveClass("bg-red-50");
   });

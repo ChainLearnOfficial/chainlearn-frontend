@@ -3,7 +3,13 @@
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/hooks/use-auth";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { Wallet, Shield, Loader2, AlertCircle } from "lucide-react";
 import { isFreighterInstalled } from "@/lib/stellar/wallet";
 import { useEffect, useRef, useState } from "react";
@@ -26,7 +32,7 @@ export default function ConnectPage() {
   } = useAuth();
   const { addToast } = useToastContext();
   const [freighterInstalled, setFreighterInstalled] = useState<boolean | null>(
-    null
+    null,
   );
   const connectingFromPage = useRef(false);
 
@@ -80,7 +86,8 @@ export default function ConnectPage() {
       router.replace(profile?.displayName ? "/dashboard" : "/onboarding");
     } catch (err) {
       connectingFromPage.current = false;
-      const errorMessage = err instanceof Error ? err.message : "Failed to fetch profile";
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to fetch profile";
       addToast(`Error: ${errorMessage}`, "error");
     }
   };

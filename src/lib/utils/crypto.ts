@@ -46,18 +46,23 @@ function hexToBuffer(hex: string): ArrayBuffer {
  * Compute the SHA-256 digest of the given data, returned as a lowercase hex
  * string.
  */
-export async function sha256(data: string | ArrayBuffer | Uint8Array): Promise<string> {
+export async function sha256(
+  data: string | ArrayBuffer | Uint8Array,
+): Promise<string> {
   const digest = await getSubtle().digest("SHA-256", toArrayBuffer(data));
   return bufferToHex(digest);
 }
 
-async function importHmacKey(secret: string, usages: KeyUsage[]): Promise<CryptoKey> {
+async function importHmacKey(
+  secret: string,
+  usages: KeyUsage[],
+): Promise<CryptoKey> {
   return getSubtle().importKey(
     "raw",
     toArrayBuffer(secret),
     { name: "HMAC", hash: "SHA-256" },
     false,
-    usages
+    usages,
   );
 }
 
@@ -79,11 +84,16 @@ export async function hmacSign(data: string, secret: string): Promise<string> {
 export async function verifySignature(
   data: string,
   signature: string,
-  secret: string
+  secret: string,
 ): Promise<boolean> {
   try {
     const key = await importHmacKey(secret, ["verify"]);
-    return await getSubtle().verify("HMAC", key, hexToBuffer(signature), toArrayBuffer(data));
+    return await getSubtle().verify(
+      "HMAC",
+      key,
+      hexToBuffer(signature),
+      toArrayBuffer(data),
+    );
   } catch {
     return false;
   }

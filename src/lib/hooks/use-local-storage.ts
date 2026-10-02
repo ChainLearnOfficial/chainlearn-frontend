@@ -4,19 +4,19 @@ import { useEffect, useState, useCallback } from "react";
 
 /**
  * Custom hook for syncing state with localStorage.
- * 
+ *
  * - Handles SSR: returns initial value on server, syncs on client mount
  * - JSON serialization: automatically serializes/deserializes values
  * - Cross-tab sync: listens to storage events from other tabs
  * - Cleanup: removes listener on unmount
- * 
+ *
  * @param key - localStorage key
  * @param initialValue - default value if key doesn't exist
  * @returns [value, setValue] similar to useState
  */
 export function useLocalStorage<T>(
   key: string,
-  initialValue: T
+  initialValue: T,
 ): [T, (value: T | ((val: T) => T)) => void] {
   // State to store value
   const [storedValue, setStoredValue] = useState<T>(initialValue);
@@ -26,7 +26,8 @@ export function useLocalStorage<T>(
   const setValue = useCallback(
     (value: T | ((val: T) => T)) => {
       try {
-        const valueToStore = value instanceof Function ? value(storedValue) : value;
+        const valueToStore =
+          value instanceof Function ? value(storedValue) : value;
         setStoredValue(valueToStore);
 
         // Save to localStorage
@@ -37,7 +38,7 @@ export function useLocalStorage<T>(
         console.error(`useLocalStorage error for key "${key}":`, error);
       }
     },
-    [key, storedValue]
+    [key, storedValue],
   );
 
   // Initialize from localStorage on mount

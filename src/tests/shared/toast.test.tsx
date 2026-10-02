@@ -64,7 +64,9 @@ describe("Toast", () => {
         action={{ label: "View Transaction", onClick: onAction }}
       />,
     );
-    await userEvent.click(screen.getByRole("button", { name: "View Transaction" }));
+    await userEvent.click(
+      screen.getByRole("button", { name: "View Transaction" }),
+    );
     expect(onAction).toHaveBeenCalledTimes(1);
   });
 

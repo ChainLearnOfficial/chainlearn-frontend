@@ -16,14 +16,10 @@ import type { QuizAttempt } from "@/types/quiz";
 const QuizInterface = lazy(() =>
   import("@/components/course/quiz-interface").then((m) => ({
     default: m.QuizInterface,
-  }))
+  })),
 );
 
-export default function QuizPage({
-  params,
-}: {
-  params: { courseId: string };
-}) {
+export default function QuizPage({ params }: { params: { courseId: string } }) {
   const { courseId } = params;
   const jwt = useAuthStore((s) => s.jwt);
   const { quiz, loading, error } = useQuiz(courseId);
@@ -49,18 +45,22 @@ export default function QuizPage({
     }
   };
 
-  const handleSubmit = async (answers: Record<string, string>): Promise<QuizAttempt> => {
+  const handleSubmit = async (
+    answers: Record<string, string>,
+  ): Promise<QuizAttempt> => {
     if (!quiz || !jwt) throw new Error("Not ready");
     try {
       const result = await submitQuiz(
         {
           quizId: quiz.id,
-          answers: Object.entries(answers).map(([questionId, selectedOptionId]) => ({
-            questionId,
-            selectedOptionId,
-          })),
+          answers: Object.entries(answers).map(
+            ([questionId, selectedOptionId]) => ({
+              questionId,
+              selectedOptionId,
+            }),
+          ),
         },
-        jwt
+        jwt,
       );
       addToast("Quiz submitted successfully!", "success");
       return result;
@@ -85,12 +85,18 @@ export default function QuizPage({
   if (error || !quiz) {
     return (
       <div className="mx-auto max-w-2xl px-4 py-16 text-center">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">Quiz Not Found</h2>
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+          Quiz Not Found
+        </h2>
         <p className="text-gray-500 mb-6">
           There is no quiz generated for this course yet.
         </p>
         <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
-          <Button onClick={handleGenerate} disabled={generating} className="gap-2">
+          <Button
+            onClick={handleGenerate}
+            disabled={generating}
+            className="gap-2"
+          >
             {generating ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -101,9 +107,7 @@ export default function QuizPage({
             )}
           </Button>
           <Link href={`/courses/${courseId}`}>
-            <Button variant="outline">
-              Back to Course
-            </Button>
+            <Button variant="outline">Back to Course</Button>
           </Link>
         </div>
       </div>

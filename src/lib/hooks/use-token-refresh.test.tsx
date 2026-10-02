@@ -14,12 +14,18 @@ import {
 vi.hoisted(() => {
   const map = new Map<string, string>();
   const storage = {
-    get length() { return map.size; },
+    get length() {
+      return map.size;
+    },
     clear: () => map.clear(),
     getItem: (key: string) => map.get(key) ?? null,
     key: (index: number) => Array.from(map.keys())[index] ?? null,
-    removeItem: (key: string) => { map.delete(key); },
-    setItem: (key: string, value: string) => { map.set(key, value); },
+    removeItem: (key: string) => {
+      map.delete(key);
+    },
+    setItem: (key: string, value: string) => {
+      map.set(key, value);
+    },
   };
   Object.defineProperty(globalThis, "localStorage", {
     value: storage,
@@ -37,13 +43,17 @@ const HOUR = 60 * 60 * 1000;
 const NOW = Date.parse("2026-01-01T12:00:00.000Z");
 
 /** Seed an authenticated session whose token expires `msFromNow` from now. */
-function signIn(msFromNow: number, opts: { refreshToken?: string | null } = {}) {
+function signIn(
+  msFromNow: number,
+  opts: { refreshToken?: string | null } = {},
+) {
   const jwt = makeJwt({ sub: "GABC", exp: (NOW + msFromNow) / 1000 });
   act(() => {
     useAuthStore.setState({
       walletAddress: "GABC",
       jwt,
-      refreshToken: opts.refreshToken === undefined ? "refresh-1" : opts.refreshToken,
+      refreshToken:
+        opts.refreshToken === undefined ? "refresh-1" : opts.refreshToken,
       isAuthenticated: true,
       hasHydrated: true,
       tokenExpiresAt: NOW + msFromNow,
@@ -118,9 +128,11 @@ describe("useTokenRefresh", () => {
 
     renderHook(() => useTokenRefresh());
 
-    await waitFor(() => expect(refreshTokenMock).toHaveBeenCalledWith("refresh-1"));
     await waitFor(() =>
-      expect(useAuthStore.getState().refreshToken).toBe("refresh-2")
+      expect(refreshTokenMock).toHaveBeenCalledWith("refresh-1"),
+    );
+    await waitFor(() =>
+      expect(useAuthStore.getState().refreshToken).toBe("refresh-2"),
     );
     expect(useAuthStore.getState().isAuthenticated).toBe(true);
   });
@@ -172,7 +184,7 @@ describe("useTokenRefresh", () => {
     // The endpoint would reject it, so re-authentication is the only path.
     expect(refreshTokenMock).not.toHaveBeenCalled();
     await waitFor(() =>
-      expect(useAuthStore.getState().isAuthenticated).toBe(false)
+      expect(useAuthStore.getState().isAuthenticated).toBe(false),
     );
     expect(onSessionExpired).toHaveBeenCalledTimes(1);
     expect(useAuthStore.getState().error).toMatch(/session expired/i);
@@ -214,7 +226,7 @@ describe("useTokenRefresh", () => {
     renderHook(() => useTokenRefresh({ onSessionExpired }));
 
     await waitFor(() =>
-      expect(useAuthStore.getState().isAuthenticated).toBe(false)
+      expect(useAuthStore.getState().isAuthenticated).toBe(false),
     );
     expect(onSessionExpired).toHaveBeenCalledTimes(1);
     expect(useAuthStore.getState().jwt).toBeNull();
@@ -244,7 +256,10 @@ describe("useTokenRefresh", () => {
     signIn(30 * 60 * 1000);
     let release: (value: unknown) => void = () => {};
     refreshTokenMock.mockImplementation(
-      () => new Promise((resolve) => { release = resolve; })
+      () =>
+        new Promise((resolve) => {
+          release = resolve;
+        }),
     );
 
     const { result } = renderHook(() => useTokenRefresh());
@@ -303,7 +318,11 @@ describe("useTokenRefresh", () => {
 
   it("refreshNow resolves false with no session", async () => {
     act(() => {
-      useAuthStore.setState({ hasHydrated: true, isAuthenticated: false, jwt: null });
+      useAuthStore.setState({
+        hasHydrated: true,
+        isAuthenticated: false,
+        jwt: null,
+      });
     });
 
     const { result } = renderHook(() => useTokenRefresh());

@@ -9,9 +9,7 @@ import { cn } from "@/lib/utils/cn";
 const Breadcrumb = React.forwardRef<
   HTMLElement,
   React.ComponentPropsWithoutRef<"nav">
->(({ ...props }, ref) => (
-  <nav ref={ref} aria-label="breadcrumb" {...props} />
-));
+>(({ ...props }, ref) => <nav ref={ref} aria-label="breadcrumb" {...props} />);
 Breadcrumb.displayName = "Breadcrumb";
 
 const BreadcrumbList = React.forwardRef<
@@ -22,7 +20,7 @@ const BreadcrumbList = React.forwardRef<
     ref={ref}
     className={cn(
       "flex flex-wrap items-center gap-1.5 text-sm text-gray-500 sm:gap-2.5",
-      className
+      className,
     )}
     {...props}
   />
@@ -48,10 +46,7 @@ const BreadcrumbLink = React.forwardRef<
   <Link
     ref={ref}
     href={href}
-    className={cn(
-      "transition-colors hover:text-gray-900",
-      className
-    )}
+    className={cn("transition-colors hover:text-gray-900", className)}
     {...props}
   />
 ));
