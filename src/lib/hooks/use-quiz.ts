@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useAuthStore } from "@/store/auth-store";
 import { getQuiz } from "@/lib/api/quizzes";
 import { isAbortError } from "@/lib/api/client";
@@ -11,27 +11,41 @@ export function useQuiz(courseId: string) {
   const [quiz, setQuiz] = useState<Quiz | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  // #487 — ref-based trigger so refetch() can force a re-read without the
+  // useEffect depending on the callback identity (which would loop).
+  const [fetchTick, setFetchTick] = useState(0);
+  const abortRef = useRef<AbortController | null>(null);
+
+  const refetch = useCallback(() => {
+    setFetchTick((t) => t + 1);
+  }, []);
 
   useEffect(() => {
     if (!courseId) {
       setLoading(false);
       return;
     }
+    abortRef.current?.abort();
     const controller = new AbortController();
+    abortRef.current = controller;
     setLoading(true);
+    setError(null);
     getQuiz(courseId, jwt ?? undefined, controller.signal)
       .then(setQuiz)
       .catch((err) => {
         if (isAbortError(err)) return;
         setError(err instanceof Error ? err.message : "Failed to load quiz");
       })
-      .finally(() => setLoading(false));
+      .finally(() => {
+        if (!controller.signal.aborted) setLoading(false);
+      });
     return () => controller.abort();
-  }, [courseId, jwt]);
+  }, [courseId, jwt, fetchTick]);
 
   return {
     quiz,
     loading,
     error,
+    refetch,
   };
 }
