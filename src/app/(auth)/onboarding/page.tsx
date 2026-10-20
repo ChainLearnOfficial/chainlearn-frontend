@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useAuthStore } from "@/store/auth-store";
+import { validateDisplayName } from "@/lib/utils/validation";
 import { updateProfile } from "@/lib/api/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -123,6 +124,11 @@ export default function OnboardingPage() {
         onChange={(e) => setDisplayName(e.target.value)}
         className="text-center text-lg"
       />
+      <Button
+        onClick={() => setStep(1)}
+        disabled={validateDisplayName(displayName) !== null}
+        className="w-full"
+      >
       <Button onClick={handleNext} className="w-full">
         Continue <ArrowRight className="h-4 w-4 ml-1" />
       </Button>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useAuthStore } from "@/store/auth-store";
 import { getQuiz } from "@/lib/api/quizzes";
 import { isAbortError } from "@/lib/api/client";
@@ -12,6 +12,11 @@ export function useQuiz(courseId: string) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const fetchQuiz = useCallback(() => {
+    if (!courseId) return;
+    setLoading(true);
+    setError(null);
+    getQuiz(courseId, jwt ?? undefined)
   useEffect(() => {
     if (!courseId) {
       setLoading(false);
@@ -29,9 +34,14 @@ export function useQuiz(courseId: string) {
     return () => controller.abort();
   }, [courseId, jwt]);
 
+  useEffect(() => {
+    fetchQuiz();
+  }, [fetchQuiz]);
+
   return {
     quiz,
     loading,
     error,
+    refetch: fetchQuiz,
   };
 }
