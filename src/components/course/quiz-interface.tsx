@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { cn } from "@/lib/utils/cn";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CheckCircle, XCircle, ChevronRight, Trophy } from "lucide-react";
+import { CheckCircle, XCircle, ChevronRight, Trophy, Clock, AlertTriangle } from "lucide-react";
 import type { Quiz, QuizAttempt, QuizQuestion } from "@/types/quiz";
 
 interface QuizInterfaceProps {
@@ -19,10 +19,57 @@ export function QuizInterface({ quiz, onSubmit, onRetry, className }: QuizInterf
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [attempt, setAttempt] = useState<QuizAttempt | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  // #499 — Quiz time limit enforcement
+  const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
+  const [timeExpired, setTimeExpired] = useState(false);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const submittedRef = useRef(false);
 
   const question = quiz.questions[currentIndex];
   const isLastQuestion = currentIndex === quiz.questions.length - 1;
   const allAnswered = quiz.questions.every((q) => answers[q.id]);
+
+  // #499 — Start timer when quiz has a time limit
+  useEffect(() => {
+    if (!quiz.timeLimitMinutes || attempt) return;
+
+    const totalSeconds = quiz.timeLimitMinutes * 60;
+    setTimeRemaining(totalSeconds);
+
+    timerRef.current = setInterval(() => {
+      setTimeRemaining((prev) => {
+        if (prev === null || prev <= 1) {
+          // Time expired - auto-submit
+          if (!submittedRef.current) {
+            submittedRef.current = true;
+            setTimeExpired(true);
+          }
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, [quiz.timeLimitMinutes, attempt]);
+
+  // #499 — Auto-submit when time expires
+  useEffect(() => {
+    if (timeExpired && !submittedRef.current && !attempt) {
+      submittedRef.current = true;
+      // Auto-submit with whatever answers we have
+      onSubmit(answers).then(setAttempt).catch(console.error);
+    }
+  }, [timeExpired, answers, onSubmit, attempt]);
+
+  // #499 — Format time as MM:SS
+  const formatTime = (seconds: number): string => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
 
   if (!question) {
     return (
@@ -145,9 +192,23 @@ export function QuizInterface({ quiz, onSubmit, onRetry, className }: QuizInterf
           <span className="text-sm text-gray-500">
             Question {currentIndex + 1} of {quiz.questions.length}
           </span>
-          <span className="text-sm font-medium text-primary-600">
-            {quiz.title}
-          </span>
+          <div className="flex items-center gap-2">
+            {/* #499 — Show time remaining when quiz has time limit */}
+            {timeRemaining !== null && !attempt && (
+              <span
+                className={cn(
+                  "flex items-center gap-1 text-sm font-medium",
+                  timeRemaining <= 60 ? "text-red-600 animate-pulse" : "text-gray-600"
+                )}
+              >
+                <Clock className="h-4 w-4" />
+                {formatTime(timeRemaining)}
+              </span>
+            )}
+            <span className="text-sm font-medium text-primary-600">
+              {quiz.title}
+            </span>
+          </div>
         </div>
         <div className="h-1 w-full rounded-full bg-gray-100 dark:bg-gray-800">
           <div

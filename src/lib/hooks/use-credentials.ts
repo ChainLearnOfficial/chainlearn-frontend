@@ -98,7 +98,15 @@ export function useVerifyCredential(credentialId: string) {
     if (!credentialId) return;
     setLoading(true);
     verifyCredential(credentialId)
-      .then(setVerification)
+      .then((data) => {
+        // #507 — Handle both `valid` and `isValid` property names from API
+        const valid = data.valid ?? (data as any).isValid ?? false;
+        setVerification({
+          valid,
+          metadata: data.metadata,
+          verifiedAt: data.verifiedAt,
+        });
+      })
       .catch((err) =>
         setError(
           err instanceof Error ? err.message : "Verification failed"

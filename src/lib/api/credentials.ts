@@ -30,6 +30,8 @@ export async function getCredential(
 
 /**
  * Verify a credential publicly (no auth required).
+ * #507 — Fix property name: API returns data wrapped in ApiResponse, so we
+ * need to extract .data from the response envelope.
  */
 export async function verifyCredential(
   credentialId: string
@@ -43,6 +45,7 @@ export async function verifyCredential(
     metadata: CredentialMetadata;
     verifiedAt: string;
   }>(`/credentials/${credentialId}/verify`);
+  // ApiResponse wraps data in { data, message?, success }, so extract .data
   return response.data;
 }
 

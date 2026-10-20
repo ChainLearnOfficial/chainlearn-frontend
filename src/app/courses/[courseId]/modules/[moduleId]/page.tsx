@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
+import { isTextContent, isVideoContent, isInteractiveContent } from "@/types/course";
 
 export default function ModulePage({
   params,
@@ -102,8 +103,25 @@ export default function ModulePage({
           <p className="text-gray-500 mb-6 dark:text-gray-400">{module.description}</p>
 
           <div className="prose prose-gray max-w-none dark:prose-invert">
-            {/* Render module content. In production, use a proper MD renderer. */}
-            <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(module.content) }} />
+            {/* #498 — Render module content with proper type handling */}
+            {isTextContent(module.content) && (
+              <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(module.content) }} />
+            )}
+            {isVideoContent(module.content) && (
+              <div className="aspect-video rounded-lg overflow-hidden">
+                <iframe
+                  src={module.content.url}
+                  title={module.title}
+                  className="w-full h-full"
+                  allowFullScreen
+                />
+              </div>
+            )}
+            {isInteractiveContent(module.content) && (
+              <div className="rounded-lg border border-gray-200 p-4">
+                <p className="text-sm text-gray-500">Interactive content</p>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>

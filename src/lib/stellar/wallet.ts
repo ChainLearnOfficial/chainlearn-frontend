@@ -80,3 +80,18 @@ export function getRpcUrl(network: NetworkType): string {
   }
   return "https://soroban-rpc.testnet.stellar.gateway.fm";
 }
+
+/**
+ * #500 — Get the actual network from Freighter wallet.
+ * Returns "testnet" or "public" based on the connected network.
+ */
+export async function getFreighterNetwork(): Promise<string | null> {
+  try {
+    const network = await freighterApi.getNetwork();
+    if (network.error) return null;
+    // Freighter returns network details; map to simple string
+    return network.network === "mainnet" ? "public" : "testnet";
+  } catch {
+    return null;
+  }
+}
