@@ -1,14 +1,21 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/lib/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Wallet, Shield, Loader2, AlertCircle } from "lucide-react";
 import { isFreighterInstalled } from "@/lib/stellar/wallet";
+import { useEffect, useState, Suspense } from "react";
 import { useEffect, useRef, useState } from "react";
 import { useToastContext } from "@/components/shared/toast";
+import { getProfile } from "@/lib/api/auth";
+import { useAuthStore } from "@/store/auth-store";
 
+function ConnectPageInner() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const { isAuthenticated, isConnecting, connectWallet, error } = useAuth();
 /**
  * ConnectPage component handles the Freighter wallet connection flow.
  * Checks for Freighter installation, initiates connection, signs a challenge,
@@ -41,6 +48,11 @@ export default function ConnectPage() {
   }, []);
 
   useEffect(() => {
+    if (isAuthenticated) {
+      const redirect = searchParams.get("redirect");
+      router.push(redirect || "/dashboard");
+    }
+  }, [isAuthenticated, router, searchParams]);
     if (!isAuthenticated || connectingFromPage.current) return;
     let active = true;
     const redirect = async () => {
@@ -66,6 +78,21 @@ export default function ConnectPage() {
     connectingFromPage.current = true;
     try {
       await connectWallet();
+      addToast("Wallet connected successfully!", "success");
+      const jwt = useAuthStore.getState().jwt;
+      const redirect = searchParams.get("redirect");
+      if (jwt) {
+        const profile = await getProfile(jwt);
+        if (profile.displayName) {
+          router.push(redirect || "/dashboard");
+        } else {
+          router.push("/onboarding");
+        }
+      } else {
+        router.push("/onboarding");
+      }
+    } catch {
+      // Error is already displayed inline via the error state from useAuth
     } catch {
       connectingFromPage.current = false;
       return;
@@ -200,5 +227,13 @@ export default function ConnectPage() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+export default function ConnectPage() {
+  return (
+    <Suspense fallback={<div className="flex min-h-[80vh] items-center justify-center">Loading…</div>}>
+      <ConnectPageInner />
+    </Suspense>
   );
 }
