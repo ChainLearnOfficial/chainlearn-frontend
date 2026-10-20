@@ -58,6 +58,23 @@ export async function getCredential(
 
 /**
  * Verify a credential publicly (no auth required).
+ * #507 — Fix property name: API returns data wrapped in ApiResponse, so we
+ * need to extract .data from the response envelope.
+ */
+export async function verifyCredential(
+  credentialId: string
+): Promise<{
+  valid: boolean;
+  metadata: CredentialMetadata;
+  verifiedAt: string;
+}> {
+  const response = await apiClient.get<{
+    valid: boolean;
+    metadata: CredentialMetadata;
+    verifiedAt: string;
+  }>(`/credentials/${credentialId}/verify`);
+  // ApiResponse wraps data in { data, message?, success }, so extract .data
+  return response.data;
  *
  * Calls `GET /credentials/verify/:id` and returns a typed
  * `VerifyCredentialResult`. A 404 for a nonexistent credential is folded

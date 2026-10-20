@@ -4,6 +4,9 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/lib/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Wallet, Shield, ArrowRight, Loader2, AlertCircle, Globe } from "lucide-react";
+import { isFreighterInstalled, getFreighterNetwork } from "@/lib/stellar/wallet";
+import { useEffect, useState } from "react";
 import { Wallet, Shield, Loader2, AlertCircle } from "lucide-react";
 import { isFreighterInstalled } from "@/lib/stellar/wallet";
 import { useEffect, useState, Suspense } from "react";
@@ -35,6 +38,13 @@ export default function ConnectPage() {
   const [freighterInstalled, setFreighterInstalled] = useState<boolean | null>(
     null
   );
+  // #500 — Track actual Freighter network to show correct badge
+  const [freighterNetwork, setFreighterNetwork] = useState<string | null>(null);
+
+  useEffect(() => {
+    isFreighterInstalled().then(setFreighterInstalled);
+    // #500 — Get actual network from Freighter
+    getFreighterNetwork().then(setFreighterNetwork).catch(() => setFreighterNetwork(null));
   const connectingFromPage = useRef(false);
 
   useEffect(() => {
@@ -212,6 +222,14 @@ export default function ConnectPage() {
               </>
             )}
           </Button>
+
+          {/* #500 — Show actual Freighter network */}
+          {freighterNetwork && (
+            <div className="flex items-center justify-center gap-2 text-xs text-gray-500">
+              <Globe className="h-3 w-3" />
+              <span>Network: <span className="font-semibold capitalize">{freighterNetwork}</span></span>
+            </div>
+          )}
 
           <div className="flex items-center gap-2 rounded-lg bg-gray-50 p-3">
             <Shield className="h-4 w-4 text-gray-400" />

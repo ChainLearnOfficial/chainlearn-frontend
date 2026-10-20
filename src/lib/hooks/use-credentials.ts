@@ -104,6 +104,17 @@ export function useVerifyCredential(credentialId: string) {
     if (!credentialId) return;
     const controller = new AbortController();
     setLoading(true);
+    verifyCredential(credentialId)
+      .then((data) => {
+        // #507 — Handle both `valid` and `isValid` property names from API
+        const valid = data.valid ?? (data as any).isValid ?? false;
+        setVerification({
+          valid,
+          metadata: data.metadata,
+          verifiedAt: data.verifiedAt,
+        });
+      })
+      .catch((err) =>
     verifyCredential(credentialId, controller.signal)
       .then(setVerification)
       .catch((err) => {
