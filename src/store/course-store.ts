@@ -25,9 +25,15 @@ export const useCourseStore = create<CourseState>()(
       setEnrollments: (enrollments) => set({ enrollments }),
 
       enroll: (enrollment) =>
-        set((state) => ({
-          enrollments: [...state.enrollments, enrollment],
-        })),
+        set((state) => {
+          const exists = state.enrollments.some(
+            (e) => e.courseId === enrollment.courseId || e.id === enrollment.id
+          );
+          if (exists) return state;
+          return {
+            enrollments: [...state.enrollments, enrollment],
+          };
+        }),
 
       updateProgress: (courseId, moduleId) =>
         set((state) => {

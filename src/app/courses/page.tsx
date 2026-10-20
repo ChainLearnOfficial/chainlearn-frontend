@@ -1,13 +1,21 @@
 "use client";
 
-import { useState } from "react";
-import { useCourses } from "@/lib/hooks/use-courses";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useCourses, useInfiniteCourses } from "@/lib/hooks/use-courses";
+import { useDebounce } from "@/lib/hooks/use-debounce";
 import { useCourseStore } from "@/store/course-store";
 import { CourseCard } from "@/components/course/course-card";
 import { CourseCardSkeleton } from "@/components/shared/loading-skeleton";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, Filter } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Search, Filter, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 
 const categories = [
@@ -21,34 +29,66 @@ const categories = [
 const difficulties = ["All", "Beginner", "Intermediate", "Advanced"];
 
 export default function CoursesPage() {
-  const { courses, enrollments, loading } = useCourses();
+  const { enrollments } = useCourses();
   const progress = useCourseStore((s) => s.progress);
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search, 300);
   const [category, setCategory] = useState("All");
   const [difficulty, setDifficulty] = useState("All");
 
-  const filtered = courses.filter((course) => {
-    const matchesSearch =
-      !search ||
-      course.title.toLowerCase().includes(search.toLowerCase()) ||
-      course.description.toLowerCase().includes(search.toLowerCase());
-    const matchesCategory =
-      category === "All" || course.category === category;
-    const matchesDifficulty =
-      difficulty === "All" ||
-      course.difficulty === difficulty.toLowerCase();
-    return matchesSearch && matchesCategory && matchesDifficulty;
-  });
+  const {
+    courses,
+    hasMore,
+    loading,
+    loadingMore,
+    error,
+    loadMore,
+    total,
+  } = useInfiniteCourses({ category, difficulty });
 
-  const enrolledIds = new Set(enrollments.map((e) => e.courseId));
+  const enrolledIds = useMemo(
+    () => new Set(enrollments.map((e) => e.courseId)),
+    [enrollments]
+  );
+
+  const filtered = useMemo(() => {
+    if (!debouncedSearch.trim()) return courses;
+    const query = debouncedSearch.toLowerCase();
+    return courses.filter(
+      (course) =>
+        course.title.toLowerCase().includes(query) ||
+        course.description.toLowerCase().includes(query)
+    );
+  }, [courses, debouncedSearch]);
+
+  // Load the next page when the sentinel scrolls into view.
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    const node = sentinelRef.current;
+    if (!node || !hasMore) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) {
+          loadMore();
+        }
+      },
+      { rootMargin: "200px" }
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [hasMore, loadingMore, loadMore]);
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Course Catalog</h1>
-        <p className="text-gray-500 mt-1">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+          Course Catalog
+        </h1>
+        <p className="text-gray-500 mt-1 dark:text-gray-400">
           Browse courses and start earning tokens and credentials.
+          {!loading && total > 0 && ` ${total} course${total !== 1 ? 's' : ''} available.`}
         </p>
       </div>
 
@@ -60,14 +100,27 @@ export default function CoursesPage() {
             placeholder="Search courses..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-10"
+            className="pl-10 pr-10"
+            aria-label="Search courses"
           />
+          {search && (
+            <button
+              type="button"
+              onClick={() => setSearch("")}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+              aria-label="Clear search"
+            >
+              ×
+            </button>
+          )}
         </div>
 
         <div className="flex flex-wrap gap-4">
           <div className="flex items-center gap-2">
             <Filter className="h-4 w-4 text-gray-400" />
-            <span className="text-sm text-gray-500">Category:</span>
+            <span className="text-sm text-gray-500 dark:text-gray-400">
+              Category:
+            </span>
             <div className="flex gap-1">
               {categories.map((cat) => (
                 <button
@@ -77,8 +130,8 @@ export default function CoursesPage() {
                   className={cn(
                     "rounded-full px-3 py-1 text-xs font-medium transition-colors",
                     category === cat
-                      ? "bg-primary-100 text-primary-700"
-                      : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                      ? "bg-primary-100 text-primary-700 dark:bg-primary-900/40 dark:text-primary-300"
+                      : "bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
                   )}
                 >
                   {cat}
@@ -88,24 +141,24 @@ export default function CoursesPage() {
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-500">Difficulty:</span>
-            <div className="flex gap-1">
-              {difficulties.map((diff) => (
-                <button
-                  key={diff}
-                  onClick={() => setDifficulty(diff)}
-                  aria-pressed={difficulty === diff}
-                  className={cn(
-                    "rounded-full px-3 py-1 text-xs font-medium transition-colors",
-                    difficulty === diff
-                      ? "bg-primary-100 text-primary-700"
-                      : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                  )}
-                >
-                  {diff}
-                </button>
-              ))}
-            </div>
+            <span className="text-sm text-gray-500 dark:text-gray-400">
+              Difficulty:
+            </span>
+            <Select
+              value={difficulty}
+              onValueChange={(value) => setDifficulty(value)}
+            >
+              <SelectTrigger className="w-40">
+                <SelectValue placeholder="Difficulty" />
+              </SelectTrigger>
+              <SelectContent>
+                {difficulties.map((diff) => (
+                  <SelectItem key={diff} value={diff}>
+                    {diff}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
       </div>
@@ -117,9 +170,28 @@ export default function CoursesPage() {
             <CourseCardSkeleton key={i} />
           ))}
         </div>
+      ) : error ? (
+        <div className="text-center py-16">
+          <p role="alert" aria-live="polite" className="text-gray-500 dark:text-gray-400">
+            {error}
+          </p>
+          <Button
+            variant="outline"
+            className="mt-4"
+            onClick={() => {
+              setCategory("All");
+              setDifficulty("All");
+              setSearch("");
+            }}
+          >
+            Retry
+          </Button>
+        </div>
       ) : filtered.length === 0 ? (
         <div className="text-center py-16">
-          <p className="text-gray-500">No courses found matching your filters.</p>
+          <p className="text-gray-500 dark:text-gray-400">
+            No courses found matching your filters.
+          </p>
           <Button
             variant="outline"
             className="mt-4"
@@ -133,16 +205,32 @@ export default function CoursesPage() {
           </Button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {filtered.map((course) => (
-            <CourseCard
-              key={course.id}
-              course={course}
-              enrolled={enrolledIds.has(course.id)}
-              progress={progress[course.id]?.progressPercent}
-            />
-          ))}
-        </div>
+        <>
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {filtered.map((course) => (
+              <CourseCard
+                key={course.id}
+                course={course}
+                enrolled={enrolledIds.has(course.id)}
+                progress={progress[course.id]?.progressPercent}
+              />
+            ))}
+          </div>
+
+          {/* Infinite scroll sentinel + loading indicator */}
+          <div ref={sentinelRef} className="h-10" aria-hidden="true" />
+          {loadingMore && (
+            <div className="flex justify-center py-6 text-gray-500 dark:text-gray-400">
+              <Loader2 className="h-5 w-5 animate-spin" />
+              <span className="sr-only">Loading more courses…</span>
+            </div>
+          )}
+          {!hasMore && (
+            <p className="text-center py-6 text-sm text-gray-400 dark:text-gray-500">
+              You&apos;ve reached the end of the catalog.
+            </p>
+          )}
+        </>
       )}
     </div>
   );

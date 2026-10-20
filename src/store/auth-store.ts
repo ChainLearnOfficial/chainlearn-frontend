@@ -1,10 +1,14 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import type { WalletProviderId } from "@/lib/stellar/wallet";
 
 function setSessionCookie(token: string | null) {
   if (typeof document === "undefined") return;
+  const isSecure = typeof window !== "undefined" && window.location.protocol === "https:";
   if (token) {
     document.cookie = `chainlearn-session=${token}; path=/; max-age=86400; SameSite=Lax; Secure`;
+    const secureFlag = isSecure ? "; Secure" : "";
+    document.cookie = `chainlearn-session=${token}; path=/; max-age=86400; SameSite=Lax${secureFlag}`;
   } else {
     document.cookie = "chainlearn-session=; path=/; max-age=0";
   }
@@ -12,16 +16,34 @@ function setSessionCookie(token: string | null) {
 
 interface AuthState {
   walletAddress: string | null;
+  walletProviderId: WalletProviderId | null;
   jwt: string | null;
+  /**
+   * Long-lived token used to mint a new access token. Persisted because a
+   * refresh has to survive a page reload — that is the whole point of it.
+   */
+  refreshToken: string | null;
   isAuthenticated: boolean;
   isConnecting: boolean;
   hasHydrated: boolean;
   network: "testnet" | "public";
   tokenExpiresAt: number | null;
   error: string | null;
-  connect: (address: string, token: string, expiresIn?: number) => void;
+  connect: (
+    address: string,
+    token: string,
+    expiresIn?: number,
+    refreshToken?: string,
+    walletProviderId?: WalletProviderId
+  ) => void;
   disconnect: () => void;
   setJwt: (token: string, expiresIn?: number) => void;
+  /** Apply a refreshed token pair without disturbing the rest of the session. */
+  applyRefreshedTokens: (
+    token: string,
+    expiresIn?: number,
+    refreshToken?: string
+  ) => void;
   setIsConnecting: (value: boolean) => void;
   setNetwork: (network: "testnet" | "public") => void;
   isTokenExpired: () => boolean;
@@ -34,7 +56,9 @@ export const useAuthStore = create<AuthState>()(
   persist(
     (set, get) => ({
       walletAddress: null,
+      walletProviderId: null,
       jwt: null,
+      refreshToken: null,
       isAuthenticated: false,
       isConnecting: false,
       hasHydrated: false,
@@ -42,11 +66,19 @@ export const useAuthStore = create<AuthState>()(
       tokenExpiresAt: null,
       error: null,
 
-      connect: (address: string, token: string, expiresIn?: number) => {
+      connect: (
+        address: string,
+        token: string,
+        expiresIn?: number,
+        refreshToken?: string,
+        walletProviderId?: WalletProviderId
+      ) => {
         setSessionCookie(token);
         set({
           walletAddress: address,
+          walletProviderId: walletProviderId ?? "freighter",
           jwt: token,
+          refreshToken: refreshToken ?? null,
           isAuthenticated: true,
           isConnecting: false,
           tokenExpiresAt: expiresIn
@@ -60,20 +92,45 @@ export const useAuthStore = create<AuthState>()(
         setSessionCookie(null);
         set({
           walletAddress: null,
+          walletProviderId: null,
           jwt: null,
+          refreshToken: null,
           isAuthenticated: false,
           tokenExpiresAt: null,
           error: null,
         });
       },
 
-      setJwt: (token: string, expiresIn?: number) =>
+      setJwt: (token: string, expiresIn?: number) => {
+        // The middleware authorizes on this cookie, so it has to move with the
+        // token. Leaving it stale would let the cookie lapse mid-session and
+        // bounce an authenticated user to /connect.
+        setSessionCookie(token);
         set({
           jwt: token,
           tokenExpiresAt: expiresIn
             ? Date.now() + expiresIn * 1000
             : get().tokenExpiresAt,
-        }),
+        });
+      },
+
+      applyRefreshedTokens: (
+        token: string,
+        expiresIn?: number,
+        refreshToken?: string
+      ) => {
+        setSessionCookie(token);
+        set({
+          jwt: token,
+          // Backends that rotate refresh tokens send a new one; those that do
+          // not omit it, and the existing one stays valid.
+          refreshToken: refreshToken ?? get().refreshToken,
+          tokenExpiresAt: expiresIn
+            ? Date.now() + expiresIn * 1000
+            : get().tokenExpiresAt,
+          error: null,
+        });
+      },
 
       setNetwork: (network) => set({ network }),
 
@@ -95,7 +152,9 @@ export const useAuthStore = create<AuthState>()(
       name: "chainlearn-auth",
       partialize: (state) => ({
         walletAddress: state.walletAddress,
+        walletProviderId: state.walletProviderId,
         jwt: state.jwt,
+        refreshToken: state.refreshToken,
         isAuthenticated: state.isAuthenticated,
         network: state.network,
         tokenExpiresAt: state.tokenExpiresAt,

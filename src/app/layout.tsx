@@ -2,11 +2,16 @@ import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import { WalletProvider } from "@/components/wallet/wallet-provider";
 import { Header } from "@/components/layout/header";
-import { MobileNav } from "@/components/layout/mobile-nav";
-import { Sidebar } from "@/components/layout/sidebar";
+import { Footer } from "@/components/layout/footer";
 import { ErrorBoundary } from "@/components/shared/error-boundary";
 import { ToastProvider } from "@/components/shared/toast-provider";
 import { AuthProvider } from "@/components/auth/auth-provider";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import {
+  ThemeProvider,
+  themeInitScript,
+} from "@/components/theme/theme-provider";
+import { PageTransition } from "@/components/shared/page-transition";
 import "./globals.css";
 
 const inter = Inter({
@@ -21,7 +26,11 @@ const jetbrainsMono = JetBrains_Mono({
   display: "swap",
 });
 
+const SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL ?? "https://chainlearn.netlify.app";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: {
     default: "ChainLearn - AI-Powered Learning, Rewarded on Stellar",
     template: "%s | ChainLearn",
@@ -41,6 +50,7 @@ export const metadata: Metadata = {
     description:
       "Earn tokens and verifiable credentials while learning blockchain development on Stellar.",
     type: "website",
+    siteName: "ChainLearn",
   },
 };
 
@@ -51,15 +61,39 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${inter.variable} ${jetbrainsMono.variable}`}>
-      <body className="min-h-screen bg-gray-50 font-sans">
-        <ErrorBoundary>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+      </head>
+      <body className="min-h-screen bg-gray-50 font-sans dark:bg-gray-950 dark:text-gray-100">
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-white focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-gray-900 focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+        >
+          Skip to content
+        </a>
+        <ErrorBoundary
+          showErrorDetails={process.env.NODE_ENV === "development"}
+          onError={(error, errorInfo) => {
+            console.error("Application error:", error);
+            console.error("Component stack:", errorInfo.componentStack);
+          }}
+        >
           <WalletProvider>
-            <ToastProvider>
-              <div className="flex min-h-screen flex-col">
-                <Header />
-                <AuthProvider>{children}</AuthProvider>
-              </div>
-            </ToastProvider>
+            <TooltipProvider>
+              <ToastProvider>
+                <ThemeProvider>
+                  <div className="flex min-h-screen flex-col">
+                    <Header />
+                    <AuthProvider>
+                      <div id="main-content" className="flex-1">
+                        <PageTransition>{children}</PageTransition>
+                      </div>
+                    </AuthProvider>
+                    <Footer />
+                  </div>
+                </ThemeProvider>
+              </ToastProvider>
+            </TooltipProvider>
           </WalletProvider>
         </ErrorBoundary>
       </body>

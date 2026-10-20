@@ -1,21 +1,26 @@
 "use client";
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { useAuthStore } from "@/store/auth-store";
+import { lazy, Suspense } from "react";
+import { useRequireAuth } from "@/lib/hooks/use-require-auth";
 import { useRewards } from "@/lib/hooks/use-rewards";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TokenBalance } from "@/components/rewards/token-balance";
 import { ClaimButton } from "@/components/rewards/claim-button";
-import { RewardHistory } from "@/components/rewards/reward-history";
 import { LoadingSkeleton } from "@/components/shared/loading-skeleton";
+import { EmptyState } from "@/components/shared/empty-state";
 import { useToastContext } from "@/components/shared/toast";
 import { Gift, Coins, TrendingUp } from "lucide-react";
 
+// Deferred so the (potentially long) claim history list streams in after
+// balances and claimables have rendered.
+const RewardHistory = lazy(() =>
+  import("@/components/rewards/reward-history").then((m) => ({
+    default: m.RewardHistory,
+  }))
+);
+
 export default function RewardsPage() {
-  const router = useRouter();
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-  const hasHydrated = useAuthStore((s) => s.hasHydrated);
+  const { ready } = useRequireAuth();
   const { balances, history, claimables, loading, claim, claiming } =
     useRewards();
   const { addToast } = useToastContext();
@@ -30,13 +35,7 @@ export default function RewardsPage() {
     }
   };
 
-  useEffect(() => {
-    if (hasHydrated && !isAuthenticated) {
-      router.push("/connect");
-    }
-  }, [hasHydrated, isAuthenticated, router]);
-
-  if (!hasHydrated || !isAuthenticated) return null;
+  if (!ready) return null;
 
   if (loading) {
     return (
@@ -59,14 +58,13 @@ export default function RewardsPage() {
       {/* Token Balances */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 mb-8">
         {balances.length === 0 ? (
-          <Card>
-            <CardContent className="py-8 text-center">
-              <Coins className="mx-auto h-10 w-10 text-gray-300 mb-3" />
-              <p className="text-sm text-gray-500">
-                No tokens yet. Complete courses to earn LEARN tokens.
-              </p>
-            </CardContent>
-          </Card>
+          <div className="col-span-full">
+            <EmptyState
+              icon={Coins}
+              title="No Tokens Yet"
+              description="Complete courses to earn LEARN tokens."
+            />
+          </div>
         ) : (
           balances.map((balance) => (
             <TokenBalance key={balance.tokenCode} balance={balance} />
@@ -114,7 +112,9 @@ export default function RewardsPage() {
         </h2>
         <Card>
           <CardContent className="p-4">
-            <RewardHistory claims={history} />
+            <Suspense fallback={<LoadingSkeleton count={3} variant="text" />}>
+              <RewardHistory claims={history} />
+            </Suspense>
           </CardContent>
         </Card>
       </section>

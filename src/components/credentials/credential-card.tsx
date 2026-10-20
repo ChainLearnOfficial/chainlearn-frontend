@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { cn } from "@/lib/utils/cn";
 import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Award, ExternalLink, Calendar } from "lucide-react";
 import { formatDate } from "@/lib/utils/format";
 import type { CredentialNFT } from "@/types/stellar";
@@ -37,12 +38,9 @@ export function CredentialCard({ credential, className }: CredentialCardProps) {
               {credential.metadata.skills.length > 0 && (
                 <div className="flex flex-wrap gap-1 mt-2">
                   {credential.metadata.skills.slice(0, 3).map((skill) => (
-                    <span
-                      key={skill}
-                      className="inline-flex rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600"
-                    >
+                    <Badge key={skill} variant="secondary">
                       {skill}
-                    </span>
+                    </Badge>
                   ))}
                 </div>
               )}
