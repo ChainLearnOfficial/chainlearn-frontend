@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useCourses, useInfiniteCourses } from "@/lib/hooks/use-courses";
+import { useDebounce } from "@/lib/hooks/use-debounce";
 import { useCourseStore } from "@/store/course-store";
 import { CourseCard } from "@/components/course/course-card";
 import { CourseCardSkeleton } from "@/components/shared/loading-skeleton";
@@ -31,6 +32,7 @@ export default function CoursesPage() {
   const { enrollments } = useCourses();
   const progress = useCourseStore((s) => s.progress);
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search, 300);
   const [category, setCategory] = useState("All");
   const [difficulty, setDifficulty] = useState("All");
 
@@ -41,6 +43,7 @@ export default function CoursesPage() {
     loadingMore,
     error,
     loadMore,
+    total,
   } = useInfiniteCourses({ category, difficulty });
 
   const enrolledIds = useMemo(
@@ -49,14 +52,14 @@ export default function CoursesPage() {
   );
 
   const filtered = useMemo(() => {
-    if (!search.trim()) return courses;
-    const query = search.toLowerCase();
+    if (!debouncedSearch.trim()) return courses;
+    const query = debouncedSearch.toLowerCase();
     return courses.filter(
       (course) =>
         course.title.toLowerCase().includes(query) ||
         course.description.toLowerCase().includes(query)
     );
-  }, [courses, search]);
+  }, [courses, debouncedSearch]);
 
   // Load the next page when the sentinel scrolls into view.
   const sentinelRef = useRef<HTMLDivElement | null>(null);
@@ -85,6 +88,7 @@ export default function CoursesPage() {
         </h1>
         <p className="text-gray-500 mt-1 dark:text-gray-400">
           Browse courses and start earning tokens and credentials.
+          {!loading && total > 0 && ` ${total} course${total !== 1 ? 's' : ''} available.`}
         </p>
       </div>
 
@@ -96,8 +100,19 @@ export default function CoursesPage() {
             placeholder="Search courses..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-10"
+            className="pl-10 pr-10"
+            aria-label="Search courses"
           />
+          {search && (
+            <button
+              type="button"
+              onClick={() => setSearch("")}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+              aria-label="Clear search"
+            >
+              ×
+            </button>
+          )}
         </div>
 
         <div className="flex flex-wrap gap-4">

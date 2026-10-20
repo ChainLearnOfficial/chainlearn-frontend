@@ -3,8 +3,7 @@
 import { useCallback, useRef, useState } from "react";
 import { useAuthStore } from "@/store/auth-store";
 import {
-  connectFreighter,
-  isFreighterInstalled,
+  connectWallet as connectStellarWallet,
   signChallenge,
   getNetworkPassphrase,
 } from "@/lib/stellar/wallet";
@@ -23,6 +22,9 @@ export interface WalletError {
   resolution: string;
 }
 
+export type WalletConnectionStage = "idle" | "detect" | "connect" | "sign" | "verify" | "complete";
+
+// Helper to classify wallet errors
 function classifyWalletError(err: unknown, currentNetwork: string): WalletError {
   const msg = err instanceof Error ? err.message : String(err);
   const lower = msg.toLowerCase();
@@ -34,9 +36,8 @@ function classifyWalletError(err: unknown, currentNetwork: string): WalletError 
   ) {
     return {
       type: "not_installed",
-      message: "Freighter wallet extension is not installed",
-      resolution:
-        "Install Freighter from freighter.app and refresh this page.",
+      message: "No supported Stellar wallet was detected",
+      resolution: "Install and unlock Freighter, Lobstr, or Rabet, then try again.",
     };
   }
 
@@ -50,8 +51,7 @@ function classifyWalletError(err: unknown, currentNetwork: string): WalletError 
     return {
       type: "user_denied",
       message: "Connection request was denied",
-      resolution:
-        "Open Freighter and approve the connection request, then try again.",
+      resolution: "Approve the connection request in your wallet, then try again.",
     };
   }
 
@@ -62,7 +62,7 @@ function classifyWalletError(err: unknown, currentNetwork: string): WalletError 
     return {
       type: "wrong_network",
       message: `Wallet is on the wrong network (expected ${currentNetwork})`,
-      resolution: `Switch your Freighter wallet to ${currentNetwork} and try again.`,
+      resolution: `Switch your selected wallet to ${currentNetwork} and try again.`,
     };
   }
 
@@ -86,21 +86,21 @@ function classifyWalletError(err: unknown, currentNetwork: string): WalletError 
     return {
       type: "connection_failed",
       message: "Failed to connect to wallet",
-      resolution:
-        "Make sure Freighter is unlocked and try again. If the problem persists, reinstall the extension.",
+      resolution: "Make sure your selected wallet is unlocked and try again.",
     };
   }
 
   return {
     type: "unknown",
     message: msg || "Connection failed",
-    resolution: "Please try again. If the problem persists, reinstall the Freighter extension.",
+    resolution: "Please try again or choose another supported wallet.",
   };
 }
 
 export function useAuth() {
   const {
     walletAddress,
+    walletProviderId,
     jwt,
     isAuthenticated,
     isConnecting,
@@ -117,13 +117,19 @@ export function useAuth() {
   networkRef.current = network;
 
   const [walletError, setWalletError] = useState<WalletError | null>(null);
+  const walletErrorRef = useRef(walletError);
+  walletErrorRef.current = walletError;
+  const [connectionStage, setConnectionStage] =
+    useState<WalletConnectionStage>("idle");
 
   const connectWallet = useCallback(async () => {
     setIsConnecting(true);
+    setConnectionStage("detect");
     clearError();
     setWalletError(null);
 
     try {
+      const { address, providerId } = await connectStellarWallet(networkRef.current);
       // Check Freighter is installed
       const installed = await isFreighterInstalled();
       if (!installed) {
@@ -139,16 +145,20 @@ export function useAuth() {
       }
 
       // Connect to Freighter
+      setConnectionStage("connect");
       const address = await connectFreighter();
 
       // Get challenge from backend
       const challenge = await getChallenge(address);
 
+      // Sign the backend challenge with the selected wallet.
       // Sign challenge with Freighter
+      setConnectionStage("sign");
       const passphrase = getNetworkPassphrase(networkRef.current);
-      const signedChallenge = await signChallenge(challenge, passphrase);
+      const signedChallenge = await signChallenge(challenge, passphrase, providerId);
 
       // Verify signature and get JWT
+      setConnectionStage("verify");
       const tokens = await verifySignature(address, signedChallenge);
 
       // Store in Zustand. The refresh token is kept so useTokenRefresh can
@@ -157,13 +167,15 @@ export function useAuth() {
         address,
         tokens.accessToken,
         tokens.expiresIn,
-        tokens.refreshToken
+        tokens.refreshToken,
+        providerId
       );
+      setConnectionStage("complete");
 
       return address;
     } catch (err) {
       // If we already set walletError (e.g. not_installed), don't re-classify
-      if (!walletError) {
+      if (!walletErrorRef.current) {
         const walletErr = classifyWalletError(err, networkRef.current);
         setWalletError(walletErr);
         setError(walletErr.message);
@@ -172,7 +184,7 @@ export function useAuth() {
     } finally {
       setIsConnecting(false);
     }
-  }, [connect, setIsConnecting, clearError, setError, walletError]);
+  }, [connect, setIsConnecting, clearError, setError]);
 
   const disconnect = useCallback(() => {
     storeDisconnect();
@@ -194,9 +206,11 @@ export function useAuth() {
 
   return {
     walletAddress,
+    walletProviderId,
     jwt,
     isAuthenticated,
     isConnecting,
+    connectionStage,
     error,
     walletError,
     walletInfo,

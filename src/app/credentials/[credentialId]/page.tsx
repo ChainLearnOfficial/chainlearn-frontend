@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useCredentialDetail } from "@/lib/hooks/use-credentials";
+import { useCredentialDetail, useVerifyCredential } from "@/lib/hooks/use-credentials";
 import { CredentialBadge } from "@/components/credentials/credential-badge";
 import { QrCode } from "@/components/credentials/qr-code";
+import { BackButton } from "@/components/shared/back-button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { LoadingSkeleton } from "@/components/shared/loading-skeleton";
@@ -17,8 +18,14 @@ import {
   CheckCircle,
   Download,
   ShieldCheck,
+  ShieldAlert,
+  Award,
+  Hash,
+  Key,
+  Loader2,
 } from "lucide-react";
 import { useState, useCallback } from "react";
+import { ShareButton } from "@/components/shared/share-button";
 
 export default function CredentialDetailPage({
   params,
@@ -27,6 +34,7 @@ export default function CredentialDetailPage({
 }) {
   const { credentialId } = params;
   const { credential, loading, error } = useCredentialDetail(credentialId);
+  const { verification, loading: verificationLoading } = useVerifyCredential(credentialId);
   const [copied, setCopied] = useState(false);
 
   const verificationUrl = typeof window !== "undefined"
@@ -59,8 +67,17 @@ export default function CredentialDetailPage({
 
   const handleDownload = useCallback(() => {
     if (!credential) return;
+    // #489 — escape all user-supplied values before interpolating into HTML
+    // to prevent XSS via malicious course titles or IDs.
+    const esc = (s: string | number | null | undefined): string =>
+      String(s ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
     const html = `<!DOCTYPE html>
-<html><head><title>Certificate - ${credential.courseTitle}</title>
+<html><head><title>Certificate - ${esc(credential.courseTitle)}</title>
 <style>
   body{font-family:Georgia,serif;display:flex;justify-content:center;align-items:center;min-height:100vh;margin:0;background:#f9fafb}
   .cert{background:white;border:2px solid #111;padding:48px;max-width:640px;text-align:center}
@@ -69,12 +86,12 @@ export default function CredentialDetailPage({
 </style></head><body>
 <div class="cert">
   <h1>Certificate of Completion</h1>
-  <h2>${credential.courseTitle}</h2>
+  <h2>${esc(credential.courseTitle)}</h2>
   <div class="line"></div>
-  <p class="meta">Issued: ${formatDate(credential.issuedAt)}</p>
-  <p class="meta">Credential ID: ${credential.id}</p>
-  <p class="meta">Token: ${truncateAddress(credential.tokenId, 8)}</p>
-  ${credential.metadata.score ? `<p class="meta">Score: ${credential.metadata.score}%</p>` : ""}
+  <p class="meta">Issued: ${esc(formatDate(credential.issuedAt))}</p>
+  <p class="meta">Credential ID: ${esc(credential.id)}</p>
+  <p class="meta">Token: ${esc(truncateAddress(credential.tokenId, 8))}</p>
+  ${credential.metadata.score ? `<p class="meta">Score: ${esc(credential.metadata.score)}%</p>` : ""}
   <div class="line"></div>
   <p class="meta">Verified on Stellar blockchain</p>
 </div>
@@ -83,7 +100,7 @@ export default function CredentialDetailPage({
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `certificate-${credential.courseTitle.toLowerCase().replace(/\s+/g, "-")}.html`;
+    a.download = `certificate-${credential.courseTitle.toLowerCase().replace(/[^a-z0-9]+/g, "-")}.html`;
     a.click();
     URL.revokeObjectURL(url);
   }, [credential]);
@@ -108,6 +125,7 @@ export default function CredentialDetailPage({
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-8">
+      <BackButton />
       {/* Badge */}
       <div className="flex justify-center mb-8">
         <CredentialBadge
@@ -143,6 +161,41 @@ export default function CredentialDetailPage({
                 </p>
               </div>
             </div>
+            <div className="flex items-center gap-2 text-sm">
+              <Key className="h-4 w-4 text-gray-400" />
+              <div>
+                <p className="text-gray-500">Credential ID</p>
+                <p className="font-mono text-xs">
+                  {truncateAddress(credential.id, 8)}
+                </p>
+              </div>
+            </div>
+            {credential.metadata.score && (
+              <div className="flex items-center gap-2 text-sm">
+                <Award className="h-4 w-4 text-gray-400" />
+                <div>
+                  <p className="text-gray-500">Score</p>
+                  <p className="font-medium">{credential.metadata.score}%</p>
+                </div>
+              </div>
+            )}
+            {credential.txHash && (
+              <div className="flex items-center gap-2 text-sm">
+                <Hash className="h-4 w-4 text-gray-400" />
+                <div>
+                  <p className="text-gray-500">Transaction</p>
+                  <a
+                    href={`https://stellar.expert/explorer/testnet/tx/${credential.txHash}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="font-mono text-xs text-blue-600 hover:underline flex items-center gap-1"
+                  >
+                    {truncateAddress(credential.txHash, 8)}
+                    <ExternalLink className="h-3 w-3" />
+                  </a>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Learner Address */}
@@ -169,14 +222,24 @@ export default function CredentialDetailPage({
           </div>
 
           {/* On-chain Verification */}
-          <div className="rounded-lg bg-green-50 border border-green-200 p-3">
+          <div className={`rounded-lg border p-3 ${verification?.isValid ? "bg-green-50 border-green-200" : verificationLoading ? "bg-gray-50 border-gray-200" : "bg-red-50 border-red-200"}`}>
             <div className="flex items-center gap-2 text-sm">
-              <ShieldCheck className="h-4 w-4 text-green-600" />
+              {verificationLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin text-gray-500" />
+              ) : verification?.isValid ? (
+                <ShieldCheck className="h-4 w-4 text-green-600" />
+              ) : (
+                <ShieldAlert className="h-4 w-4 text-red-600" />
+              )}
               <div>
-                <p className="font-medium text-green-700">On-Chain Verified</p>
-                <p className="text-xs text-green-600 font-mono">
-                  Contract: {truncateAddress(credential.contractAddress, 8)}
+                <p className={`font-medium ${verification?.isValid ? "text-green-700" : verificationLoading ? "text-gray-700" : "text-red-700"}`}>
+                  {verificationLoading ? "Verifying On-Chain..." : verification?.isValid ? "On-Chain Verified" : "Verification Failed"}
                 </p>
+                {credential.contractAddress && (
+                  <p className={`text-xs font-mono ${verification?.isValid ? "text-green-600" : verificationLoading ? "text-gray-500" : "text-red-600"}`}>
+                    Contract: {truncateAddress(credential.contractAddress, 8)}
+                  </p>
+                )}
               </div>
             </div>
           </div>
@@ -212,13 +275,13 @@ export default function CredentialDetailPage({
               <Download className="h-4 w-4" />
               Download Certificate
             </button>
-            <Link
-              href={`/verify/${credentialId}`}
-              className="flex items-center justify-center gap-2 rounded-lg bg-gray-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-gray-800 transition-colors"
-            >
-              <ExternalLink className="h-4 w-4" />
-              Share Verification Link
-            </Link>
+            <ShareButton
+              url={verificationUrl}
+              title={credential.courseTitle}
+              text="Check out my verified credential!"
+              variant="default"
+              className="w-full flex items-center justify-center rounded-lg bg-gray-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-gray-800 transition-colors"
+            />
           </div>
         </CardContent>
       </Card>

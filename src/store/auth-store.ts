@@ -1,10 +1,14 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import type { WalletProviderId } from "@/lib/stellar/wallet";
 
 function setSessionCookie(token: string | null) {
   if (typeof document === "undefined") return;
+  const isSecure = typeof window !== "undefined" && window.location.protocol === "https:";
   if (token) {
-    document.cookie = `chainlearn-session=${token}; path=/; max-age=86400; SameSite=Lax`;
+    document.cookie = `chainlearn-session=${token}; path=/; max-age=86400; SameSite=Lax; Secure`;
+    const secureFlag = isSecure ? "; Secure" : "";
+    document.cookie = `chainlearn-session=${token}; path=/; max-age=86400; SameSite=Lax${secureFlag}`;
   } else {
     document.cookie = "chainlearn-session=; path=/; max-age=0";
   }
@@ -12,6 +16,7 @@ function setSessionCookie(token: string | null) {
 
 interface AuthState {
   walletAddress: string | null;
+  walletProviderId: WalletProviderId | null;
   jwt: string | null;
   /**
    * Long-lived token used to mint a new access token. Persisted because a
@@ -28,7 +33,8 @@ interface AuthState {
     address: string,
     token: string,
     expiresIn?: number,
-    refreshToken?: string
+    refreshToken?: string,
+    walletProviderId?: WalletProviderId
   ) => void;
   disconnect: () => void;
   setJwt: (token: string, expiresIn?: number) => void;
@@ -50,6 +56,7 @@ export const useAuthStore = create<AuthState>()(
   persist(
     (set, get) => ({
       walletAddress: null,
+      walletProviderId: null,
       jwt: null,
       refreshToken: null,
       isAuthenticated: false,
@@ -63,11 +70,13 @@ export const useAuthStore = create<AuthState>()(
         address: string,
         token: string,
         expiresIn?: number,
-        refreshToken?: string
+        refreshToken?: string,
+        walletProviderId?: WalletProviderId
       ) => {
         setSessionCookie(token);
         set({
           walletAddress: address,
+          walletProviderId: walletProviderId ?? "freighter",
           jwt: token,
           refreshToken: refreshToken ?? null,
           isAuthenticated: true,
@@ -83,6 +92,7 @@ export const useAuthStore = create<AuthState>()(
         setSessionCookie(null);
         set({
           walletAddress: null,
+          walletProviderId: null,
           jwt: null,
           refreshToken: null,
           isAuthenticated: false,
@@ -142,6 +152,7 @@ export const useAuthStore = create<AuthState>()(
       name: "chainlearn-auth",
       partialize: (state) => ({
         walletAddress: state.walletAddress,
+        walletProviderId: state.walletProviderId,
         jwt: state.jwt,
         refreshToken: state.refreshToken,
         isAuthenticated: state.isAuthenticated,

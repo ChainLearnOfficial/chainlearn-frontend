@@ -2,9 +2,11 @@
 
 import DOMPurify from "dompurify";
 import { useModule, useCourseDetail } from "@/lib/hooks/use-courses";
+import { parseModuleContent } from "@/lib/api/courses";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { LoadingSkeleton } from "@/components/shared/loading-skeleton";
+import { BackButton } from "@/components/shared/back-button";
 import { ProgressBar } from "@/components/course/progress-bar";
 import { useCourseStore } from "@/store/course-store";
 import { useToastContext } from "@/components/shared/toast";
@@ -13,6 +15,7 @@ import {
   ArrowRight,
   CheckCircle,
   Loader2,
+  PlayCircle,
 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
@@ -27,9 +30,13 @@ export default function ModulePage({
   const { module, loading, error, complete } = useModule(courseId, moduleId);
   const { course } = useCourseDetail(courseId);
   const courseProgress = useCourseStore((s) => s.progress[courseId]);
+  const enrollment = useCourseStore((s) =>
+    s.enrollments.find((item) => item.courseId === courseId)
+  );
   const { addToast } = useToastContext();
   const [completing, setCompleting] = useState(false);
-  const [completed, setCompleted] = useState(false);
+  const progressPercent =
+    courseProgress?.progressPercent ?? enrollment?.progress ?? 0;
 
   const sortedModules = course
     ? [...course.modules].sort((a, b) => a.order - b.order)
@@ -41,12 +48,15 @@ export default function ModulePage({
     currentIndex >= 0 && currentIndex < sortedModules.length - 1
       ? sortedModules[currentIndex + 1]
       : null;
+  const isComplete =
+    Boolean(module?.isCompleted) ||
+    Boolean(courseProgress?.completedModuleIds.includes(moduleId)) ||
+    Boolean(enrollment?.completedModules.includes(moduleId));
 
   const handleComplete = async () => {
     setCompleting(true);
     try {
       await complete();
-      setCompleted(true);
       addToast("Module marked as complete!", "success");
     } catch (err) {
       console.error("Failed to mark complete:", err);
@@ -74,23 +84,20 @@ export default function ModulePage({
     );
   }
 
+  const content = parseModuleContent(module);
+
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">
       {/* Breadcrumb */}
-      <div className="mb-6">
-        <Link
-          href={`/courses/${courseId}`}
-          className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back to Course
-        </Link>
-      </div>
+      <BackButton />
 
       {/* Progress */}
-      {courseProgress && (
+      {(courseProgress || enrollment) && (
         <div className="mb-6">
-          <ProgressBar value={courseProgress.progressPercent} size="sm" />
+          <ProgressBar value={progressPercent} size="sm" />
+          <p className="mt-1 text-right text-xs text-gray-500" aria-live="polite">
+            {progressPercent}% complete
+          </p>
         </div>
       )}
 
@@ -121,6 +128,31 @@ export default function ModulePage({
               <div className="rounded-lg border border-gray-200 p-4">
                 <p className="text-sm text-gray-500">Interactive content</p>
               </div>
+            {content.type === "video" ? (
+              <div className="aspect-video w-full bg-black rounded-lg overflow-hidden flex items-center justify-center mb-6">
+                {content.url ? (
+                  <video src={content.url} controls className="w-full h-full object-cover" />
+                ) : (
+                  <div className="text-gray-500 flex flex-col items-center">
+                    <PlayCircle className="h-12 w-12 mb-2 opacity-50" />
+                    Video Content
+                  </div>
+                )}
+              </div>
+            ) : content.type === "interactive" ? (
+              <div className="p-8 border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-lg text-center mb-6">
+                <CheckCircle className="h-12 w-12 mx-auto text-blue-500 mb-4" />
+                <h3 className="text-lg font-semibold mb-2">Interactive Challenge</h3>
+                {content.instructions ? (
+                  <p className="text-gray-500 dark:text-gray-400">{content.instructions}</p>
+                ) : (
+                  <p className="text-gray-500 dark:text-gray-400">
+                    Complete challenge <span className="font-mono">{content.challengeId}</span>, then mark this module complete.
+                  </p>
+                )}
+              </div>
+            ) : (
+              <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(content.body) }} />
             )}
           </div>
         </CardContent>
@@ -145,7 +177,7 @@ export default function ModulePage({
             </Link>
           )}
 
-          {completed ? (
+          {isComplete ? (
             nextModule ? (
               <Link href={`/courses/${courseId}/modules/${nextModule.id}`}>
                 <Button className="gap-1">
@@ -154,10 +186,10 @@ export default function ModulePage({
                 </Button>
               </Link>
             ) : (
-              <Link href={`/courses/${courseId}`}>
-                <Button className="gap-1">
+              <Link href={`/courses/${courseId}/quiz`}>
+                <Button className="gap-1 bg-stellar-purple hover:bg-stellar-purple/90">
                   <CheckCircle className="h-4 w-4" />
-                  Continue
+                  Take Quiz
                   <ArrowRight className="h-4 w-4" />
                 </Button>
               </Link>

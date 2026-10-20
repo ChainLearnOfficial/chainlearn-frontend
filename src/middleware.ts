@@ -31,13 +31,31 @@ function isAuthRoute(pathname: string): boolean {
   return AUTH_PREFIXES.some((prefix) => pathname.startsWith(prefix));
 }
 
+/**
+ * Decode JWT payload and check expiry (#495).
+ * Uses atob() for base64 decoding — works in Edge runtime.
+ * Malformed tokens are treated as expired.
+ */
+function isJwtExpired(token: string): boolean {
+  try {
+    const parts = token.split(".");
+    if (parts.length !== 3) return true;
+    const payload = JSON.parse(atob(parts[1]));
+    if (typeof payload.exp !== "number") return true;
+    // exp is in seconds; compare with current time in seconds
+    return payload.exp * 1000 < Date.now();
+  } catch {
+    return true; // malformed tokens are treated as expired
+  }
+}
+
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const sessionToken = request.cookies.get("chainlearn-session")?.value;
 
   // --- Guard protected routes ---
   if (isProtected(pathname)) {
-    if (!sessionToken) {
+    if (!sessionToken || isJwtExpired(sessionToken)) {
       const url = request.nextUrl.clone();
       url.pathname = "/connect";
       // Preserve the intended destination so the connect page can redirect
@@ -49,7 +67,7 @@ export function middleware(request: NextRequest) {
 
   // --- Bounce authenticated users away from auth pages ---
   if (isAuthRoute(pathname)) {
-    if (sessionToken) {
+    if (sessionToken && !isJwtExpired(sessionToken)) {
       const redirect = request.nextUrl.searchParams.get("redirect");
       const url = request.nextUrl.clone();
       url.pathname = redirect || "/dashboard";

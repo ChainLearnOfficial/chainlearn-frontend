@@ -7,7 +7,11 @@ import { ErrorBoundary } from "@/components/shared/error-boundary";
 import { ToastProvider } from "@/components/shared/toast-provider";
 import { AuthProvider } from "@/components/auth/auth-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { ThemeProvider, themeInitScript } from "@/components/theme/theme-provider";
+import {
+  ThemeProvider,
+  themeInitScript,
+} from "@/components/theme/theme-provider";
+import { PageTransition } from "@/components/shared/page-transition";
 import "./globals.css";
 
 const inter = Inter({
@@ -67,7 +71,13 @@ export default function RootLayout({
         >
           Skip to content
         </a>
-        <ErrorBoundary>
+        <ErrorBoundary
+          showErrorDetails={process.env.NODE_ENV === "development"}
+          onError={(error, errorInfo) => {
+            console.error("Application error:", error);
+            console.error("Component stack:", errorInfo.componentStack);
+          }}
+        >
           <WalletProvider>
             <TooltipProvider>
               <ToastProvider>
@@ -76,7 +86,7 @@ export default function RootLayout({
                     <Header />
                     <AuthProvider>
                       <div id="main-content" className="flex-1">
-                        {children}
+                        <PageTransition>{children}</PageTransition>
                       </div>
                     </AuthProvider>
                     <Footer />

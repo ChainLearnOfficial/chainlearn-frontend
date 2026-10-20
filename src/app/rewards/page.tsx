@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TokenBalance } from "@/components/rewards/token-balance";
 import { ClaimButton } from "@/components/rewards/claim-button";
 import { LoadingSkeleton } from "@/components/shared/loading-skeleton";
+import { EmptyState } from "@/components/shared/empty-state";
 import { useToastContext } from "@/components/shared/toast";
 import { Gift, Coins, TrendingUp } from "lucide-react";
 
@@ -57,14 +58,13 @@ export default function RewardsPage() {
       {/* Token Balances */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 mb-8">
         {balances.length === 0 ? (
-          <Card>
-            <CardContent className="py-8 text-center">
-              <Coins className="mx-auto h-10 w-10 text-gray-300 mb-3" />
-              <p className="text-sm text-gray-500">
-                No tokens yet. Complete courses to earn LEARN tokens.
-              </p>
-            </CardContent>
-          </Card>
+          <div className="col-span-full">
+            <EmptyState
+              icon={Coins}
+              title="No Tokens Yet"
+              description="Complete courses to earn LEARN tokens."
+            />
+          </div>
         ) : (
           balances.map((balance) => (
             <TokenBalance key={balance.tokenCode} balance={balance} />

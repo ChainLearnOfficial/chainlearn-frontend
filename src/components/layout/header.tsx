@@ -22,16 +22,17 @@ import {
 import { LogOut, Settings, User } from "lucide-react";
 import { Sun, Moon } from "lucide-react";
 import { useTheme } from "@/components/theme/theme-provider";
+import { NotificationBell } from "@/components/shared/notification-bell";
 
 export function Header() {
-  const { isAuthenticated, walletAddress } = useAuthStore();
+  const { isAuthenticated, walletAddress, disconnect } = useAuthStore();
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
   const { resolvedTheme, toggleTheme } = useTheme();
 
   return (
-    <header className="sticky top-0 z-50 border-b border-gray-200 bg-white/80 backdrop-blur-md dark:border-gray-800 dark:bg-gray-900/80">
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+    <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-md">
+      <div className="mx-auto flex h-16 max-w-container items-center justify-between px-4 sm:px-6 lg:px-8">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-stellar-purple">
@@ -63,10 +64,14 @@ export function Header() {
 
         {/* Right side */}
         <div className="flex items-center gap-3">
+          {isAuthenticated && <NotificationBell />}
           {isAuthenticated && walletAddress && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="flex items-center gap-2 outline-none hover:opacity-80 transition-opacity">
+                <button 
+                  className="flex items-center gap-2 outline-none hover:opacity-80 transition-opacity"
+                  aria-label="User account menu"
+                >
                   <Avatar size="sm">
                     <AvatarFallback>{getInitials(walletAddress)}</AvatarFallback>
                   </Avatar>
@@ -78,16 +83,23 @@ export function Header() {
               <DropdownMenuContent align="end" className="w-56 dark:border-gray-800 dark:bg-gray-900">
                 <DropdownMenuLabel className="text-gray-900 dark:text-gray-100">My Account</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>
-                  <User className="mr-2 h-4 w-4" />
-                  <span>Profile</span>
+                <DropdownMenuItem asChild>
+                  <Link href="/profile" className="flex items-center w-full cursor-pointer">
+                    <User className="mr-2 h-4 w-4" />
+                    <span>Profile</span>
+                  </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Settings className="mr-2 h-4 w-4" />
-                  <span>Settings</span>
+                <DropdownMenuItem asChild>
+                  <Link href="/settings" className="flex items-center w-full cursor-pointer">
+                    <Settings className="mr-2 h-4 w-4" />
+                    <span>Settings</span>
+                  </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem className="text-red-600 focus:text-red-700">
+                <DropdownMenuItem
+                  onClick={() => disconnect()}
+                  className="text-red-600 focus:text-red-700 cursor-pointer"
+                >
                   <LogOut className="mr-2 h-4 w-4" />
                   <span>Log out</span>
                 </DropdownMenuItem>

@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Gift } from "lucide-react";
 import { useState } from "react";
-import { RewardClaimDialog } from "./reward-claim-dialog";
+import { RewardClaimDialog } from "./reward-claim-dialog"; // Reward claim dialog wrapper
 
 interface ClaimButtonProps {
   claimableId: string;

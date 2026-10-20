@@ -50,4 +50,24 @@ describe("RewardHistory", () => {
       "https://stellar.expert/explorer/testnet/tx/abc123"
     );
   });
+
+  it("shows summary stats for total earned, confirmed, pending and failed", () => {
+    const mixed = [
+      ...claims,
+      {
+        id: "r3",
+        txHash: "",
+        amount: "10000000",
+        tokenCode: "LEARN",
+        claimedAt: "2024-03-03T00:00:00Z",
+        status: "failed",
+        courseTitle: "Failed Quiz",
+      },
+    ] as RewardClaim[];
+    render(<RewardHistory claims={mixed} />);
+    expect(screen.getByText("Total earned")).toBeInTheDocument();
+    expect(screen.getByText("Confirmed")).toBeInTheDocument();
+    expect(screen.getByText("Pending")).toBeInTheDocument();
+    expect(screen.getByText("Failed")).toBeInTheDocument();
+  });
 });

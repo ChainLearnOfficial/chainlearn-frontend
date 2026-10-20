@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import * as AvatarPrimitive from "@radix-ui/react-avatar";
+import Image from "next/image";
 import { cn } from "@/lib/utils/cn";
 
 const avatarSizes = {
@@ -34,12 +35,21 @@ Avatar.displayName = AvatarPrimitive.Root.displayName;
 const AvatarImage = React.forwardRef<
   React.ComponentRef<typeof AvatarPrimitive.Image>,
   React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Image>
->(({ className, ...props }, ref) => (
+>(({ className, src, alt, ...props }, ref) => (
   <AvatarPrimitive.Image
     ref={ref}
+    asChild
     className={cn("aspect-square h-full w-full object-cover", className)}
+    src={src}
     {...props}
-  />
+  >
+    <Image 
+      src={src || ""} 
+      alt={alt || ""} 
+      fill 
+      sizes="100px" 
+    />
+  </AvatarPrimitive.Image>
 ));
 AvatarImage.displayName = AvatarPrimitive.Image.displayName;
 
