@@ -61,11 +61,16 @@ export function useLocalStorage<T>(
     if (typeof window === "undefined" || !isMounted) return;
 
     const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === key && e.newValue) {
-        try {
-          setStoredValue(JSON.parse(e.newValue));
-        } catch (error) {
-          console.error(`useLocalStorage sync error for key "${key}":`, error);
+      if (e.key === key) {
+        if (e.newValue) {
+          try {
+            setStoredValue(JSON.parse(e.newValue));
+          } catch (error) {
+            console.error(`useLocalStorage sync error for key "${key}":`, error);
+          }
+        } else {
+          // Reset to initial value when another tab removes the item
+          setStoredValue(initialValue);
         }
       }
     };

@@ -57,8 +57,6 @@ export default function ConnectPage() {
     let active = true;
     const redirect = async () => {
       try {
-        const { getProfile } = await import("@/lib/api/auth");
-        const { useAuthStore } = await import("@/store/auth-store");
         const jwt = useAuthStore.getState().jwt;
         const profile = jwt ? await getProfile(jwt) : null;
         if (active) {
@@ -99,8 +97,6 @@ export default function ConnectPage() {
     }
 
     try {
-      const { getProfile } = await import("@/lib/api/auth");
-      const { useAuthStore } = await import("@/store/auth-store");
       const jwt = useAuthStore.getState().jwt;
       const profile = jwt ? await getProfile(jwt) : null;
       addToast("Wallet connected successfully!", "success");
