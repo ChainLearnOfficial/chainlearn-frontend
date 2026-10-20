@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useAuthStore } from "@/store/auth-store";
+import { validateDisplayName } from "@/lib/utils/validation";
 import { updateProfile } from "@/lib/api/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -85,7 +86,7 @@ export default function OnboardingPage() {
       />
       <Button
         onClick={() => setStep(1)}
-        disabled={!displayName.trim()}
+        disabled={validateDisplayName(displayName) !== null}
         className="w-full"
       >
         Continue <ArrowRight className="h-4 w-4 ml-1" />

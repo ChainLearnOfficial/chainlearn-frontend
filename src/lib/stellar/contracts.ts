@@ -71,10 +71,10 @@ export async function readRewardBalance(
  * Returns a signed + submitted tx result.
  */
 export async function claimRewardOnChain(
-  xdr: string,
+  txXdr: string,
   network: NetworkType
 ): Promise<TransactionResult> {
-  return signAndSubmitTransaction(xdr, network);
+  return signAndSubmitTransaction(txXdr, network);
 }
 
 /**
@@ -98,8 +98,8 @@ export async function readCredentialMetadata(
  * Mint a credential NFT on-chain.
  */
 export async function mintCredentialOnChain(
-  xdr: string,
+  txXdr: string,
   network: NetworkType
 ): Promise<TransactionResult> {
-  return signAndSubmitTransaction(xdr, network);
+  return signAndSubmitTransaction(txXdr, network);
 }

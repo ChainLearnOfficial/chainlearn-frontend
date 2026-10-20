@@ -4,7 +4,7 @@ import { persist } from "zustand/middleware";
 function setSessionCookie(token: string | null) {
   if (typeof document === "undefined") return;
   if (token) {
-    document.cookie = `chainlearn-session=${token}; path=/; max-age=86400; SameSite=Lax`;
+    document.cookie = `chainlearn-session=${token}; path=/; max-age=86400; SameSite=Lax; Secure`;
   } else {
     document.cookie = "chainlearn-session=; path=/; max-age=0";
   }
