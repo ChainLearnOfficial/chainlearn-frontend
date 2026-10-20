@@ -18,6 +18,7 @@ const SelectTrigger = React.forwardRef<
     className={cn(
       "flex h-10 w-full items-center justify-between rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm",
       "placeholder:text-gray-400",
+      "dark:border-gray-700 dark:bg-gray-950 dark:text-gray-100",
       "focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent",
       "disabled:cursor-not-allowed disabled:opacity-50",
       "data-[placeholder]:text-gray-400",
@@ -42,7 +43,7 @@ const SelectContent = React.forwardRef<
       ref={ref}
       position={position}
       className={cn(
-        "relative z-50 max-h-96 min-w-[8rem] overflow-hidden rounded-lg border border-gray-200 bg-white shadow-md",
+        "relative z-50 max-h-96 min-w-[8rem] overflow-hidden rounded-lg border border-gray-200 bg-white shadow-md dark:border-gray-800 dark:bg-gray-900",
         position === "popper" &&
           "translate-y-1 data-[side=top]:-translate-y-1",
         className
@@ -83,7 +84,7 @@ const SelectItem = React.forwardRef<
     ref={ref}
     className={cn(
       "relative flex w-full cursor-pointer select-none items-center rounded-md py-1.5 pl-8 pr-2 text-sm outline-none",
-      "focus:bg-gray-100 focus:text-gray-900",
+      "focus:bg-gray-100 focus:text-gray-900 dark:focus:bg-gray-800 dark:focus:text-gray-100",
       "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
       className
     )}

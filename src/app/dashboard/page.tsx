@@ -4,12 +4,15 @@ import { useRequireAuth } from "@/lib/hooks/use-require-auth";
 import { useCourses, useRecommendedCourses } from "@/lib/hooks/use-courses";
 import { useRewards } from "@/lib/hooks/use-rewards";
 import { useCredentials } from "@/lib/hooks/use-credentials";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { CourseCard } from "@/components/course/course-card";
-import { ProgressBar } from "@/components/course/progress-bar";
+import { CourseProgressCard } from "@/components/course/course-progress-card";
 import { BalanceDisplay } from "@/components/wallet/balance-display";
+import { RewardHistory } from "@/components/rewards/reward-history";
 import { CredentialCard } from "@/components/credentials/credential-card";
 import { DashboardSkeleton } from "@/components/shared/loading-skeleton";
+import { EmptyState } from "@/components/shared/empty-state";
+import { StatsCard } from "@/components/shared/stats-card";
 import { useCourseStore } from "@/store/course-store";
 import {
   BookOpen,
@@ -26,7 +29,7 @@ export default function DashboardPage() {
   const { ready } = useRequireAuth();
   const { courses, enrollments, loading: coursesLoading } = useCourses();
   const { recommended, loading: recommendedLoading, error: recommendedError } = useRecommendedCourses();
-  const { balances, loading: rewardsLoading } = useRewards();
+  const { balances, history, loading: rewardsLoading } = useRewards();
   const { credentials, loading: credentialsLoading } = useCredentials();
   const progress = useCourseStore((s) => s.progress);
 
@@ -75,52 +78,30 @@ export default function DashboardPage() {
         <TabsContent value="overview" className="space-y-8 focus-visible:outline-none focus-visible:ring-0">
           {/* Stats */}
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <Card>
-              <CardContent className="flex items-center gap-3 p-4">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary-100">
-                  <BookOpen className="h-5 w-5 text-primary-600" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold">{enrollments.length}</p>
-                  <p className="text-xs text-gray-500">Enrolled Courses</p>
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="flex items-center gap-3 p-4">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-100">
-                  <TrendingUp className="h-5 w-5 text-green-600" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold">
-                    {enrollments.filter((e) => e.progress === 100).length}
-                  </p>
-                  <p className="text-xs text-gray-500">Completed</p>
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="flex items-center gap-3 p-4">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-stellar-purple/10">
-                  <Trophy className="h-5 w-5 text-stellar-purple" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold">{totalBalance.toFixed(1)}</p>
-                  <p className="text-xs text-gray-500">LEARN Tokens</p>
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="flex items-center gap-3 p-4">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-yellow-100">
-                  <Award className="h-5 w-5 text-yellow-600" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold">{credentials.length}</p>
-                  <p className="text-xs text-gray-500">Credentials</p>
-                </div>
-              </CardContent>
-            </Card>
+            <StatsCard
+              icon={BookOpen}
+              label="Enrolled Courses"
+              value={enrollments.length}
+              color="primary"
+            />
+            <StatsCard
+              icon={TrendingUp}
+              label="Completed"
+              value={enrollments.filter((e) => e.progress === 100).length}
+              color="success"
+            />
+            <StatsCard
+              icon={Trophy}
+              label="LEARN Tokens"
+              value={totalBalance.toFixed(1)}
+              color="purple"
+            />
+            <StatsCard
+              icon={Award}
+              label="Credentials"
+              value={credentials.length}
+              color="warning"
+            />
           </div>
 
           <section>
@@ -160,35 +141,30 @@ export default function DashboardPage() {
               </Link>
             </div>
             {enrolledCourses.length === 0 ? (
-              <Card>
-                <CardContent className="py-8 text-center">
-                  <BookOpen className="mx-auto h-10 w-10 text-gray-300 mb-3" />
-                  <p className="text-gray-500">You haven&apos;t enrolled in any courses yet.</p>
+              <EmptyState
+                icon={BookOpen}
+                title="No Courses Yet"
+                description="You haven't enrolled in any courses yet."
+                action={
                   <Link href="/courses">
-                    <Button className="mt-4" size="sm">
-                      Explore Courses
-                    </Button>
+                    <Button size="sm">Explore Courses</Button>
                   </Link>
-                </CardContent>
-              </Card>
+                }
+              />
             ) : (
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {enrolledCourses.map(({ enrollment, course }) => (
-                  <Card key={enrollment.id}>
-                    <CardContent className="p-4">
-                      <h3 className="font-semibold text-gray-900 mb-2">
-                        {course?.title || "Course"}
-                      </h3>
-                      <ProgressBar
-                        value={progress[enrollment.courseId]?.progressPercent ?? enrollment.progress}
-                      />
-                      <Link href={`/courses/${enrollment.courseId}`}>
-                        <Button variant="ghost" size="sm" className="mt-3 w-full">
-                          Continue Learning
-                        </Button>
-                      </Link>
-                    </CardContent>
-                  </Card>
+                  <CourseProgressCard
+                    key={enrollment.id}
+                    courseId={enrollment.courseId}
+                    courseTitle={course?.title || "Course"}
+                    progress={
+                      progress[enrollment.courseId]?.progressPercent ??
+                      enrollment.progress
+                    }
+                    completedModules={enrollment.completedModules?.length}
+                    moduleCount={course?.totalModules}
+                  />
                 ))}
               </div>
             )}
@@ -201,13 +177,11 @@ export default function DashboardPage() {
               My Credentials
             </h2>
             {credentials.length === 0 ? (
-              <Card>
-                <CardContent className="py-12 text-center">
-                  <Award className="mx-auto h-12 w-12 text-gray-300 mb-3" />
-                  <p className="text-gray-500">You haven&apos;t earned any credentials yet.</p>
-                  <p className="text-sm text-gray-400 mt-1">Complete courses to earn verifiable credentials on the Stellar network.</p>
-                </CardContent>
-              </Card>
+              <EmptyState
+                icon={Award}
+                title="No Credentials Yet"
+                description="You haven't earned any credentials yet. Complete courses to earn verifiable credentials on the Stellar network."
+              />
             ) : (
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {credentials.map((cred) => (
@@ -226,6 +200,17 @@ export default function DashboardPage() {
             <Card>
               <CardContent className="p-6">
                 <BalanceDisplay />
+              </CardContent>
+            </Card>
+          </section>
+
+          <section>
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">
+              Reward History
+            </h2>
+            <Card>
+              <CardContent className="p-6">
+                <RewardHistory claims={history} />
               </CardContent>
             </Card>
           </section>

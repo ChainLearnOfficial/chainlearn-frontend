@@ -30,10 +30,10 @@ interface ToastProps {
 }
 
 const variantStyles = {
-  success: "border-green-200 bg-green-50 text-green-800",
-  error: "border-red-200 bg-red-50 text-red-800",
-  warning: "border-amber-200 bg-amber-50 text-amber-800",
-  info: "border-blue-200 bg-blue-50 text-blue-800",
+  success: "border-success-200 bg-success-50 text-success-800",
+  error: "border-error-200 bg-error-50 text-error-800",
+  warning: "border-warning-200 bg-warning-50 text-warning-800",
+  info: "border-secondary-200 bg-secondary-50 text-secondary-800",
 };
 
 const variantIcons = {
@@ -44,6 +44,14 @@ const variantIcons = {
 };
 
 const SWIPE_DISMISS_THRESHOLD = 80;
+const MAX_VISIBLE_TOASTS = 4;
+
+function createToastId() {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+    return crypto.randomUUID();
+  }
+  return Math.random().toString(36).slice(2);
+}
 
 export function Toast({
   message,
@@ -56,6 +64,7 @@ export function Toast({
 }: ToastProps) {
   const [visible, setVisible] = useState(true);
   const [dragX, setDragX] = useState(0);
+  const [progress, setProgress] = useState(100);
   const dragState = useRef<{ startX: number; dragging: boolean } | null>(null);
   const Icon = variantIcons[variant];
 
@@ -76,8 +85,19 @@ export function Toast({
 
   useEffect(() => {
     if (autoClose > 0) {
+      const startTime = Date.now();
+      const interval = setInterval(() => {
+        const elapsed = Date.now() - startTime;
+        const remaining = Math.max(0, 100 - (elapsed / autoClose) * 100);
+        setProgress(remaining);
+        if (remaining <= 0) clearInterval(interval);
+      }, 50);
+
       const timer = setTimeout(dismiss, autoClose);
-      return () => clearTimeout(timer);
+      return () => {
+        clearInterval(interval);
+        clearTimeout(timer);
+      };
     }
   }, [autoClose, dismiss]);
 
@@ -104,13 +124,14 @@ export function Toast({
   return (
     <div
       role="status"
+      aria-live="polite"
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
       onPointerCancel={handlePointerUp}
       className={cn(
-        "fixed right-4 z-[100] flex items-center gap-3 rounded-lg border px-4 py-3 shadow-lg transition-all touch-pan-y",
-        visible ? "opacity-100" : "translate-y-2 opacity-0",
+        "fixed right-4 z-[100] flex flex-col gap-0 rounded-lg border shadow-lg transition-all touch-pan-y overflow-hidden",
+        visible ? "animate-slideUp opacity-100" : "animate-slideDown opacity-0",
         variantStyles[variant],
         className
       )}
@@ -120,26 +141,36 @@ export function Toast({
         opacity: visible ? Math.max(1 - Math.abs(dragX) / 200, 0.2) : undefined,
       }}
     >
-      <Icon className="h-5 w-5 flex-shrink-0" />
-      <p className="text-sm font-medium">{message}</p>
-      {action && (
+      <div className="flex items-center gap-3 px-4 py-3">
+        <Icon className="h-5 w-5 flex-shrink-0" />
+        <p className="text-sm font-medium flex-1">{message}</p>
+        {action && (
+          <button
+            onClick={() => {
+              action.onClick();
+              dismiss();
+            }}
+            className="flex-shrink-0 text-sm font-semibold underline underline-offset-2 hover:opacity-70"
+          >
+            {action.label}
+          </button>
+        )}
         <button
-          onClick={() => {
-            action.onClick();
-            dismiss();
-          }}
-          className="ml-1 flex-shrink-0 text-sm font-semibold underline underline-offset-2 hover:opacity-70"
+          onClick={dismiss}
+          aria-label="Dismiss notification"
+          className="flex-shrink-0 hover:opacity-70"
         >
-          {action.label}
+          <X className="h-4 w-4" />
         </button>
+      </div>
+      {progress < 100 && (
+        <div className="h-1 w-full bg-black/10 dark:bg-white/10">
+          <div
+            className="h-full transition-all duration-100 ease-linear bg-current opacity-50"
+            style={{ width: `${progress}%` }}
+          />
+        </div>
       )}
-      <button
-        onClick={dismiss}
-        aria-label="Dismiss notification"
-        className="ml-2 flex-shrink-0 hover:opacity-70"
-      >
-        <X className="h-4 w-4" />
-      </button>
     </div>
   );
 }
@@ -166,17 +197,21 @@ export function useToast() {
     (message: string, options: ToastVariant | AddToastOptions = "info") => {
       const opts: AddToastOptions =
         typeof options === "string" ? { variant: options } : options;
-      const id = Math.random().toString(36).slice(2);
-      setToasts((prev) => [
-        ...prev,
-        {
-          id,
-          message,
-          variant: opts.variant ?? "info",
-          autoClose: opts.autoClose,
-          action: opts.action,
-        },
-      ]);
+      setToasts((prev) => {
+        const withoutDuplicate = prev.filter(
+          (toast) => toast.message !== message || toast.variant !== (opts.variant ?? "info")
+        );
+        return [
+          ...withoutDuplicate,
+          {
+            id: createToastId(),
+            message,
+            variant: opts.variant ?? "info",
+            autoClose: opts.autoClose,
+            action: opts.action,
+          },
+        ].slice(-MAX_VISIBLE_TOASTS);
+      });
     },
     []
   );
@@ -223,17 +258,22 @@ export function ToastContextProvider({ children }: { children: ReactNode }) {
     (message: string, options: ToastVariant | AddToastOptions = "info") => {
       const opts: AddToastOptions =
         typeof options === "string" ? { variant: options } : options;
-      const id = Math.random().toString(36).slice(2);
-      setToasts((prev) => [
-        ...prev,
-        {
-          id,
-          message,
-          variant: opts.variant ?? "info",
-          autoClose: opts.autoClose,
-          action: opts.action,
-        },
-      ]);
+      setToasts((prev) => {
+        const variant = opts.variant ?? "info";
+        const withoutDuplicate = prev.filter(
+          (toast) => toast.message !== message || toast.variant !== variant
+        );
+        return [
+          ...withoutDuplicate,
+          {
+            id: createToastId(),
+            message,
+            variant,
+            autoClose: opts.autoClose,
+            action: opts.action,
+          },
+        ].slice(-MAX_VISIBLE_TOASTS);
+      });
     },
     []
   );
@@ -245,17 +285,19 @@ export function ToastContextProvider({ children }: { children: ReactNode }) {
   return (
     <ToastContext.Provider value={{ addToast }}>
       {children}
-      {toasts.map((toast, index) => (
-        <Toast
-          key={toast.id}
-          message={toast.message}
-          variant={toast.variant}
-          autoClose={toast.autoClose}
-          action={toast.action}
-          onClose={() => removeToast(toast.id)}
-          index={index}
-        />
-      ))}
+      <div aria-live="polite" aria-relevant="additions text">
+        {toasts.map((toast, index) => (
+          <Toast
+            key={toast.id}
+            message={toast.message}
+            variant={toast.variant}
+            autoClose={toast.autoClose}
+            action={toast.action}
+            onClose={() => removeToast(toast.id)}
+            index={index}
+          />
+        ))}
+      </div>
     </ToastContext.Provider>
   );
 }

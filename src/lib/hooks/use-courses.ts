@@ -12,6 +12,7 @@ import {
   getEnrollments,
   getRecommendedCourses,
 } from "@/lib/api/courses";
+import { isAbortError } from "@/lib/api/client";
 import type { Course, CourseEnrollment, Module, RecommendedCourse } from "@/types/course";
 
 const CACHE_TTL_MS = 60_000;
@@ -62,10 +63,13 @@ function getCachedEnrollments(jwt: string): CourseEnrollment[] | null {
   return cached.data;
 }
 
-async function loadCourses(params?: {
-  category?: string;
-  difficulty?: string;
-}): Promise<Course[]> {
+async function loadCourses(
+  params?: {
+    category?: string;
+    difficulty?: string;
+  },
+  signal?: AbortSignal
+): Promise<Course[]> {
   const key = coursesCacheKey(params);
   const cached = getCachedCourses(key);
   if (cached) return cached;
@@ -73,7 +77,7 @@ async function loadCourses(params?: {
   const existing = coursesInFlight.get(key);
   if (existing) return existing;
 
-  const request = getCourses(params)
+  const request = getCourses(params, signal)
     .then((result) => {
       coursesCache.set(key, { data: result.data, fetchedAt: Date.now() });
       return result.data;
@@ -86,14 +90,17 @@ async function loadCourses(params?: {
   return request;
 }
 
-async function loadEnrollments(jwt: string): Promise<CourseEnrollment[]> {
+async function loadEnrollments(
+  jwt: string,
+  signal?: AbortSignal
+): Promise<CourseEnrollment[]> {
   const cached = getCachedEnrollments(jwt);
   if (cached) return cached;
 
   const existing = enrollmentsInFlight.get(jwt);
   if (existing) return existing;
 
-  const request = getEnrollments(jwt)
+  const request = getEnrollments(jwt, signal)
     .then((data) => {
       enrollmentsCache.set(jwt, { data, fetchedAt: Date.now() });
       return data;
@@ -124,6 +131,7 @@ export function useCourses() {
     return getCachedCourses(coursesCacheKey()) === null;
   });
   const [error, setError] = useState<string | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
 
   const fetchCourses = useCallback(
     async (params?: { category?: string; difficulty?: string }) => {
@@ -136,12 +144,16 @@ export function useCourses() {
         return;
       }
 
+      const controller = new AbortController();
+      abortRef.current = controller;
+
       setLoading(true);
       setError(null);
       try {
-        const data = await loadCourses(params);
+        const data = await loadCourses(params, controller.signal);
         setCourses(data);
       } catch (err) {
+        if (isAbortError(err)) return;
         setError(err instanceof Error ? err.message : "Failed to fetch courses");
       } finally {
         setLoading(false);
@@ -159,10 +171,14 @@ export function useCourses() {
       return;
     }
 
+    const controller = new AbortController();
+    abortRef.current = controller;
+
     try {
-      const data = await loadEnrollments(jwt);
+      const data = await loadEnrollments(jwt, controller.signal);
       setEnrollments(data);
     } catch (err) {
+      if (isAbortError(err)) return;
       console.error("Failed to fetch enrollments:", err);
     }
   }, [jwt, setEnrollments]);
@@ -181,10 +197,12 @@ export function useCourses() {
 
   useEffect(() => {
     fetchCourses();
+    return () => abortRef.current?.abort();
   }, [fetchCourses]);
 
   useEffect(() => {
     fetchEnrollments();
+    return () => abortRef.current?.abort();
   }, [fetchEnrollments]);
 
   return {
@@ -198,6 +216,106 @@ export function useCourses() {
   };
 }
 
+const INFINITE_PAGE_SIZE = 9;
+
+function dedupeCourses(list: Course[]): Course[] {
+  const seen = new Set<string>();
+  const result: Course[] = [];
+  for (const course of list) {
+    if (seen.has(course.id)) continue;
+    seen.add(course.id);
+    result.push(course);
+  }
+  return result;
+}
+
+/**
+ * Loads the course catalog page-by-page as the user scrolls, instead of
+ * fetching the entire catalog up front. Search is applied client-side over
+ * the already-loaded pages.
+ * 
+ * Supports both offset-based pagination (page/limit) and cursor-based pagination.
+ * Automatically deduplicates courses to handle potential overlaps.
+ */
+export function useInfiniteCourses(filters: {
+  category?: string;
+  difficulty?: string;
+}) {
+  const category = filters.category ?? "All";
+  const difficulty = filters.difficulty ?? "All";
+
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [page, setPage] = useState(1);
+  // Kept in a ref, not state: as a load() dependency it re-created the callback
+  // on every response, re-triggering the reset effect in an endless fetch loop (#429).
+  const cursorRef = useRef<string | null>(null);
+  const [total, setTotal] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
+  const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const requestId = useRef(0);
+  const abortRef = useRef<AbortController | null>(null);
+
+  const load = useCallback(
+    async (nextPage: number, replace: boolean) => {
+      const id = ++requestId.current;
+      abortRef.current?.abort();
+      const controller = new AbortController();
+      abortRef.current = controller;
+      if (replace) setLoading(true);
+      else setLoadingMore(true);
+      setError(null);
+
+      try {
+        const result = await getCourses(
+          {
+            category: category === "All" ? undefined : category,
+            difficulty: difficulty === "All" ? undefined : difficulty,
+            page: nextPage,
+            limit: INFINITE_PAGE_SIZE,
+            pageSize: INFINITE_PAGE_SIZE,
+            cursor: replace ? undefined : cursorRef.current || undefined,
+          },
+          controller.signal
+        );
+        if (id !== requestId.current) return;
+        setCourses((prev) =>
+          replace ? result.data : dedupeCourses([...prev, ...result.data])
+        );
+        setHasMore(result.hasMore);
+        setTotal(result.total);
+        cursorRef.current = result.nextCursor || null;
+        setPage(nextPage);
+      } catch (err) {
+        if (id !== requestId.current || isAbortError(err)) return;
+        setError(
+          err instanceof Error ? err.message : "Failed to fetch courses"
+        );
+      } finally {
+        if (id === requestId.current) {
+          setLoading(false);
+          setLoadingMore(false);
+        }
+      }
+    },
+    [category, difficulty]
+  );
+
+  // Reset and refetch from the first page whenever filters change.
+  useEffect(() => {
+    load(1, true);
+    return () => abortRef.current?.abort();
+  }, [load]);
+
+  const loadMore = useCallback(() => {
+    if (!hasMore || loadingMore || loading) return;
+    load(page + 1, false);
+  }, [hasMore, loadingMore, loading, page, load]);
+
+  return { courses, hasMore, loading, loadingMore, error, loadMore, total };
+}
+
 export function useCourseDetail(courseId: string) {
   const jwt = useAuthStore((s) => s.jwt);
   const jwtRef = useRef(jwt);
@@ -208,13 +326,17 @@ export function useCourseDetail(courseId: string) {
 
   useEffect(() => {
     if (!courseId) return;
+    const controller = new AbortController();
     setLoading(true);
-    getCourse(courseId, jwtRef.current ?? undefined)
+    setError(null);
+    getCourse(courseId, jwtRef.current ?? undefined, controller.signal)
       .then(setCourse)
-      .catch((err) =>
-        setError(err instanceof Error ? err.message : "Failed to load course")
-      )
+      .catch((err) => {
+        if (isAbortError(err)) return;
+        setError(err instanceof Error ? err.message : "Failed to load course");
+      })
       .finally(() => setLoading(false));
+    return () => controller.abort();
   }, [courseId]);
 
   return { course, loading, error };
@@ -234,13 +356,17 @@ export function useModule(courseId: string, moduleId: string) {
 
   useEffect(() => {
     if (!courseId || !moduleId) return;
+    const controller = new AbortController();
     setLoading(true);
-    getModule(courseId, moduleId, jwtRef.current ?? undefined)
+    setError(null);
+    getModule(courseId, moduleId, jwtRef.current ?? undefined, controller.signal)
       .then(setModule)
-      .catch((err) =>
-        setError(err instanceof Error ? err.message : "Failed to load module")
-      )
+      .catch((err) => {
+        if (isAbortError(err)) return;
+        setError(err instanceof Error ? err.message : "Failed to load module");
+      })
       .finally(() => setLoading(false));
+    return () => controller.abort();
   }, [courseId, moduleId]);
 
   const complete = useCallback(async () => {
@@ -271,14 +397,17 @@ export function useRecommendedCourses() {
       setLoading(false);
       return;
     }
+    const controller = new AbortController();
     setError(null);
-    getRecommendedCourses(jwt)
+    getRecommendedCourses(jwt, controller.signal)
       .then(setRecommended)
       .catch((err) => {
+        if (isAbortError(err)) return;
         const message = err instanceof Error ? err.message : "Failed to load recommendations";
         setError(message);
       })
       .finally(() => setLoading(false));
+    return () => controller.abort();
   }, [jwt]);
 
   return { recommended, loading, error };

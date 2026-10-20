@@ -2,20 +2,228 @@ import { ApiError, ApiResponse } from "@/types/api";
 import { useAuthStore } from "@/store/auth-store";
 import { useErrorStore } from "@/store/error-store";
 
+/**
+ * AbortController support (#315):
+ * - signal parameter on all methods (get, post, put, delete)
+ * - fetchWithRetry accepts external signal, aborts immediately on signal
+ * - withAbort wraps shared GET requests for per-caller cancellation
+ * - isAbortError / createAbortError utilities
+ * - AbortError skipped in error handlers (no state updates on abort)
+ *
+ * Request timeout (#316):
+ * - Default 30s (REQUEST_TIMEOUT_MS)
+ * - Configurable via timeout parameter on all methods
+ * - Internal AbortController with setTimeout in fetchWithRetry
+ * - Timeout error → ApiError with "TIMEOUT" code
+ */
+
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
 
-const REQUEST_TIMEOUT_MS = 15000;
-const RETRY_BASE_DELAY_MS = 300;
+const REQUEST_TIMEOUT_MS = 30_000;
+const RETRY_BASE_DELAY_MS = 1000;
+const MAX_RETRIES = 3;
+/**
+ * Upper bound on the random jitter (ms) added to each retry delay
+ * (issue #311). Small enough that the effective backoff is still
+ * dominated by the exponential base, large enough that a burst of
+ * concurrent callers who all failed on the same 500 stop retrying in
+ * lockstep and stampede the origin.
+ */
+const RETRY_JITTER_MAX_MS = 250;
+
+/**
+ * Compute the delay before the next retry attempt (issue #311). Returns
+ * the exponential base (`RETRY_BASE_DELAY_MS * 2 ** attempt`) plus a
+ * uniform random jitter in `[0, RETRY_JITTER_MAX_MS)`. Callers that need
+ * a deterministic delay in tests can stub `Math.random`.
+ */
+function computeRetryDelayMs(attempt: number): number {
+  const base = RETRY_BASE_DELAY_MS * 2 ** attempt;
+  const jitter = Math.floor(Math.random() * RETRY_JITTER_MAX_MS);
+  return base + jitter;
+}
+
+/**
+ * Structured retry log (issue #311). Written to `console.warn` so an
+ * off-page aggregator that already collects `console.warn` gets the
+ * fields, and a dev watching devtools still sees a readable prefix.
+ */
+function logRetry(entry: {
+  url: string;
+  method: string;
+  attempt: number;
+  retries: number;
+  status: number | null;
+  delayMs: number;
+}): void {
+  console.warn("[ApiClient retry]", entry);
+}
+
+const CACHE_TTL_MS = 60_000;
+const CACHE_MAX_SIZE = 100;
+
+type CacheEntry = {
+  value: unknown;
+  expiresAt: number;
+};
+
+const responseCache = new Map<string, CacheEntry>();
+
+/**
+ * In-flight GET requests keyed by cache key. Concurrent callers asking for the
+ * same resource share one network request (and its retries) instead of each
+ * firing their own (request deduplication, #313). The shared request is owned
+ * by an internal AbortController that is aborted only once every caller has
+ * detached, so no single consumer unmounting can cancel a request others are
+ * still waiting on.
+ */
+type InFlightEntry = {
+  promise: Promise<unknown>;
+  controller: AbortController;
+  refs: number;
+  settled: boolean;
+};
+
+const inFlightGets = new Map<string, InFlightEntry>();
 
 function delay(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+/**
+ * Rejects with an AbortError as soon as `signal` fires, otherwise settles with
+ * `promise`. Lets a caller stop awaiting a shared request without cancelling
+ * the underlying request for other callers.
+ */
+function withAbort<T>(promise: Promise<T>, signal?: AbortSignal): Promise<T> {
+  if (!signal) return promise;
+  if (signal.aborted) return Promise.reject(createAbortError());
+  return new Promise<T>((resolve, reject) => {
+    const onAbort = () => reject(createAbortError());
+    signal.addEventListener("abort", onAbort, { once: true });
+    const cleanup = () => signal.removeEventListener("abort", onAbort);
+    promise.then(
+      (value) => {
+        cleanup();
+        resolve(value);
+      },
+      (error) => {
+        cleanup();
+        reject(error);
+      }
+    );
+  });
+}
+
+/**
+ * Builds the error `fetch` throws when its signal fires, so callers can detect
+ * a manually cancelled request via `error.name === "AbortError"` and skip any
+ * state updates.
+ */
+function createAbortError(): Error {
+  return new DOMException("The request was aborted.", "AbortError");
+}
+
+/**
+ * Returns true when the error was caused by an AbortController signal firing,
+ * either internally (timeout) or externally (manual cancellation).
+ *
+ * `fetch` rejects with a DOMException named "AbortError", which is not an
+ * `instanceof Error`, so the check inspects the `name` rather than the type.
+ */
+export function isAbortError(error: unknown): boolean {
+  return (
+    error !== null &&
+    typeof error === "object" &&
+    (error as { name?: unknown }).name === "AbortError"
+  );
+}
+
+/**
+ * ResponseInterceptor (#314):
+ * - onResponse: pre-processing before handleResponse (transform raw Response)
+ * - onSuccess: post-processing after handleResponse (transform parsed data)
+ * - onError: error handler for logging/analytics
+ */
+export type ResponseInterceptor = {
+  /**
+   * Pre-processing interceptor running before `handleResponse`.
+   * Can inspect or transform the raw fetch `Response`.
+   */
+  onResponse?: (response: Response) => Response | Promise<Response>;
+  /**
+   * Post-processing interceptor running after `handleResponse`.
+   * Can inspect or transform the parsed response data.
+   */
+  onSuccess?: <T>(data: ApiResponse<T>) => ApiResponse<T> | Promise<ApiResponse<T>>;
+  /**
+   * Error interceptor running whenever an error is encountered during a request.
+   * Can be used for global error logging or analytics events.
+   */
+  onError?: (error: unknown) => void | Promise<void>;
+};
+
 class ApiClient {
   private baseUrl: string;
+  private responseInterceptors: ResponseInterceptor[] = [];
 
   constructor(baseUrl: string) {
     this.baseUrl = baseUrl;
+  }
+
+  /**
+   * Register a response interceptor (#314).
+   * Runs onResponse/onSuccess for every response, onError for every error.
+   * Returns unsubscribe function.
+   */
+  addResponseInterceptor(interceptor: ResponseInterceptor): () => void {
+    this.responseInterceptors.push(interceptor);
+    return () => {
+      this.responseInterceptors = this.responseInterceptors.filter(
+        (entry) => entry !== interceptor
+      );
+    };
+  }
+
+  /**
+   * Process response through interceptors (#314).
+   * Runs onResponse interceptors (pre-processing) then handleResponse,
+   * then onSuccess interceptors (post-processing).
+   */
+  private async processResponse<T>(response: Response): Promise<ApiResponse<T>> {
+    let currentResponse = response;
+    for (const interceptor of this.responseInterceptors) {
+      if (interceptor.onResponse) {
+        currentResponse = await interceptor.onResponse(currentResponse);
+      }
+    }
+
+    let data = await this.handleResponse<ApiResponse<T>>(currentResponse);
+
+    for (const interceptor of this.responseInterceptors) {
+      if (interceptor.onSuccess) {
+        data = await interceptor.onSuccess(data);
+      }
+    }
+
+    return data;
+  }
+
+  /**
+   * Notify error interceptors (#314).
+   * Calls onError for each registered interceptor, catching failures
+   * to prevent hiding the original request error.
+   */
+  private async notifyErrorInterceptors(error: unknown): Promise<void> {
+    for (const interceptor of this.responseInterceptors) {
+      if (interceptor.onError) {
+        try {
+          await interceptor.onError(error);
+        } catch {
+          // Prevent interceptor failure from hiding underlying request error
+        }
+      }
+    }
   }
 
   private getHeaders(jwt?: string): HeadersInit {
@@ -60,25 +268,55 @@ class ApiClient {
   }
 
   /**
-   * Runs fetch with a request timeout and retries on transient network
-   * failures (connection drop, DNS failure, timeout). Retries are skipped
-   * for POST since a failed connection doesn't guarantee the server never
-   * received the request, and POST is generally not idempotent.
-   */
+    * fetchWithRetry with AbortController support (#315).
+    * - Creates internal AbortController for timeout
+    * - Links external signal to abort internal controller
+    * - External abort throws AbortError immediately, no retry
+    * - Timeout abort throws AbortError
+    */
   private async fetchWithRetry(
     url: string,
     init: RequestInit,
-    retries: number
+    retries: number,
+    signal?: AbortSignal,
+    timeout: number = REQUEST_TIMEOUT_MS
   ): Promise<Response> {
     for (let attempt = 0; ; attempt++) {
+      if (signal?.aborted) {
+        throw createAbortError();
+      }
+
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+      const timeoutId = setTimeout(() => controller.abort(), timeout);
+      const onExternalAbort = () => controller.abort();
+      signal?.addEventListener("abort", onExternalAbort);
 
       try {
-        const response = await fetch(url, { ...init, signal: controller.signal });
-        return response;
+        const response = await fetch(url, {
+          ...init,
+          signal: controller.signal,
+        });
+
+        if (response.status < 500 || attempt >= retries) {
+          return response;
+        }
+
+        const delayMs = computeRetryDelayMs(attempt);
+        logRetry({
+          url,
+          method: init.method ?? "GET",
+          attempt: attempt + 1,
+          retries,
+          status: response.status,
+          delayMs,
+        });
+        await delay(delayMs);
       } catch (error) {
-        const isTimeout = error instanceof DOMException && error.name === "AbortError";
+        if (signal?.aborted) {
+          throw createAbortError();
+        }
+
+        const isTimeout = isAbortError(error);
         const isNetworkError = error instanceof TypeError;
 
         if (!isTimeout && !isNetworkError) {
@@ -93,9 +331,22 @@ class ApiClient {
                 "NETWORK_ERROR"
               );
         }
-        await delay(RETRY_BASE_DELAY_MS * 2 ** attempt);
+        const delayMs = computeRetryDelayMs(attempt);
+        logRetry({
+          url,
+          method: init.method ?? "GET",
+          attempt: attempt + 1,
+          retries,
+          // No HTTP status on a timeout / network failure — status is null
+          // to signal the caller (or a log aggregator) to inspect the log
+          // message rather than the field.
+          status: null,
+          delayMs,
+        });
+        await delay(delayMs);
       } finally {
         clearTimeout(timeoutId);
+        signal?.removeEventListener("abort", onExternalAbort);
       }
     }
   }
@@ -105,15 +356,171 @@ class ApiClient {
     useErrorStore.getState().setError(error, isTransient);
   }
 
-  async get<T>(path: string, jwt?: string): Promise<ApiResponse<T>> {
+  private cacheKey(url: string, jwt?: string): string {
+    return jwt ? `${url}|${jwt}` : url;
+  }
+
+  /**
+   * Read a cached entry, returning `undefined` if absent or expired.
+   *
+   * Issue #312 semantics:
+   * - On a hit, the entry is re-inserted into the Map so its key moves to the
+   *   tail of iteration order. That converts the FIFO eviction below into
+   *   true LRU: a hot entry that is read frequently drifts to the back and
+   *   survives, a cold entry sits at the head and is evicted first.
+   * - The value is `structuredClone`-d before it is handed out so callers
+   *   cannot mutate cached state. Without this, a component that mutates
+   *   its API response corrupts every subsequent cache hit for the same key.
+   */
+  private getCached<T>(key: string): T | undefined {
+    const entry = responseCache.get(key);
+    if (!entry) return undefined;
+    if (Date.now() > entry.expiresAt) {
+      responseCache.delete(key);
+      return undefined;
+    }
+    // Re-insert to bump recency (LRU).
+    responseCache.delete(key);
+    responseCache.set(key, entry);
+    return structuredClone(entry.value) as T;
+  }
+
+  /**
+   * Store a value in the cache with a specific TTL. The default TTL
+   * (`CACHE_TTL_MS`) applies when the caller does not override, matching
+   * pre-#312 behaviour for existing callers.
+   *
+   * The value is `structuredClone`-d on the way in so the cache owns a
+   * private snapshot. Combined with the clone on read (`getCached`), this
+   * means neither the initial fetcher nor any later cache-hit consumer can
+   * mutate cached state.
+   */
+  private setCached<T>(key: string, value: T, ttlMs?: number): void {
+    if (responseCache.size >= CACHE_MAX_SIZE) {
+      // The oldest key by insertion order is now the least recently *used*,
+      // since `getCached` re-inserts on hit (see LRU note above).
+      const oldest = responseCache.keys().next().value;
+      if (oldest !== undefined) {
+        responseCache.delete(oldest);
+      }
+    }
+    const effectiveTtl = ttlMs ?? CACHE_TTL_MS;
+    responseCache.set(key, {
+      value: structuredClone(value),
+      expiresAt: Date.now() + effectiveTtl,
+    });
+  }
+
+  private invalidateCache(): void {
+    responseCache.clear();
+    // Stop new callers from joining requests that started before this
+    // mutation; those already in flight still resolve for their awaiters.
+    inFlightGets.clear();
+  }
+
+  async get<T>(
+    path: string,
+    jwt?: string,
+    signal?: AbortSignal,
+    options?: { bypassCache?: boolean; timeout?: number; ttl?: number }
+  ): Promise<ApiResponse<T>> {
+    const url = `${this.baseUrl}${path}`;
+    const key = this.cacheKey(url, jwt);
+
+    if (!options?.bypassCache) {
+      const cached = this.getCached<ApiResponse<T>>(key);
+      if (cached !== undefined) {
+        return cached;
+      }
+    }
+
+    if (signal?.aborted) {
+      throw createAbortError();
+    }
+
+    // A `bypassCache` read is deliberately never shared: the caller wants its
+    // own fresh round-trip and owns cancellation directly.
+    if (options?.bypassCache) {
+      return this.executeGet<T>(url, key, jwt, true, signal, options?.timeout, options?.ttl);
+    }
+
+    let entry = inFlightGets.get(key);
+    if (!entry) {
+      const controller = new AbortController();
+      const created: InFlightEntry = {
+        controller,
+        refs: 0,
+        settled: false,
+        promise: this.executeGet<T>(
+          url,
+          key,
+          jwt,
+          false,
+          controller.signal,
+          options?.timeout,
+          options?.ttl,
+        ),
+      };
+      const settle = () => {
+        created.settled = true;
+        if (inFlightGets.get(key) === created) {
+          inFlightGets.delete(key);
+        }
+      };
+      created.promise.then(settle, settle);
+      inFlightGets.set(key, created);
+      entry = created;
+    }
+
+    entry.refs++;
+    try {
+      return (await withAbort(entry.promise, signal)) as ApiResponse<T>;
+    } finally {
+      entry.refs--;
+      // Last caller gone before the request finished — cancel it for real.
+      if (entry.refs <= 0 && !entry.settled) {
+        entry.controller.abort();
+      }
+    }
+  }
+
+  /**
+   * Execute GET with abort support (#315).
+   * Uses withAbort to allow external signal to cancel wait without
+   * aborting the underlying shared request for other callers.
+   */
+  private async executeGet<T>(
+    url: string,
+    key: string,
+    jwt: string | undefined,
+    bypassCache: boolean,
+    signal?: AbortSignal,
+    timeout?: number,
+    ttl?: number,
+  ): Promise<ApiResponse<T>> {
     try {
       const response = await this.fetchWithRetry(
-        `${this.baseUrl}${path}`,
+        url,
         { method: "GET", headers: this.getHeaders(jwt) },
-        2
+        MAX_RETRIES,
+        signal,
+        timeout
       );
-      return this.handleResponse<ApiResponse<T>>(response);
+      // #314: run response interceptors (onResponse -> handleResponse -> onSuccess)
+      const data = await this.processResponse<T>(response);
+      if (!bypassCache) {
+        // Issue #312: honour a caller-supplied TTL so pages that want a
+        // longer or shorter cache window than the default can opt in.
+        this.setCached(key, data, ttl);
+      }
+      return data;
     } catch (error) {
+      // #315: AbortError is deliberate cancellation, skip error handling
+      if (isAbortError(error)) {
+        throw error;
+      }
+      // #314: notify error interceptors (onError)
+      await this.notifyErrorInterceptors(error);
       if (error instanceof ApiError) {
         this.handleApiError(error);
       }
@@ -124,7 +531,9 @@ class ApiClient {
   async post<T>(
     path: string,
     body: unknown,
-    jwt?: string
+    jwt?: string,
+    signal?: AbortSignal,
+    timeout?: number
   ): Promise<ApiResponse<T>> {
     try {
       const response = await this.fetchWithRetry(
@@ -134,10 +543,21 @@ class ApiClient {
           headers: this.getHeaders(jwt),
           body: JSON.stringify(body),
         },
-        0
+        0,
+        signal,
+        timeout
       );
-      return this.handleResponse<ApiResponse<T>>(response);
+      // #314: run response interceptors (onResponse -> handleResponse -> onSuccess)
+      const data = await this.processResponse<T>(response);
+      this.invalidateCache();
+      return data;
     } catch (error) {
+      // #315: AbortError is deliberate cancellation, skip error handling
+      if (isAbortError(error)) {
+        throw error;
+      }
+      // #314: notify error interceptors (onError)
+      await this.notifyErrorInterceptors(error);
       if (error instanceof ApiError) {
         this.handleApiError(error);
       }
@@ -148,7 +568,9 @@ class ApiClient {
   async put<T>(
     path: string,
     body: unknown,
-    jwt?: string
+    jwt?: string,
+    signal?: AbortSignal,
+    timeout?: number
   ): Promise<ApiResponse<T>> {
     try {
       const response = await this.fetchWithRetry(
@@ -158,10 +580,21 @@ class ApiClient {
           headers: this.getHeaders(jwt),
           body: JSON.stringify(body),
         },
-        2
+        0,
+        signal,
+        timeout
       );
-      return this.handleResponse<ApiResponse<T>>(response);
+      // #314: run response interceptors (onResponse -> handleResponse -> onSuccess)
+      const data = await this.processResponse<T>(response);
+      this.invalidateCache();
+      return data;
     } catch (error) {
+      // #315: AbortError is deliberate cancellation, skip error handling
+      if (isAbortError(error)) {
+        throw error;
+      }
+      // #314: notify error interceptors (onError)
+      await this.notifyErrorInterceptors(error);
       if (error instanceof ApiError) {
         this.handleApiError(error);
       }
@@ -169,21 +602,69 @@ class ApiClient {
     }
   }
 
-  async delete<T>(path: string, jwt?: string): Promise<ApiResponse<T>> {
+  async delete<T>(
+    path: string,
+    jwt?: string,
+    signal?: AbortSignal,
+    timeout?: number
+  ): Promise<ApiResponse<T>> {
     try {
       const response = await this.fetchWithRetry(
         `${this.baseUrl}${path}`,
         { method: "DELETE", headers: this.getHeaders(jwt) },
-        2
+        0,
+        signal,
+        timeout
       );
-      return this.handleResponse<ApiResponse<T>>(response);
+      // #314: run response interceptors (onResponse -> handleResponse -> onSuccess)
+      const data = await this.processResponse<T>(response);
+      this.invalidateCache();
+      return data;
     } catch (error) {
+      // #315: AbortError is deliberate cancellation, skip error handling
+      if (isAbortError(error)) {
+        throw error;
+      }
+      // #314: notify error interceptors (onError)
+      await this.notifyErrorInterceptors(error);
       if (error instanceof ApiError) {
         this.handleApiError(error);
       }
       throw error;
     }
   }
+}
+
+/**
+ * Creates an error logging interceptor for ApiClient.
+ */
+export function createLoggingInterceptor(
+  logFn: (message: string, ...args: unknown[]) => void = console.error
+): ResponseInterceptor {
+  return {
+    onError: (error) => {
+      logFn("[ApiClient Error Interceptor]:", error);
+    },
+  };
+}
+
+/**
+ * Creates an analytics event interceptor for ApiClient.
+ */
+export function createAnalyticsInterceptor(
+  trackEvent: (eventName: string, metadata?: Record<string, unknown>) => void
+): ResponseInterceptor {
+  return {
+    onSuccess: (data) => {
+      trackEvent("api_response_success", { success: (data as { success?: boolean })?.success });
+      return data;
+    },
+    onError: (error) => {
+      trackEvent("api_response_error", {
+        error: error instanceof Error ? error.message : String(error),
+      });
+    },
+  };
 }
 
 export const apiClient = new ApiClient(BASE_URL);

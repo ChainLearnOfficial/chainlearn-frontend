@@ -4,12 +4,23 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --background: #ffffff;
+    --foreground: #111827;
+    --text: #111827;
+    --border: #e5e7eb;
+    --surface: #f9fafb;
+  }
+
+  .dark {
+    --background: #030712;
+    --foreground: #f9fafb;
+    --text: #f9fafb;
+    --border: #374151;
+    --surface: #111827;
   }
 
   body {
-    @apply text-gray-900 antialiased;
+    @apply bg-background text-text antialiased;
   }
 }
 
@@ -43,9 +54,25 @@
   background: #9ca3af;
 }
 
+.dark * {
+  scrollbar-color: #4b5563 transparent;
+}
+
+.dark *::-webkit-scrollbar-thumb {
+  background: #4b5563;
+}
+
+.dark *::-webkit-scrollbar-thumb:hover {
+  background: #6b7280;
+}
+
 /* Smooth transitions for page content */
 #page-content {
   animation: fadeIn 0.2s ease-out;
+}
+
+#page-content.no-animation {
+  animation: none !important;
 }
 
 @keyframes fadeIn {
@@ -56,6 +83,66 @@
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+/* ── Responsive design improvements (#228) ───────────────────────────────── */
+
+/* Prevent horizontal overflow on all pages */
+html, body {
+  overflow-x: hidden;
+}
+
+/* Ensure minimum touch target size (44px) for interactive elements on mobile */
+@media (max-width: 640px) {
+  button, a, [role="button"], input, select, textarea {
+    min-height: 44px;
+  }
+
+  /* Stack course grid to single column on small screens */
+  .grid-cols-1 {
+    gap: 1rem;
+  }
+
+  /* Improve card spacing on mobile */
+  .card, [class*="Card"] {
+    margin-bottom: 0.75rem;
+  }
+
+  /* Ensure text is readable on mobile */
+  h1 { font-size: 1.5rem; line-height: 2rem; }
+  h2 { font-size: 1.25rem; line-height: 1.75rem; }
+
+  /* Fix navigation menu for mobile */
+  nav[aria-label="Bottom navigation"] {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  /* Dashboard stats should stack on mobile */
+  .grid-cols-2 {
+    grid-template-columns: 1fr;
+  }
+
+  /* Credential cards full width on mobile */
+  .credential-card {
+    width: 100%;
+    max-width: none;
+  }
+
+  /* Quiz interface: ensure buttons and options are touch-friendly */
+  [class*="quiz"] button,
+  [class*="Quiz"] button {
+    min-height: 44px;
+    width: 100%;
+    text-align: left;
+    padding: 0.75rem 1rem;
+  }
+}
+
+/* Slightly larger screens: allow 2-column grids */
+@media (min-width: 641px) and (max-width: 1024px) {
+  .grid-cols-3 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 

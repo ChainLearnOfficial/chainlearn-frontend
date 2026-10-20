@@ -1,28 +1,42 @@
 "use client";
 
 import { useAuth } from "@/lib/hooks/use-auth";
+import { useAuthStore } from "@/store/auth-store";
 import { Button } from "@/components/ui/button";
-import { Wallet, LogOut, Loader2 } from "lucide-react";
+import { Wallet, LogOut, Loader2, Copy, Check, Globe, RefreshCw } from "lucide-react";
 import { truncateAddress } from "@/lib/utils/format";
+import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { useState, useRef, useEffect, useCallback } from "react";
 
+const WALLET_LABELS = {
+  freighter: "Freighter",
+  lobstr: "LOBSTR",
+  rabet: "Rabet",
+} as const;
+
 export function ConnectButton() {
-  const { isAuthenticated, walletAddress, isConnecting, connectWallet, disconnect } =
-    useAuth();
-  const [showDisconnect, setShowDisconnect] = useState(false);
+  const {
+    isAuthenticated,
+    walletAddress,
+    walletProviderId,
+    isConnecting,
+    connectWallet,
+    disconnect,
+  } = useAuth();
+  const { network, setNetwork } = useAuthStore();
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [showMainnetConfirm, setShowMainnetConfirm] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const disconnectButtonRef = useRef<HTMLButtonElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
 
   const closeDropdown = useCallback(() => {
-    setShowDisconnect(false);
+    setShowDropdown(false);
     triggerRef.current?.focus();
   }, []);
 
   useEffect(() => {
-    if (!showDisconnect) return;
-
-    disconnectButtonRef.current?.focus();
+    if (!showDropdown) return;
 
     const handleClickOutside = (e: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
@@ -33,25 +47,6 @@ export function ConnectButton() {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         closeDropdown();
-        return;
-      }
-
-      if (e.key === "Tab") {
-        const focusableElements = dropdownRef.current?.querySelectorAll<HTMLElement>(
-          "button, [href], input, select, textarea, [tabindex]:not([tabindex='-1'])"
-        );
-        if (!focusableElements || focusableElements.length === 0) return;
-
-        const firstElement = focusableElements[0];
-        const lastElement = focusableElements[focusableElements.length - 1];
-
-        if (e.shiftKey && document.activeElement === firstElement) {
-          e.preventDefault();
-          lastElement.focus();
-        } else if (!e.shiftKey && document.activeElement === lastElement) {
-          e.preventDefault();
-          firstElement.focus();
-        }
       }
     };
 
@@ -61,7 +56,37 @@ export function ConnectButton() {
       document.removeEventListener("mousedown", handleClickOutside);
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [showDisconnect, closeDropdown]);
+  }, [showDropdown, closeDropdown]);
+
+  const handleCopyAddress = async () => {
+    if (!walletAddress) return;
+    try {
+      await navigator.clipboard.writeText(walletAddress);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      // Clipboard can be unavailable (insecure context) or denied; don't
+      // report success when nothing was copied (#437).
+      console.error("Failed to copy address", err);
+    }
+  };
+
+  const handleToggleNetwork = () => {
+    if (network === "testnet") {
+      // Switching to mainnet changes contract addresses and the RPC node and
+      // involves real funds, so require explicit confirmation (#443).
+      setShowDropdown(false);
+      setShowMainnetConfirm(true);
+      return;
+    }
+    // Switching back to testnet is low risk and needs no confirmation.
+    setNetwork("testnet");
+  };
+
+  const handleConfirmMainnet = () => {
+    setNetwork("public");
+    setShowMainnetConfirm(false);
+  };
 
   if (isAuthenticated && walletAddress) {
     return (
@@ -70,31 +95,103 @@ export function ConnectButton() {
           ref={triggerRef}
           variant="outline"
           size="sm"
-          onClick={() => setShowDisconnect(!showDisconnect)}
-          aria-expanded={showDisconnect}
+          onClick={() => setShowDropdown(!showDropdown)}
+          aria-expanded={showDropdown}
           aria-haspopup="true"
-          className="gap-2"
+          className="gap-2 font-mono"
         >
-          <div className="h-2 w-2 rounded-full bg-green-500" />
-          {truncateAddress(walletAddress)}
+          <span className="flex items-center gap-1.5 font-sans text-xs text-gray-500 dark:text-gray-400">
+            <span className="font-semibold text-gray-700 dark:text-gray-200">
+              {walletProviderId ? WALLET_LABELS[walletProviderId] : "Wallet"}
+            </span>
+            <span className="flex items-center gap-1 text-[10px] uppercase font-bold text-stellar-purple px-1.5 py-0.5 rounded bg-stellar-purple/10">
+              <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
+              {network}
+            </span>
+          </span>
+          <span className="font-semibold text-gray-900 dark:text-gray-100">
+            {truncateAddress(walletAddress)}
+          </span>
         </Button>
 
-        {showDisconnect && (
-          <div className="absolute right-0 top-full mt-2 w-48 rounded-lg border border-gray-200 bg-white shadow-lg z-50" role="menu">
-            <button
-              ref={disconnectButtonRef}
-              onClick={() => {
-                disconnect();
-                closeDropdown();
-              }}
-              role="menuitem"
-              className="flex w-full items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg"
-            >
-              <LogOut className="h-4 w-4" />
-              Disconnect
-            </button>
+        {showDropdown && (
+          <div
+            className="absolute right-0 top-full mt-2 w-56 rounded-xl border border-gray-200 bg-white p-1.5 shadow-xl z-50 dark:border-gray-800 dark:bg-gray-900"
+            role="menu"
+          >
+            <div className="px-3 py-2 border-b border-gray-100 dark:border-gray-800">
+              <div className="text-xs text-gray-400 font-medium">Connected Wallet</div>
+              <div className="text-sm font-semibold text-gray-800 dark:text-gray-200 flex items-center justify-between">
+                <span>{walletProviderId ? WALLET_LABELS[walletProviderId] : "Wallet"} Wallet</span>
+                <span className="text-[10px] text-green-600 bg-green-50 px-1.5 py-0.5 rounded font-mono font-bold">
+                  ACTIVE
+                </span>
+              </div>
+              <div className="text-xs font-mono text-gray-500 truncate mt-0.5">
+                {walletAddress}
+              </div>
+            </div>
+
+            <div className="py-1 space-y-0.5">
+              <button
+                type="button"
+                onClick={handleCopyAddress}
+                role="menuitem"
+                className="flex w-full items-center justify-between px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-800 rounded-lg transition-colors"
+              >
+                <span className="flex items-center gap-2">
+                  <Copy className="h-4 w-4 text-gray-500" />
+                  Copy Address
+                </span>
+                {copied ? (
+                  <span className="text-xs text-green-600 font-medium flex items-center gap-1">
+                    <Check className="h-3 w-3" /> Copied
+                  </span>
+                ) : null}
+              </button>
+
+              <button
+                type="button"
+                onClick={handleToggleNetwork}
+                role="menuitem"
+                className="flex w-full items-center justify-between px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-800 rounded-lg transition-colors"
+              >
+                <span className="flex items-center gap-2">
+                  <Globe className="h-4 w-4 text-gray-500" />
+                  Switch Network
+                </span>
+                <span className="text-xs font-bold uppercase text-stellar-purple flex items-center gap-1">
+                  {network} <RefreshCw className="h-3 w-3" />
+                </span>
+              </button>
+
+              <div className="my-1 border-t border-gray-100 dark:border-gray-800" />
+
+              <button
+                type="button"
+                onClick={() => {
+                  disconnect();
+                  closeDropdown();
+                }}
+                role="menuitem"
+                className="flex w-full items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-lg transition-colors font-medium"
+              >
+                <LogOut className="h-4 w-4" />
+                Disconnect Wallet
+              </button>
+            </div>
           </div>
         )}
+
+        <ConfirmDialog
+          open={showMainnetConfirm}
+          onOpenChange={setShowMainnetConfirm}
+          title="Switch to Mainnet?"
+          description="Mainnet uses real funds and different contract addresses. Balances you see on testnet will not carry over, and any transaction you submit will be sent to the live Stellar network and cannot be reversed. Only continue if you intend to use mainnet."
+          confirmLabel="Switch to Mainnet"
+          onConfirm={handleConfirmMainnet}
+          destructive
+        />
       </div>
     );
   }
@@ -104,7 +201,7 @@ export function ConnectButton() {
       onClick={connectWallet}
       disabled={isConnecting}
       size="sm"
-      className="gap-2"
+      className="gap-2 font-medium"
     >
       {isConnecting ? (
         <>

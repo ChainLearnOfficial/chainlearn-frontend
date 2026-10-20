@@ -3,6 +3,7 @@
 import { usePathname, useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/auth-store";
 import { useTokenRefresh } from "@/lib/hooks/use-token-refresh";
+import { useWalletWatcher } from "@/lib/hooks/use-wallet-watcher";
 import { Sidebar } from "@/components/layout/sidebar";
 import { MobileNav } from "@/components/layout/mobile-nav";
 
@@ -17,6 +18,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useTokenRefresh({
     onSessionExpired: () => router.push("/connect"),
   });
+  useWalletWatcher();
 
   return (
     <div className="flex min-h-screen flex-col">
