@@ -1,16 +1,19 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/lib/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Wallet, Shield, ArrowRight, Loader2, AlertCircle } from "lucide-react";
 import { isFreighterInstalled } from "@/lib/stellar/wallet";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useToastContext } from "@/components/shared/toast";
+import { getProfile } from "@/lib/api/auth";
+import { useAuthStore } from "@/store/auth-store";
 
-export default function ConnectPage() {
+function ConnectPageInner() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { isAuthenticated, isConnecting, connectWallet, error } = useAuth();
   const { addToast } = useToastContext();
   const [freighterInstalled, setFreighterInstalled] = useState<boolean | null>(
@@ -23,21 +26,21 @@ export default function ConnectPage() {
 
   useEffect(() => {
     if (isAuthenticated) {
-      router.push("/dashboard");
+      const redirect = searchParams.get("redirect");
+      router.push(redirect || "/dashboard");
     }
-  }, [isAuthenticated, router]);
+  }, [isAuthenticated, router, searchParams]);
 
   const handleConnect = async () => {
     try {
       await connectWallet();
       addToast("Wallet connected successfully!", "success");
-      const { getProfile } = await import("@/lib/api/auth");
-      const { useAuthStore } = await import("@/store/auth-store");
       const jwt = useAuthStore.getState().jwt;
+      const redirect = searchParams.get("redirect");
       if (jwt) {
         const profile = await getProfile(jwt);
         if (profile.displayName) {
-          router.push("/dashboard");
+          router.push(redirect || "/dashboard");
         } else {
           router.push("/onboarding");
         }
@@ -125,5 +128,13 @@ export default function ConnectPage() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+export default function ConnectPage() {
+  return (
+    <Suspense fallback={<div className="flex min-h-[80vh] items-center justify-center">Loading…</div>}>
+      <ConnectPageInner />
+    </Suspense>
   );
 }
