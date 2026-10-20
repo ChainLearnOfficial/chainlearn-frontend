@@ -6,6 +6,7 @@ function setSessionCookie(token: string | null) {
   if (typeof document === "undefined") return;
   const isSecure = typeof window !== "undefined" && window.location.protocol === "https:";
   if (token) {
+    document.cookie = `chainlearn-session=${token}; path=/; max-age=86400; SameSite=Lax; Secure`;
     const secureFlag = isSecure ? "; Secure" : "";
     document.cookie = `chainlearn-session=${token}; path=/; max-age=86400; SameSite=Lax${secureFlag}`;
   } else {
