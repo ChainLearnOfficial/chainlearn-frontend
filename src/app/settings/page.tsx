@@ -130,16 +130,19 @@ export default function SettingsPage() {
           <CardTitle className="text-lg">Profile Information</CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
-          {/* Avatar Upload */}
-          <div className="flex justify-center mb-6">
+          {/* Avatar Upload — upload is not yet wired to a backend (#486).
+              Show a clear "coming soon" placeholder instead of a fake success. */}
+          <div className="flex flex-col items-center mb-6 gap-2">
             <AvatarUpload
               currentAvatarUrl={undefined}
               name={displayName || walletAddress || "User"}
               onUpload={async () => {
-                await new Promise((resolve) => setTimeout(resolve, 1000));
-                addToast("Avatar uploaded successfully", "success");
+                addToast("Avatar upload is not yet available", "info");
               }}
             />
+            <p className="text-xs text-gray-400 dark:text-gray-500">
+              Avatar upload coming soon
+            </p>
           </div>
 
           {/* Display Name */}

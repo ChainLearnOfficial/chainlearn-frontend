@@ -67,8 +67,17 @@ export default function CredentialDetailPage({
 
   const handleDownload = useCallback(() => {
     if (!credential) return;
+    // #489 — escape all user-supplied values before interpolating into HTML
+    // to prevent XSS via malicious course titles or IDs.
+    const esc = (s: string | number | null | undefined): string =>
+      String(s ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
     const html = `<!DOCTYPE html>
-<html><head><title>Certificate - ${credential.courseTitle}</title>
+<html><head><title>Certificate - ${esc(credential.courseTitle)}</title>
 <style>
   body{font-family:Georgia,serif;display:flex;justify-content:center;align-items:center;min-height:100vh;margin:0;background:#f9fafb}
   .cert{background:white;border:2px solid #111;padding:48px;max-width:640px;text-align:center}
@@ -77,12 +86,12 @@ export default function CredentialDetailPage({
 </style></head><body>
 <div class="cert">
   <h1>Certificate of Completion</h1>
-  <h2>${credential.courseTitle}</h2>
+  <h2>${esc(credential.courseTitle)}</h2>
   <div class="line"></div>
-  <p class="meta">Issued: ${formatDate(credential.issuedAt)}</p>
-  <p class="meta">Credential ID: ${credential.id}</p>
-  <p class="meta">Token: ${truncateAddress(credential.tokenId, 8)}</p>
-  ${credential.metadata.score ? `<p class="meta">Score: ${credential.metadata.score}%</p>` : ""}
+  <p class="meta">Issued: ${esc(formatDate(credential.issuedAt))}</p>
+  <p class="meta">Credential ID: ${esc(credential.id)}</p>
+  <p class="meta">Token: ${esc(truncateAddress(credential.tokenId, 8))}</p>
+  ${credential.metadata.score ? `<p class="meta">Score: ${esc(credential.metadata.score)}%</p>` : ""}
   <div class="line"></div>
   <p class="meta">Verified on Stellar blockchain</p>
 </div>
@@ -91,7 +100,7 @@ export default function CredentialDetailPage({
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `certificate-${credential.courseTitle.toLowerCase().replace(/\s+/g, "-")}.html`;
+    a.download = `certificate-${credential.courseTitle.toLowerCase().replace(/[^a-z0-9]+/g, "-")}.html`;
     a.click();
     URL.revokeObjectURL(url);
   }, [credential]);

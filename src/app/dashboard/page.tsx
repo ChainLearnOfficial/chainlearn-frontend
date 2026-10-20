@@ -1,5 +1,6 @@
 "use client";
 
+import { Component, type ReactNode } from "react";
 import { useRequireAuth } from "@/lib/hooks/use-require-auth";
 import { useCourses, useRecommendedCourses } from "@/lib/hooks/use-courses";
 import { useRewards } from "@/lib/hooks/use-rewards";
@@ -20,17 +21,58 @@ import {
   Award,
   TrendingUp,
   ArrowRight,
+  AlertTriangle,
 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
+// #488 — lightweight per-section error boundary so one failing section
+// (rewards, credentials, etc.) never takes down the whole dashboard.
+class SectionErrorBoundary extends Component<
+  { label: string; children: ReactNode },
+  { hasError: boolean }
+> {
+  state = { hasError: false };
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <Card>
+          <CardContent className="py-6 text-center">
+            <AlertTriangle className="mx-auto h-5 w-5 text-amber-500 mb-2" />
+            <p className="text-sm text-gray-600">
+              {this.props.label} failed to load. Other sections are unaffected.
+            </p>
+          </CardContent>
+        </Card>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+function SectionError({ label, message }: { label: string; message: string }) {
+  return (
+    <Card>
+      <CardContent className="py-6 text-center">
+        <AlertTriangle className="mx-auto h-5 w-5 text-amber-500 mb-2" />
+        <p className="text-sm text-gray-600">{label}: {message}</p>
+      </CardContent>
+    </Card>
+  );
+}
+
 export default function DashboardPage() {
   const { ready } = useRequireAuth();
-  const { courses, enrollments, loading: coursesLoading } = useCourses();
+  const { courses, enrollments, loading: coursesLoading, error: coursesError } = useCourses();
   const { recommended, loading: recommendedLoading, error: recommendedError } = useRecommendedCourses();
-  const { balances, history, loading: rewardsLoading } = useRewards();
-  const { credentials, loading: credentialsLoading } = useCredentials();
+  const { balances, history, loading: rewardsLoading, error: rewardsError } = useRewards();
+  const { credentials, loading: credentialsLoading, error: credentialsError } = useCredentials();
   const progress = useCourseStore((s) => s.progress);
 
   if (!ready) return null;
@@ -104,116 +146,130 @@ export default function DashboardPage() {
             />
           </div>
 
-          <section>
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">
-              Recommended for You
-            </h2>
-            {recommendedError ? (
-              <Card>
-                <CardContent className="py-6 text-center">
-                  <p className="text-sm text-red-600">{recommendedError}</p>
-                </CardContent>
-              </Card>
-            ) : recommended.length === 0 ? (
-              <Card>
-                <CardContent className="py-6 text-center text-sm text-gray-500">
-                  Complete your profile to get personalized recommendations.
-                </CardContent>
-              </Card>
-            ) : (
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {recommended.slice(0, 3).map((course) => (
-                  <CourseCard key={course.id} course={course} />
-                ))}
-              </div>
-            )}
-          </section>
+          <SectionErrorBoundary label="Recommendations">
+            <section>
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">
+                Recommended for You
+              </h2>
+              {recommendedError ? (
+                <SectionError label="Recommendations" message={recommendedError} />
+              ) : recommended.length === 0 ? (
+                <Card>
+                  <CardContent className="py-6 text-center text-sm text-gray-500">
+                    Complete your profile to get personalized recommendations.
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  {recommended.slice(0, 3).map((course) => (
+                    <CourseCard key={course.id} course={course} />
+                  ))}
+                </div>
+              )}
+            </section>
+          </SectionErrorBoundary>
         </TabsContent>
 
         <TabsContent value="courses" className="focus-visible:outline-none focus-visible:ring-0">
-          <section className="mb-8">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-gray-900">My Courses</h2>
-              <Link href="/courses">
-                <Button variant="ghost" size="sm" className="gap-1">
-                  Browse Catalog <ArrowRight className="h-4 w-4" />
-                </Button>
-              </Link>
-            </div>
-            {enrolledCourses.length === 0 ? (
-              <EmptyState
-                icon={BookOpen}
-                title="No Courses Yet"
-                description="You haven't enrolled in any courses yet."
-                action={
-                  <Link href="/courses">
-                    <Button size="sm">Explore Courses</Button>
-                  </Link>
-                }
-              />
-            ) : (
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {enrolledCourses.map(({ enrollment, course }) => (
-                  <CourseProgressCard
-                    key={enrollment.id}
-                    courseId={enrollment.courseId}
-                    courseTitle={course?.title || "Course"}
-                    progress={
-                      progress[enrollment.courseId]?.progressPercent ??
-                      enrollment.progress
-                    }
-                    completedModules={enrollment.completedModules?.length}
-                    moduleCount={course?.totalModules}
-                  />
-                ))}
+          <SectionErrorBoundary label="Courses">
+            <section className="mb-8">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold text-gray-900">My Courses</h2>
+                <Link href="/courses">
+                  <Button variant="ghost" size="sm" className="gap-1">
+                    Browse Catalog <ArrowRight className="h-4 w-4" />
+                  </Button>
+                </Link>
               </div>
-            )}
-          </section>
+              {coursesError ? (
+                <SectionError label="Courses" message={coursesError} />
+              ) : enrolledCourses.length === 0 ? (
+                <EmptyState
+                  icon={BookOpen}
+                  title="No Courses Yet"
+                  description="You haven't enrolled in any courses yet."
+                  action={
+                    <Link href="/courses">
+                      <Button size="sm">Explore Courses</Button>
+                    </Link>
+                  }
+                />
+              ) : (
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  {enrolledCourses.map(({ enrollment, course }) => (
+                    <CourseProgressCard
+                      key={enrollment.id}
+                      courseId={enrollment.courseId}
+                      courseTitle={course?.title || "Course"}
+                      progress={
+                        progress[enrollment.courseId]?.progressPercent ??
+                        enrollment.progress
+                      }
+                      completedModules={enrollment.completedModules?.length}
+                      moduleCount={course?.totalModules}
+                    />
+                  ))}
+                </div>
+              )}
+            </section>
+          </SectionErrorBoundary>
         </TabsContent>
 
         <TabsContent value="credentials" className="focus-visible:outline-none focus-visible:ring-0">
-          <section>
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">
-              My Credentials
-            </h2>
-            {credentials.length === 0 ? (
-              <EmptyState
-                icon={Award}
-                title="No Credentials Yet"
-                description="You haven't earned any credentials yet. Complete courses to earn verifiable credentials on the Stellar network."
-              />
-            ) : (
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {credentials.map((cred) => (
-                  <CredentialCard key={cred.id} credential={cred} />
-                ))}
-              </div>
-            )}
-          </section>
+          <SectionErrorBoundary label="Credentials">
+            <section>
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">
+                My Credentials
+              </h2>
+              {credentialsError ? (
+                <SectionError label="Credentials" message={credentialsError} />
+              ) : credentials.length === 0 ? (
+                <EmptyState
+                  icon={Award}
+                  title="No Credentials Yet"
+                  description="You haven't earned any credentials yet. Complete courses to earn verifiable credentials on the Stellar network."
+                />
+              ) : (
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  {credentials.map((cred) => (
+                    <CredentialCard key={cred.id} credential={cred} />
+                  ))}
+                </div>
+              )}
+            </section>
+          </SectionErrorBoundary>
         </TabsContent>
 
         <TabsContent value="rewards" className="focus-visible:outline-none focus-visible:ring-0">
-          <section className="mb-8">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">
-              Rewards Balance
-            </h2>
-            <Card>
-              <CardContent className="p-6">
-                <BalanceDisplay />
-              </CardContent>
-            </Card>
-          </section>
+          <SectionErrorBoundary label="Rewards">
+            {rewardsError ? (
+              <SectionError label="Rewards" message={rewardsError} />
+            ) : (
+              <>
+                <section className="mb-8">
+                  <h2 className="text-lg font-semibold text-gray-900 mb-4">
+                    Rewards Balance
+                  </h2>
+                  <Card>
+                    <CardContent className="p-6">
+                      <BalanceDisplay />
+                    </CardContent>
+                  </Card>
+                </section>
 
-          <section>
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">
-              Reward History
-            </h2>
-            <Card>
-              <CardContent className="p-6">
-                <RewardHistory claims={history} />
-              </CardContent>
-            </Card>
-          </section>
+                <section>
+                  <h2 className="text-lg font-semibold text-gray-900 mb-4">
+                    Reward History
+                  </h2>
+                  <Card>
+                    <CardContent className="p-6">
+                      <RewardHistory claims={history} />
+                    </CardContent>
+                  </Card>
+                </section>
+              </>
+            )}
+          </SectionErrorBoundary>
         </TabsContent>
       </Tabs>
     </div>
