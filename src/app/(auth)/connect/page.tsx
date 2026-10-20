@@ -8,6 +8,8 @@ import { Wallet, Shield, Loader2, AlertCircle } from "lucide-react";
 import { isFreighterInstalled } from "@/lib/stellar/wallet";
 import { useEffect, useRef, useState } from "react";
 import { useToastContext } from "@/components/shared/toast";
+import { getProfile } from "@/lib/api/auth";
+import { useAuthStore } from "@/store/auth-store";
 
 /**
  * ConnectPage component handles the Freighter wallet connection flow.
@@ -45,8 +47,6 @@ export default function ConnectPage() {
     let active = true;
     const redirect = async () => {
       try {
-        const { getProfile } = await import("@/lib/api/auth");
-        const { useAuthStore } = await import("@/store/auth-store");
         const jwt = useAuthStore.getState().jwt;
         const profile = jwt ? await getProfile(jwt) : null;
         if (active) {
@@ -72,8 +72,6 @@ export default function ConnectPage() {
     }
 
     try {
-      const { getProfile } = await import("@/lib/api/auth");
-      const { useAuthStore } = await import("@/store/auth-store");
       const jwt = useAuthStore.getState().jwt;
       const profile = jwt ? await getProfile(jwt) : null;
       addToast("Wallet connected successfully!", "success");

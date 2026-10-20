@@ -111,14 +111,14 @@ export async function buildContractInvokeTx({
 
 /** Sign an XDR transaction with the selected wallet and submit it to Stellar RPC. */
 export async function signAndSubmit(
-  xdr: string,
+  txXdr: string,
   network: NetworkType,
   providerId: WalletProviderId = getSelectedWalletId(),
 ): Promise<TransactionResult> {
   const passphrase = getNetworkPassphrase(network);
 
   try {
-    const signedXdr = await signWalletTransaction(xdr, network, providerId);
+    const signedXdr = await signWalletTransaction(txXdr, network, providerId);
     const signedTransaction = TransactionBuilder.fromXDR(signedXdr, passphrase);
     const response = await new rpc.Server(getRpcUrl(network)).sendTransaction(signedTransaction);
 

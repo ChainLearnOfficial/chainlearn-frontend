@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import Cropper, { Area } from 'react-easy-crop';
 import { Camera, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -72,7 +72,17 @@ export function AvatarUpload({ currentAvatarUrl, name, onUpload }: AvatarUploadP
   const [isUploading, setIsUploading] = useState(false);
   const [isCropDialogOpen, setIsCropDialogOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const imageUrlRef = useRef<string | null>(null);
   const { addToast } = useToastContext();
+
+  // Cleanup object URL on unmount
+  useEffect(() => {
+    return () => {
+      if (imageUrlRef.current) {
+        URL.revokeObjectURL(imageUrlRef.current);
+      }
+    };
+  }, []);
 
   const onFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -85,7 +95,12 @@ export function AvatarUpload({ currentAvatarUrl, name, onUpload }: AvatarUploadP
         addToast('Image must be less than 5MB', 'error');
         return;
       }
+      // Revoke previous object URL if exists
+      if (imageUrlRef.current) {
+        URL.revokeObjectURL(imageUrlRef.current);
+      }
       const imageDataUrl = URL.createObjectURL(file);
+      imageUrlRef.current = imageDataUrl;
       setImageSrc(imageDataUrl);
       setIsCropDialogOpen(true);
     }
@@ -105,6 +120,11 @@ export function AvatarUpload({ currentAvatarUrl, name, onUpload }: AvatarUploadP
         await onUpload(croppedImageFile);
         addToast('Avatar updated successfully', 'success');
         setIsCropDialogOpen(false);
+        // Revoke object URL and reset state
+        if (imageUrlRef.current) {
+          URL.revokeObjectURL(imageUrlRef.current);
+          imageUrlRef.current = null;
+        }
         setImageSrc(null);
       }
     } catch (e) {
@@ -140,7 +160,17 @@ export function AvatarUpload({ currentAvatarUrl, name, onUpload }: AvatarUploadP
         />
       </div>
 
-      <Dialog open={isCropDialogOpen} onOpenChange={setIsCropDialogOpen}>
+      <Dialog open={isCropDialogOpen} onOpenChange={(open) => {
+        if (!open) {
+          // Cleanup object URL when dialog closes
+          if (imageUrlRef.current) {
+            URL.revokeObjectURL(imageUrlRef.current);
+            imageUrlRef.current = null;
+          }
+          setImageSrc(null);
+        }
+        setIsCropDialogOpen(open);
+      }}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Crop Image</DialogTitle>
