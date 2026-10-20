@@ -123,6 +123,12 @@ export function useAuth() {
     useState<WalletConnectionStage>("idle");
 
   const connectWallet = useCallback(async () => {
+    // Local flag to track whether this invocation already set a specific
+    // walletError. Reading walletErrorRef.current is unreliable here because
+    // setWalletError() queues a state update — the ref is only synced on the
+    // next render, so it still reflects the pre-call value in the catch block,
+    // causing the not_installed error to always be re-classified (#511).
+    let walletErrorSetInThisCall = false;
     setIsConnecting(true);
     setConnectionStage("detect");
     clearError();
@@ -140,6 +146,7 @@ export function useAuth() {
             "Install Freighter from freighter.app and refresh this page.",
         };
         setWalletError(walletErr);
+        walletErrorSetInThisCall = true;
         setError(walletErr.message);
         throw new Error(walletErr.message);
       }
@@ -174,8 +181,7 @@ export function useAuth() {
 
       return address;
     } catch (err) {
-      // If we already set walletError (e.g. not_installed), don't re-classify
-      if (!walletErrorRef.current) {
+      if (!walletErrorSetInThisCall) {
         const walletErr = classifyWalletError(err, networkRef.current);
         setWalletError(walletErr);
         setError(walletErr.message);

@@ -50,6 +50,7 @@ export const useCourseStore = create<CourseState>()(
               ? Math.round((completedCount / totalModules) * 100)
               : 0;
 
+          const now = new Date().toISOString();
           return {
             progress: {
               ...state.progress,
@@ -60,6 +61,9 @@ export const useCourseStore = create<CourseState>()(
                 completedModuleIds,
                 progressPercent,
                 currentModuleId: moduleId,
+                status: progressPercent === 100 ? "completed" : "in_progress",
+                startedAt: existing?.startedAt ?? now,
+                lastAccessedAt: now,
               },
             },
           };
