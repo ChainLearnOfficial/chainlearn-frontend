@@ -142,4 +142,28 @@ describe("useNotifications", () => {
     
     expect(getNotifications).toHaveBeenCalledTimes(2);
   });
+
+  it("refetches when the JWT changes without refetching on unrelated renders", async () => {
+    const { getNotifications } = await import("@/lib/api/notifications");
+    vi.mocked(getNotifications).mockResolvedValue([]);
+
+    useAuthStore.setState({ jwt: "old-jwt" });
+    const { result, rerender } = renderHook(() => useNotifications());
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    expect(getNotifications).toHaveBeenCalledTimes(1);
+    expect(getNotifications).toHaveBeenLastCalledWith(
+      "old-jwt",
+      expect.any(AbortSignal)
+    );
+
+    rerender();
+    expect(getNotifications).toHaveBeenCalledTimes(1);
+
+    useAuthStore.setState({ jwt: "new-jwt" });
+    await waitFor(() => expect(getNotifications).toHaveBeenCalledTimes(2));
+    expect(getNotifications).toHaveBeenLastCalledWith(
+      "new-jwt",
+      expect.any(AbortSignal)
+    );
+  });
 });
