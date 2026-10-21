@@ -1,6 +1,9 @@
-import { ApiError, ApiResponse } from "@/types/api";
+import { ApiError } from "@/types/api";
+import type { ApiResponse, ResponseInterceptor } from "@/types/api";
 import { useAuthStore } from "@/store/auth-store";
 import { useErrorStore } from "@/store/error-store";
+
+export type { ResponseInterceptor } from "@/types/api";
 
 /**
  * AbortController support (#315):
@@ -138,30 +141,6 @@ export function isAbortError(error: unknown): boolean {
     (error as { name?: unknown }).name === "AbortError"
   );
 }
-
-/**
- * ResponseInterceptor (#314):
- * - onResponse: pre-processing before handleResponse (transform raw Response)
- * - onSuccess: post-processing after handleResponse (transform parsed data)
- * - onError: error handler for logging/analytics
- */
-export type ResponseInterceptor = {
-  /**
-   * Pre-processing interceptor running before `handleResponse`.
-   * Can inspect or transform the raw fetch `Response`.
-   */
-  onResponse?: (response: Response) => Response | Promise<Response>;
-  /**
-   * Post-processing interceptor running after `handleResponse`.
-   * Can inspect or transform the parsed response data.
-   */
-  onSuccess?: <T>(data: ApiResponse<T>) => ApiResponse<T> | Promise<ApiResponse<T>>;
-  /**
-   * Error interceptor running whenever an error is encountered during a request.
-   * Can be used for global error logging or analytics events.
-   */
-  onError?: (error: unknown) => void | Promise<void>;
-};
 
 class ApiClient {
   private baseUrl: string;

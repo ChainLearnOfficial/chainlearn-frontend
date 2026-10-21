@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { apiClient } from "@/lib/api/client";
+import { encodePathParam } from "@/lib/api/path";
 import type { CredentialNFT } from "@/types/stellar";
 
 interface PageProps {
@@ -11,7 +12,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   try {
     const response = await apiClient.get<CredentialNFT>(
-      `/credentials/${credentialId}`
+      `/credentials/${encodePathParam(credentialId, "credentialId")}`
     );
     const credential = response.data;
     const title = `${credential.courseTitle} - Credential`;

@@ -1,5 +1,7 @@
 import { apiClient } from "./client";
 import { ApiError } from "@/types/api";
+import { getValidToken } from "./auth";
+import { encodePathParam } from "./path";
 import type { CredentialNFT } from "@/types/stellar";
 
 /** Reason a public credential verification did not succeed (issue #309). */
@@ -20,9 +22,6 @@ export interface VerifyCredentialResult {
   verifiedAt?: string;
   error?: VerifyCredentialError;
 }
-import { getValidToken } from "./auth";
-import type { CredentialNFT, CredentialMetadata } from "@/types/stellar";
-
 /**
  * Fetch all credentials for the authenticated user.
  */
@@ -49,7 +48,7 @@ export async function getCredential(
   signal?: AbortSignal
 ): Promise<CredentialNFT> {
   const response = await apiClient.get<CredentialNFT>(
-    `/credentials/${credentialId}`,
+    `/credentials/${encodePathParam(credentialId, "credentialId")}`,
     jwt,
     signal
   );
@@ -57,25 +56,6 @@ export async function getCredential(
 }
 
 /**
- * Verify a credential publicly (no auth required).
- * #507 — Fix property name: API returns data wrapped in ApiResponse, so we
- * need to extract .data from the response envelope.
- */
-export async function verifyCredential(
-  credentialId: string
-): Promise<{
-  valid: boolean;
-  metadata: CredentialMetadata;
-  verifiedAt: string;
-}> {
-  const response = await apiClient.get<{
-    valid: boolean;
-    metadata: CredentialMetadata;
-    verifiedAt: string;
-  }>(`/credentials/${credentialId}/verify`);
-  // ApiResponse wraps data in { data, message?, success }, so extract .data
-  return response.data;
- *
  * Calls `GET /credentials/verify/:id` and returns a typed
  * `VerifyCredentialResult`. A 404 for a nonexistent credential is folded
  * into `{ valid: false, error: "not_found" }` so callers do not have to
@@ -90,7 +70,7 @@ export async function verifyCredential(
 ): Promise<VerifyCredentialResult> {
   try {
     const response = await apiClient.get<VerifyCredentialResult>(
-      `/credentials/verify/${credentialId}`,
+      `/credentials/verify/${encodePathParam(credentialId, "credentialId")}`,
       undefined,
       signal
     );

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { apiClient } from "@/lib/api/client";
+import { encodePathParam } from "@/lib/api/path";
 import type { Course } from "@/types/course";
 
 interface PageProps {
@@ -10,7 +11,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { courseId } = params;
 
   try {
-    const response = await apiClient.get<Course>(`/courses/${courseId}`);
+    const response = await apiClient.get<Course>(
+      `/courses/${encodePathParam(courseId, "courseId")}`
+    );
     const course = response.data;
     const images = course.imageUrl
       ? [

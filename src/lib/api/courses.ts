@@ -1,4 +1,5 @@
 import { apiClient } from "./client";
+import { encodePathParam } from "./path";
 import { getValidToken } from "./auth";
 import type { PaginatedResponse } from "@/types/api";
 import { getQuiz, submitQuiz } from "./quizzes";
@@ -77,7 +78,11 @@ export async function getCourse(
   jwt?: string,
   signal?: AbortSignal
 ): Promise<Course> {
-  const response = await apiClient.get<Course>(`/courses/${courseId}`, jwt, signal);
+  const response = await apiClient.get<Course>(
+    `/courses/${encodePathParam(courseId, "courseId")}`,
+    jwt,
+    signal
+  );
   return response.data;
 }
 
@@ -92,7 +97,7 @@ export async function enrollInCourse(
   const validToken = await getValidToken();
   const token = validToken || jwt;
   const response = await apiClient.post<CourseEnrollment>(
-    `/courses/${courseId}/enroll`,
+    `/courses/${encodePathParam(courseId, "courseId")}/enroll`,
     {},
     token,
     signal
@@ -118,7 +123,7 @@ export async function getModule(
   signal?: AbortSignal
 ): Promise<Module> {
   const response = await apiClient.get<Module>(
-    `/courses/${courseId}/modules/${moduleId}`,
+    `/courses/${encodePathParam(courseId, "courseId")}/modules/${encodePathParam(moduleId, "moduleId")}`,
     jwt,
     signal
   );
@@ -147,7 +152,7 @@ export async function markModuleComplete(
   const validToken = await getValidToken();
   const token = validToken || jwt;
   const response = await apiClient.post<ModuleCompletionResult>(
-    `/courses/${courseId}/modules/${moduleId}/complete`,
+    `/courses/${encodePathParam(courseId, "courseId")}/modules/${encodePathParam(moduleId, "moduleId")}/complete`,
     {},
     token,
     signal

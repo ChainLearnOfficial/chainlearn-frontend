@@ -1,4 +1,5 @@
 import { apiClient } from "./client";
+import { encodePathParam } from "./path";
 import type { AuthTokens, UserProfile, UserSession } from "@/types/api";
 import { useAuthStore } from "@/store/auth-store";
 import { getTokenExpiry, isTokenExpired } from "@/lib/utils/jwt";
@@ -193,7 +194,7 @@ export async function revokeSession(
   const validToken = await getValidToken();
   const token = validToken || jwt;
   const response = await apiClient.delete<{ success: boolean }>(
-    `/auth/sessions/${sessionId}`,
+    `/auth/sessions/${encodePathParam(sessionId, "sessionId")}`,
     token,
     signal
   );

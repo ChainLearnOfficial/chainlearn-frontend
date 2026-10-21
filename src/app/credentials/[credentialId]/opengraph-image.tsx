@@ -1,4 +1,5 @@
 import { createOgImage, OG_SIZE } from "@/lib/utils/og-image";
+import { encodePathParam } from "@/lib/api/path";
 import type { CredentialNFT } from "@/types/stellar";
 
 export const alt = "ChainLearn credential";
@@ -17,9 +18,10 @@ export default async function Image({ params }: ImageProps) {
   let description = "On-chain verifiable credential issued on the Stellar network.";
 
   try {
-    const response = await fetch(`${API_URL}/credentials/${credentialId}`, {
-      next: { revalidate: 3600 },
-    });
+    const response = await fetch(
+      `${API_URL}/credentials/${encodePathParam(credentialId, "credentialId")}`,
+      { next: { revalidate: 3600 } }
+    );
     if (response.ok) {
       const payload = (await response.json()) as {
         data?: CredentialNFT;
