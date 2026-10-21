@@ -131,7 +131,8 @@ export function useCourses() {
     return getCachedCourses(coursesCacheKey()) === null;
   });
   const [error, setError] = useState<string | null>(null);
-  const abortRef = useRef<AbortController | null>(null);
+  const coursesAbortRef = useRef<AbortController | null>(null);
+  const enrollmentsAbortRef = useRef<AbortController | null>(null);
 
   const fetchCourses = useCallback(
     async (params?: { category?: string; difficulty?: string }) => {
@@ -145,7 +146,7 @@ export function useCourses() {
       }
 
       const controller = new AbortController();
-      abortRef.current = controller;
+      coursesAbortRef.current = controller;
 
       setLoading(true);
       setError(null);
@@ -172,7 +173,7 @@ export function useCourses() {
     }
 
     const controller = new AbortController();
-    abortRef.current = controller;
+    enrollmentsAbortRef.current = controller;
 
     try {
       const data = await loadEnrollments(jwt, controller.signal);
@@ -197,12 +198,12 @@ export function useCourses() {
 
   useEffect(() => {
     fetchCourses();
-    return () => abortRef.current?.abort();
+    return () => coursesAbortRef.current?.abort();
   }, [fetchCourses]);
 
   useEffect(() => {
     fetchEnrollments();
-    return () => abortRef.current?.abort();
+    return () => enrollmentsAbortRef.current?.abort();
   }, [fetchEnrollments]);
 
   return {

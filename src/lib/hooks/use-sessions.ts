@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useAuthStore } from "@/store/auth-store";
 import { getSessions, revokeSession } from "@/lib/api/auth";
 import { isAbortError } from "@/lib/api/client";
@@ -16,17 +16,22 @@ export function useSessions() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [revokingId, setRevokingId] = useState<string | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
 
-  const fetchSessions = useCallback(async (controller?: AbortController) => {
+  const fetchSessions = useCallback(async () => {
     if (!jwt) {
       setLoading(false);
       return;
     }
 
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+
     setLoading(true);
     setError(null);
 
-    const signal = controller?.signal;
+    const signal = controller.signal;
 
     try {
       const data = await getSessions(jwt, signal);
@@ -75,10 +80,8 @@ export function useSessions() {
   );
 
   useEffect(() => {
-    const controller = new AbortController();
-    fetchSessions(controller);
-
-    return () => controller.abort();
+    fetchSessions();
+    return () => abortRef.current?.abort();
   }, [fetchSessions]);
 
   return {
