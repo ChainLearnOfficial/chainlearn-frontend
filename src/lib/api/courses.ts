@@ -1,4 +1,4 @@
-import { apiClient } from "./client";
+import { apiClient, requireApiData } from "./client";
 import { getValidToken } from "./auth";
 import type { PaginatedResponse } from "@/types/api";
 import { getQuiz, submitQuiz } from "./quizzes";
@@ -66,7 +66,7 @@ export async function getCourses(
     undefined,
     signal
   );
-  return response.data;
+  return requireApiData(response.data);
 }
 
 /**
@@ -78,7 +78,7 @@ export async function getCourse(
   signal?: AbortSignal
 ): Promise<Course> {
   const response = await apiClient.get<Course>(`/courses/${courseId}`, jwt, signal);
-  return response.data;
+  return requireApiData(response.data);
 }
 
 /**
@@ -97,7 +97,7 @@ export async function enrollInCourse(
     token,
     signal
   );
-  return response.data;
+  return requireApiData(response.data);
 }
 
 /**
@@ -122,7 +122,7 @@ export async function getModule(
     jwt,
     signal
   );
-  return response.data;
+  return requireApiData(response.data);
 }
 
 /**
@@ -152,7 +152,7 @@ export async function markModuleComplete(
     token,
     signal
   );
-  return response.data;
+  return requireApiData(response.data);
 }
 
 /**
@@ -169,7 +169,7 @@ export async function getEnrollments(
     token,
     signal
   );
-  return response.data;
+  return requireApiData(response.data);
 }
 
 /**
@@ -186,7 +186,7 @@ export async function getRecommendedCourses(
     token,
     signal
   );
-  return response.data;
+  return requireApiData(response.data);
 }
 
 /**

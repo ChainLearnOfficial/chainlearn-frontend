@@ -52,13 +52,14 @@ const ContentSecurityPolicy = [
   "base-uri 'self'",
   "form-action 'self'",
   "object-src 'none'",
+  "report-uri /api/csp-report",
   // Avoid breaking local HTTP; enable HSTS-style upgrade only in production
   ...(isDev ? [] : ["upgrade-insecure-requests"]),
 ].join("; ");
 
 const securityHeaders = [
   {
-    key: "Content-Security-Policy",
+    key: "Content-Security-Policy-Report-Only",
     value: ContentSecurityPolicy,
   },
   {

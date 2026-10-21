@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { apiClient } from "@/lib/api/client";
+import { apiClient, requireApiData } from "@/lib/api/client";
 
 interface PageProps {
   params: { credentialId: string };
@@ -13,7 +13,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       valid: boolean;
       metadata: { courseTitle: string };
     }>(`/credentials/${credentialId}/verify`);
-    const data = response.data;
+    const data = requireApiData(response.data);
     const title = `Verify - ${data.metadata.courseTitle}`;
     const description = `On-chain verification of ${data.metadata.courseTitle} credential on ChainLearn.`;
 
