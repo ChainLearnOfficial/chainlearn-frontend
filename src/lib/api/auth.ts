@@ -1,4 +1,4 @@
-import { apiClient } from "./client";
+import { apiClient, requireApiData } from "./client";
 import type { AuthTokens, UserProfile, UserSession } from "@/types/api";
 import { useAuthStore } from "@/store/auth-store";
 import { getTokenExpiry, isTokenExpired } from "@/lib/utils/jwt";
@@ -20,7 +20,7 @@ export async function getChallenge(
     undefined,
     signal
   );
-  return response.data.challenge;
+  return requireApiData(response.data).challenge;
 }
 
 /**
@@ -40,7 +40,7 @@ export async function verifySignature(
     undefined,
     signal
   );
-  return response.data;
+  return requireApiData(response.data);
 }
 
 /**
@@ -53,7 +53,7 @@ export async function getProfile(
   const validToken = await getValidToken();
   const token = validToken || jwt;
   const response = await apiClient.get<UserProfile>("/auth/profile", token, signal);
-  return response.data;
+  return requireApiData(response.data);
 }
 
 /**
@@ -72,7 +72,7 @@ export async function updateProfile(
     token,
     signal
   );
-  return response.data;
+  return requireApiData(response.data);
 }
 
 /**
@@ -89,7 +89,7 @@ export async function refreshToken(
       undefined,
       signal
     );
-    return response.data;
+    return requireApiData(response.data);
   } catch (error) {
     // Fallback to /api/v1/auth/refresh if configured
     try {
@@ -99,7 +99,7 @@ export async function refreshToken(
         undefined,
         signal
       );
-      return response.data;
+      return requireApiData(response.data);
     } catch {
       throw error;
     }
@@ -179,7 +179,7 @@ export async function getSessions(
   const validToken = await getValidToken();
   const token = validToken || jwt;
   const response = await apiClient.get<UserSession[]>("/auth/sessions", token, signal);
-  return response.data;
+  return requireApiData(response.data);
 }
 
 /**
@@ -197,5 +197,5 @@ export async function revokeSession(
     token,
     signal
   );
-  return response.data;
+  return requireApiData(response.data);
 }

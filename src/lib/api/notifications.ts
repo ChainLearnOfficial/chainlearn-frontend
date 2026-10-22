@@ -1,4 +1,4 @@
-import { apiClient } from "./client";
+import { apiClient, requireApiData } from "./client";
 import { getValidToken } from "./auth";
 import type { AppNotification } from "@/types/notification";
 
@@ -16,7 +16,7 @@ export async function getNotifications(
     token,
     signal
   );
-  return response.data;
+  return requireApiData(response.data);
 }
 
 /**

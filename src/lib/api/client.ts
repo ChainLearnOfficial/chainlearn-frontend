@@ -62,6 +62,13 @@ function logRetry(entry: {
 const CACHE_TTL_MS = 60_000;
 const CACHE_MAX_SIZE = 100;
 
+export function requireApiData<T>(data: T | null): T {
+  if (data === null) {
+    throw new ApiError(200, "The API returned an empty response body.");
+  }
+  return data;
+}
+
 type CacheEntry = {
   value: unknown;
   expiresAt: number;
@@ -155,7 +162,9 @@ export type ResponseInterceptor = {
    * Post-processing interceptor running after `handleResponse`.
    * Can inspect or transform the parsed response data.
    */
-  onSuccess?: <T>(data: ApiResponse<T>) => ApiResponse<T> | Promise<ApiResponse<T>>;
+  onSuccess?: (
+    data: ApiResponse<unknown | null>
+  ) => ApiResponse<unknown | null> | Promise<ApiResponse<unknown | null>>;
   /**
    * Error interceptor running whenever an error is encountered during a request.
    * Can be used for global error logging or analytics events.
@@ -190,7 +199,7 @@ class ApiClient {
    * Runs onResponse interceptors (pre-processing) then handleResponse,
    * then onSuccess interceptors (post-processing).
    */
-  private async processResponse<T>(response: Response): Promise<ApiResponse<T>> {
+  private async processResponse<T>(response: Response): Promise<ApiResponse<T | null>> {
     let currentResponse = response;
     for (const interceptor of this.responseInterceptors) {
       if (interceptor.onResponse) {
@@ -198,11 +207,11 @@ class ApiClient {
       }
     }
 
-    let data = await this.handleResponse<ApiResponse<T>>(currentResponse);
+    let data = await this.handleResponse<T>(currentResponse);
 
     for (const interceptor of this.responseInterceptors) {
       if (interceptor.onSuccess) {
-        data = await interceptor.onSuccess(data);
+        data = (await interceptor.onSuccess(data)) as ApiResponse<T | null>;
       }
     }
 
@@ -236,7 +245,7 @@ class ApiClient {
     return headers;
   }
 
-  private async handleResponse<T>(response: Response): Promise<T> {
+  private async handleResponse<T>(response: Response): Promise<ApiResponse<T | null>> {
     if (!response.ok) {
       if (response.status === 401) {
         useAuthStore.getState().disconnect();
@@ -250,14 +259,22 @@ class ApiClient {
     }
 
     if (response.status === 204) {
-      return undefined as T;
+      return { data: null, success: true };
     }
 
     const text = await response.text();
-    if (!text) {
-      return undefined as T;
+    if (!text.trim()) {
+      return { data: null, success: true };
     }
-    return JSON.parse(text) as T;
+    try {
+      return JSON.parse(text) as ApiResponse<T | null>;
+    } catch (error) {
+      const detail = error instanceof Error ? error.message : "Unknown parsing error";
+      throw new ApiError(
+        response.status,
+        `Invalid JSON in successful API response: ${detail}`
+      );
+    }
   }
 
   private isTransientError(error: Error): boolean {
@@ -423,12 +440,12 @@ class ApiClient {
     jwt?: string,
     signal?: AbortSignal,
     options?: { bypassCache?: boolean; timeout?: number; ttl?: number }
-  ): Promise<ApiResponse<T>> {
+  ): Promise<ApiResponse<T | null>> {
     const url = `${this.baseUrl}${path}`;
     const key = this.cacheKey(url, jwt);
 
     if (!options?.bypassCache) {
-      const cached = this.getCached<ApiResponse<T>>(key);
+      const cached = this.getCached<ApiResponse<T | null>>(key);
       if (cached !== undefined) {
         return cached;
       }
@@ -474,7 +491,7 @@ class ApiClient {
 
     entry.refs++;
     try {
-      return (await withAbort(entry.promise, signal)) as ApiResponse<T>;
+      return (await withAbort(entry.promise, signal)) as ApiResponse<T | null>;
     } finally {
       entry.refs--;
       // Last caller gone before the request finished — cancel it for real.
@@ -497,7 +514,7 @@ class ApiClient {
     signal?: AbortSignal,
     timeout?: number,
     ttl?: number,
-  ): Promise<ApiResponse<T>> {
+  ): Promise<ApiResponse<T | null>> {
     try {
       const response = await this.fetchWithRetry(
         url,
@@ -534,7 +551,7 @@ class ApiClient {
     jwt?: string,
     signal?: AbortSignal,
     timeout?: number
-  ): Promise<ApiResponse<T>> {
+  ): Promise<ApiResponse<T | null>> {
     try {
       const response = await this.fetchWithRetry(
         `${this.baseUrl}${path}`,
@@ -571,7 +588,7 @@ class ApiClient {
     jwt?: string,
     signal?: AbortSignal,
     timeout?: number
-  ): Promise<ApiResponse<T>> {
+  ): Promise<ApiResponse<T | null>> {
     try {
       const response = await this.fetchWithRetry(
         `${this.baseUrl}${path}`,
@@ -607,7 +624,7 @@ class ApiClient {
     jwt?: string,
     signal?: AbortSignal,
     timeout?: number
-  ): Promise<ApiResponse<T>> {
+  ): Promise<ApiResponse<T | null>> {
     try {
       const response = await this.fetchWithRetry(
         `${this.baseUrl}${path}`,

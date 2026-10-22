@@ -1,4 +1,4 @@
-import { apiClient } from "./client";
+import { apiClient, requireApiData } from "./client";
 import { getValidToken } from "./auth";
 import type {
   Quiz,
@@ -39,7 +39,7 @@ export async function getQuiz(
     jwt,
     signal
   );
-  return response.data;
+  return requireApiData(response.data);
 }
 
 /**
@@ -70,7 +70,7 @@ export async function generateQuiz(
     token,
     signal
   );
-  return response.data;
+  return requireApiData(response.data);
 }
 
 /**
@@ -103,7 +103,7 @@ export async function submitQuiz(
     token,
     signal
   );
-  return response.data;
+  return requireApiData(response.data);
 }
 
 /**
@@ -129,5 +129,5 @@ export async function getQuizAttempts(
     token,
     signal
   );
-  return response.data;
+  return requireApiData(response.data);
 }

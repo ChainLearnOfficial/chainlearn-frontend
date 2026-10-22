@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { apiClient } from "@/lib/api/client";
+import { apiClient, requireApiData } from "@/lib/api/client";
 import type { CredentialNFT } from "@/types/stellar";
 
 interface PageProps {
@@ -13,7 +13,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     const response = await apiClient.get<CredentialNFT>(
       `/credentials/${credentialId}`
     );
-    const credential = response.data;
+    const credential = requireApiData(response.data);
     const title = `${credential.courseTitle} - Credential`;
     const description = `On-chain credential for ${credential.courseTitle} on ChainLearn.`;
 
