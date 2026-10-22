@@ -29,11 +29,47 @@ export function ConnectButton() {
   const [showMainnetConfirm, setShowMainnetConfirm] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   const closeDropdown = useCallback(() => {
     setShowDropdown(false);
     triggerRef.current?.focus();
   }, []);
+
+  const getMenuItems = useCallback(() => {
+    if (!menuRef.current) return [];
+    return Array.from(
+      menuRef.current.querySelectorAll<HTMLElement>('[role="menuitem"]')
+    );
+  }, []);
+
+  const handleMenuKeyDown = (e: React.KeyboardEvent) => {
+    const items = getMenuItems();
+    if (items.length === 0) return;
+
+    const currentIndex = items.findIndex(
+      (item) => item === document.activeElement
+    );
+
+    switch (e.key) {
+      case "ArrowDown":
+        e.preventDefault();
+        items[(currentIndex + 1 + items.length) % items.length].focus();
+        break;
+      case "ArrowUp":
+        e.preventDefault();
+        items[(currentIndex - 1 + items.length) % items.length].focus();
+        break;
+      case "Home":
+        e.preventDefault();
+        items[0].focus();
+        break;
+      case "End":
+        e.preventDefault();
+        items[items.length - 1].focus();
+        break;
+    }
+  };
 
   useEffect(() => {
     if (!showDropdown) return;
@@ -116,8 +152,10 @@ export function ConnectButton() {
 
         {showDropdown && (
           <div
+            ref={menuRef}
             className="absolute right-0 top-full mt-2 w-56 rounded-xl border border-gray-200 bg-white p-1.5 shadow-xl z-50 dark:border-gray-800 dark:bg-gray-900"
             role="menu"
+            onKeyDown={handleMenuKeyDown}
           >
             <div className="px-3 py-2 border-b border-gray-100 dark:border-gray-800">
               <div className="text-xs text-gray-400 font-medium">Connected Wallet</div>
