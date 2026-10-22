@@ -1,4 +1,4 @@
-import { renderHook, waitFor } from "@testing-library/react";
+import { act, renderHook, waitFor } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { useCredentials, useCredentialDetail, useVerifyCredential } from "./use-credentials";
 import { useAuthStore } from "@/store/auth-store";
@@ -128,5 +128,13 @@ describe("useVerifyCredential", () => {
       expect(result.current.loading).toBe(false);
       expect(result.current.error).toBeTruthy();
     });
+  });
+
+  it("stops loading when credential id is empty", async () => {
+    const { verifyCredential } = await import("@/lib/api/credentials");
+    const { result } = renderHook(() => useVerifyCredential(""));
+
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    expect(verifyCredential).not.toHaveBeenCalled();
   });
 });

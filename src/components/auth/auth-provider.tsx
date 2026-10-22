@@ -27,7 +27,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         <main className="flex-1">
           {/* key={pathname} remounts the div on route change so the fadeIn
               animation replays instead of only running on initial load. */}
-          <div id="page-content" key={pathname}>
+          <div id="auth-content" key={pathname}>
             {children}
           </div>
         </main>
