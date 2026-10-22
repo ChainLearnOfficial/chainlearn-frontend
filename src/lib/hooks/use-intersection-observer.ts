@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, RefObject } from "react";
+import { useEffect, useMemo, useState, RefObject } from "react";
 
 export interface UseIntersectionObserverOptions {
   threshold?: number | number[];
@@ -35,6 +35,10 @@ export function useIntersectionObserver(
   const isIntersecting = !!entry?.isIntersecting;
   const frozen = isIntersecting && freezeOnceVisible;
 
+  // Keyed on the serialized value so callers passing a new array literal each render don't rebuild the observer.
+  const thresholdKey = JSON.stringify(threshold);
+  const stableThreshold = useMemo<number | number[]>(() => JSON.parse(thresholdKey), [thresholdKey]);
+
   useEffect(() => {
     const node = elementRef?.current;
     if (!node || frozen || typeof window === "undefined" || !("IntersectionObserver" in window)) {
@@ -45,7 +49,7 @@ export function useIntersectionObserver(
       ([newEntry]) => {
         setEntry(newEntry);
       },
-      { threshold, root, rootMargin }
+      { threshold: stableThreshold, root, rootMargin }
     );
 
     observer.observe(node);
@@ -53,7 +57,7 @@ export function useIntersectionObserver(
     return () => {
       observer.disconnect();
     };
-  }, [elementRef, JSON.stringify(threshold), root, rootMargin, frozen]);
+  }, [elementRef, stableThreshold, root, rootMargin, frozen]);
 
   return {
     isIntersecting,
