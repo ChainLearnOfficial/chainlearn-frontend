@@ -29,9 +29,8 @@ export default function RewardsPage() {
     try {
       await claim(claimableId);
       addToast("Reward claimed successfully!", "success");
-    } catch (err) {
+    } catch {
       addToast("Failed to claim reward. Please try again.", "error");
-      throw err;
     }
   };
 

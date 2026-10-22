@@ -1,7 +1,7 @@
 "use client";
 
 import { memo } from "react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { cn } from "@/lib/utils/cn";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
@@ -44,19 +44,36 @@ export const CourseCard = memo(function CourseCard({
   onContinue,
   className,
 }: CourseCardProps) {
+  const router = useRouter();
+
+  const handleNavigate = () => {
+    router.push(`/courses/${course.id}`);
+  };
+
+  const handleCardKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      handleNavigate();
+    }
+  };
+
   const handleEnroll = (e: React.MouseEvent) => {
-    e.preventDefault();
+    e.stopPropagation();
     onEnroll?.(course.id);
   };
 
   const handleContinue = (e: React.MouseEvent) => {
-    e.preventDefault();
+    e.stopPropagation();
     onContinue?.(course.id);
   };
 
   return (
-    <Link href={`/courses/${course.id}`}>
       <Card
+        role="link"
+        tabIndex={0}
+        aria-label={course.title}
+        onClick={handleNavigate}
+        onKeyDown={handleCardKeyDown}
         className={cn(
           "group cursor-pointer transition-all hover:shadow-lg hover:-translate-y-1",
           className,
@@ -107,9 +124,9 @@ export const CourseCard = memo(function CourseCard({
 
           <div
             className="absolute top-2 right-2"
-            onClick={(e) => e.preventDefault()}
+            onClick={(e) => e.stopPropagation()}
             onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") e.preventDefault();
+              if (e.key === "Enter" || e.key === " ") e.stopPropagation();
             }}
           >
             <DropdownMenu>
@@ -192,6 +209,5 @@ export const CourseCard = memo(function CourseCard({
           )}
         </CardFooter>
       </Card>
-    </Link>
   );
 });
