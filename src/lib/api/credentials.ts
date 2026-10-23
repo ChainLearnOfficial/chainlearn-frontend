@@ -1,5 +1,7 @@
 import { apiClient, requireApiData } from "./client";
 import { ApiError } from "@/types/api";
+import { getValidToken } from "./auth";
+import { encodePathParam } from "./path";
 import type { CredentialNFT } from "@/types/stellar";
 
 /** Reason a public credential verification did not succeed (issue #309). */
@@ -48,7 +50,7 @@ export async function getCredential(
   signal?: AbortSignal
 ): Promise<CredentialNFT> {
   const response = await apiClient.get<CredentialNFT>(
-    `/credentials/${credentialId}`,
+    `/credentials/${encodePathParam(credentialId, "credentialId")}`,
     jwt,
     signal
   );
@@ -70,7 +72,7 @@ export async function verifyCredential(
 ): Promise<VerifyCredentialResult> {
   try {
     const response = await apiClient.get<VerifyCredentialResult>(
-      `/credentials/verify/${credentialId}`,
+      `/credentials/verify/${encodePathParam(credentialId, "credentialId")}`,
       undefined,
       signal
     );

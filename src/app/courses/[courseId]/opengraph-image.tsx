@@ -1,4 +1,5 @@
 import { createOgImage, OG_SIZE } from "@/lib/utils/og-image";
+import { encodePathParam } from "@/lib/api/path";
 import type { Course } from "@/types/course";
 
 export const alt = "ChainLearn course";
@@ -18,9 +19,12 @@ export default async function Image({ params }: ImageProps) {
     "Earn tokens and verifiable credentials while learning on Stellar.";
 
   try {
-    const response = await fetch(`${API_URL}/courses/${courseId}`, {
-      next: { revalidate: 3600 },
-    });
+    const response = await fetch(
+      `${API_URL}/courses/${encodePathParam(courseId, "courseId")}`,
+      {
+        next: { revalidate: 3600 },
+      }
+    );
     if (response.ok) {
       const payload = (await response.json()) as { data?: Course } & Course;
       const course = payload.data ?? payload;

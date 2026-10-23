@@ -1,4 +1,5 @@
 import { createOgImage, OG_SIZE } from "@/lib/utils/og-image";
+import { encodePathParam } from "@/lib/api/path";
 
 export const alt = "ChainLearn credential verification";
 export const size = OG_SIZE;
@@ -18,7 +19,7 @@ export default async function Image({ params }: ImageProps) {
 
   try {
     const response = await fetch(
-      `${API_URL}/credentials/${credentialId}/verify`,
+      `${API_URL}/credentials/${encodePathParam(credentialId, "credentialId")}/verify`,
       { next: { revalidate: 3600 } }
     );
     if (response.ok) {

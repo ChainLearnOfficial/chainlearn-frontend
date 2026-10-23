@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { encodePathParam } from "@/lib/api/path";
 import { apiClient, requireApiData } from "@/lib/api/client";
 import type { Course } from "@/types/course";
 

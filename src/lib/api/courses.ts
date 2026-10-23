@@ -92,7 +92,7 @@ export async function enrollInCourse(
   const validToken = await getValidToken();
   const token = validToken || jwt;
   const response = await apiClient.post<CourseEnrollment>(
-    `/courses/${courseId}/enroll`,
+    `/courses/${encodePathParam(courseId, "courseId")}/enroll`,
     {},
     token,
     signal
@@ -118,7 +118,7 @@ export async function getModule(
   signal?: AbortSignal
 ): Promise<Module> {
   const response = await apiClient.get<Module>(
-    `/courses/${courseId}/modules/${moduleId}`,
+    `/courses/${encodePathParam(courseId, "courseId")}/modules/${encodePathParam(moduleId, "moduleId")}`,
     jwt,
     signal
   );
@@ -147,7 +147,7 @@ export async function markModuleComplete(
   const validToken = await getValidToken();
   const token = validToken || jwt;
   const response = await apiClient.post<ModuleCompletionResult>(
-    `/courses/${courseId}/modules/${moduleId}/complete`,
+    `/courses/${encodePathParam(courseId, "courseId")}/modules/${encodePathParam(moduleId, "moduleId")}/complete`,
     {},
     token,
     signal
@@ -235,7 +235,7 @@ export async function getCourseModules(
   signal?: AbortSignal
 ): Promise<Module[]> {
   const course = await getCourse(courseId, jwt, signal);
-  return [...course.modules].sort((a, b) => a.order - b.order);
+  return [...(course.modules ?? [])].sort((a, b) => a.order - b.order);
 }
 
 /**

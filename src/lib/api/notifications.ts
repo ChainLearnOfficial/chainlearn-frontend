@@ -29,7 +29,12 @@ export async function markNotificationAsRead(
 ): Promise<void> {
   const validToken = await getValidToken();
   const token = validToken || jwt;
-  await apiClient.post<void>(`/notifications/${id}/read`, {}, token, signal);
+  await apiClient.post<void>(
+    `/notifications/${encodePathParam(id, "notificationId")}/read`,
+    {},
+    token,
+    signal
+  );
 }
 
 /**

@@ -11,7 +11,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   try {
     const response = await apiClient.get<CredentialNFT>(
-      `/credentials/${credentialId}`
+      `/credentials/${encodePathParam(credentialId, "credentialId")}`
     );
     const credential = requireApiData(response.data);
     const title = `${credential.courseTitle} - Credential`;
