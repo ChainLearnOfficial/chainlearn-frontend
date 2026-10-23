@@ -221,6 +221,48 @@ describe("open redirect protection (#541)", () => {
   });
 });
 
+describe("open redirect protection (#518)", () => {
+  it.each([
+    "javascript:alert(1)",
+    "JavaScript:alert(1)",
+    "data:text/html,<script>alert(1)</script>",
+    "vbscript:msgbox(1)",
+    "http:evil.com",
+  ])("rejects protocol scheme %s", (redirect) => {
+    const target = redirectTarget(
+      middleware(makeRequest("/connect", "jwt-abc", `?redirect=${encodeURIComponent(redirect)}`))
+    );
+
+    expect(target?.pathname).toBe("/dashboard");
+  });
+
+  it("rejects a scheme embedded after a leading slash", () => {
+    const target = redirectTarget(
+      middleware(makeRequest("/connect", "jwt-abc", "?redirect=/javascript:alert(1)"))
+    );
+
+    expect(target?.pathname).toBe("/dashboard");
+  });
+
+  it("rejects control characters used in parser-differential bypasses", () => {
+    const target = redirectTarget(
+      middleware(
+        makeRequest("/connect", "jwt-abc", "?redirect=/%09/evil.com")
+      )
+    );
+
+    expect(target?.pathname).toBe("/dashboard");
+  });
+
+  it("still allows a normal internal path", () => {
+    const target = redirectTarget(
+      middleware(makeRequest("/connect", "jwt-abc", "?redirect=/dashboard/settings"))
+    );
+
+    expect(target?.pathname).toBe("/dashboard/settings");
+  });
+});
+
 describe("matcher", () => {
   it("covers every protected area and both auth routes", () => {
     expect(config.matcher).toEqual(

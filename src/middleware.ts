@@ -48,16 +48,19 @@ function isAuthRoute(pathname: string): boolean {
 }
 
 /**
- * Reject open-redirect targets (#541). Only same-origin relative paths are
- * allowed: must start with a single "/", must not be protocol-relative
- * ("//evil.com"), and must not embed a scheme ("https://evil.com").
+ * Reject open-redirect targets (#518, #541). Only same-origin relative paths
+ * are allowed: must start with a single "/", must not be protocol-relative
+ * ("//evil.com"), must not embed a scheme ("https:", "javascript:", "data:"),
+ * and must not contain control characters used in parser-differential bypasses.
  */
 function isSafeRedirectPath(redirect: string | null): redirect is string {
   if (!redirect) return false;
   if (!redirect.startsWith("/")) return false;
   if (redirect.startsWith("//")) return false;
   if (redirect.includes("://")) return false;
+  if (/[a-zA-Z][a-zA-Z0-9+.-]*:/.test(redirect)) return false;
   if (redirect.includes("\\")) return false;
+  if (/[\u0000-\u001F\u007F]/.test(redirect)) return false;
   return true;
 }
 
