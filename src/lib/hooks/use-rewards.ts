@@ -119,7 +119,6 @@ export function useRewards() {
       setError(null);
     } catch (e) {
       if (isAbortError(e)) return;
-      console.error("Failed to fetch rewards:", e);
       setError(e instanceof Error ? e.message : "Failed to fetch rewards");
     } finally {
       setLoading(false);

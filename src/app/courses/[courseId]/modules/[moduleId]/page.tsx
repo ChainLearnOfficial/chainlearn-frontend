@@ -58,8 +58,7 @@ export default function ModulePage({
     try {
       await complete();
       addToast("Module marked as complete!", "success");
-    } catch (err) {
-      console.error("Failed to mark complete:", err);
+    } catch {
       addToast("Failed to mark module as complete.", "error");
     } finally {
       setCompleting(false);
