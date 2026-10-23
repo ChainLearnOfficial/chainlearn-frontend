@@ -128,7 +128,7 @@ export function AvatarUpload({ currentAvatarUrl, name, onUpload }: AvatarUploadP
         setImageSrc(null);
       }
     } catch (e) {
-      console.error(e);
+      
       addToast('Failed to crop and upload image', 'error');
     } finally {
       setIsUploading(false);

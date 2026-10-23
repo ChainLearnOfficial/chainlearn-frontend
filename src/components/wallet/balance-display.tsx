@@ -46,7 +46,7 @@ export function BalanceDisplay({ className, compact = false }: BalanceDisplayPro
         setTimeout(() => setCopied(false), 2000);
       } catch (err) {
         // Don't report success when nothing was copied (#437).
-        console.error("Failed to copy contract address", err);
+        
       }
     },
     [contractAddress]

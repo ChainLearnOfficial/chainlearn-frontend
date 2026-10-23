@@ -384,7 +384,7 @@ export function useModule(courseId: string, moduleId: string) {
     updateProgress(courseId, moduleId);
     // Sync enrollments with server data so progress sources don't diverge
     invalidateEnrollmentsCache(token);
-    loadEnrollments(token).then(setEnrollments).catch(console.error);
+    loadEnrollments(token).then(setEnrollments).catch(() => {});
   }, [courseId, moduleId, updateProgress, setEnrollments, currentCourse, setCurrentCourse]);
 
   return { module, loading, error, complete };
