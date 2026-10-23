@@ -18,7 +18,7 @@ export default defineConfig({
         "node_modules/**",
         "src/tests/**",
         "**/*.d.ts",
-        "src/app/**", // pages are integration territory; unit-test components
+        "src/app/**",
         "src/types/**",
       ],
     },
