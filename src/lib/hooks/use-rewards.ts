@@ -79,7 +79,8 @@ function invalidateCache(jwt: string) {
   rewardsCache.delete(jwt);
 }
 
-export function useRewards() {
+export function useRewards(options?: { enabled?: boolean }) {
+  const enabled = options?.enabled ?? true;
   const jwt = useAuthStore((s) => s.jwt);
   const jwtRef = useRef(jwt);
   jwtRef.current = jwt;
@@ -94,7 +95,8 @@ export function useRewards() {
   const [claimables, setClaimables] = useState<
     { id: string; amount: string; source: string; sourceTitle: string }[]
   >([]);
-  const [loading, setLoading] = useState(true);
+  const [fetched, setFetched] = useState(false);
+  const loading = enabled && !fetched;
   const [claiming, setClaiming] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
@@ -102,12 +104,11 @@ export function useRewards() {
   const fetchAll = useCallback(async (historyParams?: RewardHistoryParams) => {
     const token = jwtRef.current;
     if (!token) {
-      setLoading(false);
+      setFetched(true);
       return;
     }
     const controller = new AbortController();
     abortRef.current = controller;
-    setLoading(true);
     try {
       await loadRewards(token, controller.signal, historyParams);
       const cached = rewardsCache.get(token);
@@ -121,7 +122,7 @@ export function useRewards() {
       if (isAbortError(e)) return;
       setError(e instanceof Error ? e.message : "Failed to fetch rewards");
     } finally {
-      setLoading(false);
+      setFetched(true);
     }
   }, []);
 
@@ -159,9 +160,11 @@ export function useRewards() {
   );
 
   useEffect(() => {
+    if (!enabled) return;
+    if (fetched) return;
     fetchAll();
     return () => abortRef.current?.abort();
-  }, [fetchAll]);
+  }, [fetchAll, enabled, fetched]);
 
   return {
     balances,
