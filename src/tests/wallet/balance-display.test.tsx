@@ -59,10 +59,10 @@ describe("BalanceDisplay", () => {
     expect(screen.getByText(/LEARN decimals: 7/)).toBeInTheDocument();
   });
 
-  it("links to transaction history", () => {
+  it("links to the rewards page", () => {
     render(<BalanceDisplay />);
-    const link = screen.getByRole("link", { name: /view transactions/i });
-    expect(link).toHaveAttribute("href", "/transactions");
+    const link = screen.getByRole("link", { name: /view rewards/i });
+    expect(link).toHaveAttribute("href", "/rewards");
   });
 
   it("copies the issuer address on click", async () => {
