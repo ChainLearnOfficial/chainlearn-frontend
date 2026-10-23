@@ -74,8 +74,8 @@ export default function RootLayout({
         <ErrorBoundary
           showErrorDetails={process.env.NODE_ENV === "development"}
           onError={(error, errorInfo) => {
-            console.error("Application error:", error);
-            console.error("Component stack:", errorInfo.componentStack);
+            
+            
           }}
         >
           <WalletProvider>

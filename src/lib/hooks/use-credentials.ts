@@ -35,7 +35,6 @@ export function useCredentials() {
       if (isAbortError(err)) return;
       const message = err instanceof Error ? err.message : "Failed to fetch credentials";
       setError(message);
-      console.error("Failed to fetch credentials:", err);
     } finally {
       setLoading(false);
     }
@@ -86,7 +85,6 @@ export function useCredentialDetail(credentialId: string) {
         if (isAbortError(err)) return;
         const message = err instanceof Error ? err.message : "Failed to load credential";
         setError(message);
-        console.error(message, err);
       })
       .finally(() => setLoading(false));
     return () => controller.abort();

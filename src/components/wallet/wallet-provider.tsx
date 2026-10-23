@@ -35,7 +35,7 @@ export function WalletProvider({ children }: WalletProviderProps) {
           disconnect();
         }
       } catch (err) {
-        console.error("Wallet connection check failed:", err);
+        
         disconnect();
       }
     }

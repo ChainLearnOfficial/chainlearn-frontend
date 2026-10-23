@@ -74,7 +74,7 @@ export function QuizInterface({ quiz, courseId, onSubmit, onRetry, className }: 
     if (timeExpired && !submittedRef.current && !attempt) {
       submittedRef.current = true;
       // Auto-submit with whatever answers we have
-      onSubmit(answers).then(setAttempt).catch(console.error);
+      onSubmit(answers).then(setAttempt).catch(() => {});
     }
   }, [timeExpired, answers, onSubmit, attempt]);
 

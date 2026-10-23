@@ -103,7 +103,7 @@ export function ConnectButton() {
     } catch (err) {
       // Clipboard can be unavailable (insecure context) or denied; don't
       // report success when nothing was copied (#437).
-      console.error("Failed to copy address", err);
+      
     }
   };
 

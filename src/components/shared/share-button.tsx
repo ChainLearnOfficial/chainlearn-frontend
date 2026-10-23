@@ -49,7 +49,7 @@ export function ShareButton({
         return;
       } catch (err) {
         if ((err as Error).name !== 'AbortError') {
-          console.error('Error sharing', err);
+          
           setOpen(true);
         }
       }
@@ -64,7 +64,7 @@ export function ShareButton({
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
-      console.error('Failed to copy', err);
+      
     }
   };
 

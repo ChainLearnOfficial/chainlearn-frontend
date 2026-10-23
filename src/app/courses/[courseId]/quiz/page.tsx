@@ -42,7 +42,7 @@ export default function QuizPage({
       addToast("Quiz generated successfully! Reloading...", "success");
       window.location.reload();
     } catch (err) {
-      console.error(err);
+      
       addToast("Failed to generate quiz. Please try again.", "error");
     } finally {
       setGenerating(false);

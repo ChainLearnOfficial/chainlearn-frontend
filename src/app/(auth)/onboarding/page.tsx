@@ -98,8 +98,7 @@ export default function OnboardingPage() {
         language,
       });
       router.push("/dashboard");
-    } catch (err) {
-      console.error("Failed to save profile:", err);
+    } catch {
       addToast("Failed to save profile. Please try again.", "error");
     } finally {
       setSaving(false);

@@ -37,7 +37,7 @@ export function useNotifications() {
       setNotifications(items);
     } catch (e) {
       if (isAbortError(e)) return;
-      console.error("Failed to fetch notifications:", e);
+      
       setError(e instanceof Error ? e.message : "Failed to load notifications");
     } finally {
       if (!controller.signal.aborted) setLoading(false);
@@ -55,7 +55,7 @@ export function useNotifications() {
       try {
         await markNotificationAsRead(id, token);
       } catch (e) {
-        console.error("Failed to mark notification as read:", e);
+        
         // Revert so the unread state stays accurate if the request fails.
         setNotifications((prev) =>
           prev.map((n) => (n.id === id ? { ...n, read: false } : n))
@@ -72,7 +72,7 @@ export function useNotifications() {
     try {
       await markAllNotificationsAsRead(token);
     } catch (e) {
-      console.error("Failed to mark all notifications as read:", e);
+      
       refetch();
     }
   }, [refetch]);

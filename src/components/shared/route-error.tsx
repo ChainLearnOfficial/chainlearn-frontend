@@ -10,9 +10,7 @@ interface RouteErrorProps {
 }
 
 export function RouteError({ error, reset }: RouteErrorProps) {
-  useEffect(() => {
-    console.error("Route error:", error);
-  }, [error]);
+  useEffect(() => {}, [error]);
 
   return (
     <div

@@ -60,8 +60,7 @@ export default function CourseDetailPage({
       addToast("Successfully enrolled in the course!", "success");
       // Allow the success animation to play before transitioning to progress view
       setTimeout(() => setJustEnrolled(false), 1500);
-    } catch (err) {
-      console.error("Enrollment failed:", err);
+    } catch {
       addToast("Enrollment failed. Please try again.", "error");
     } finally {
       setEnrolling(false);

@@ -676,7 +676,7 @@ class ApiClient {
  * Creates an error logging interceptor for ApiClient.
  */
 export function createLoggingInterceptor(
-  logFn: (message: string, ...args: unknown[]) => void = console.error
+  logFn: (message: string, ...args: unknown[]) => void = () => {}
 ): ResponseInterceptor {
   return {
     onError: (error) => {
@@ -705,3 +705,8 @@ export function createAnalyticsInterceptor(
 }
 
 export const apiClient = new ApiClient(BASE_URL);
+
+export { withRetry, computeBackoff } from "./retry";
+export type { RetryOptions } from "./retry";
+export { LRUCache } from "./cache";
+export { dedupGet, clearDedupCache } from "./dedup";

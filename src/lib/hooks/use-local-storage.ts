@@ -34,7 +34,7 @@ export function useLocalStorage<T>(
           window.localStorage.setItem(key, JSON.stringify(valueToStore));
         }
       } catch (error) {
-        console.error(`useLocalStorage error for key "${key}":`, error);
+        
       }
     },
     [key, storedValue]
@@ -50,7 +50,7 @@ export function useLocalStorage<T>(
         setStoredValue(JSON.parse(item));
       }
     } catch (error) {
-      console.error(`useLocalStorage hydration error for key "${key}":`, error);
+      
     }
 
     setIsMounted(true);
@@ -66,7 +66,7 @@ export function useLocalStorage<T>(
           try {
             setStoredValue(JSON.parse(e.newValue));
           } catch (error) {
-            console.error(`useLocalStorage sync error for key "${key}":`, error);
+            
           }
         } else {
           // Reset to initial value when another tab removes the item

@@ -32,14 +32,14 @@ const createDefaultErrorReporter = (): ErrorReportService => {
 
       // Log to console in development
       if (context.isDevelopment) {
-        console.error("[Error Reporter]", payload);
+        
       }
 
       // Send to external service (placeholder)
       try {
         // await fetch('/api/errors', { method: 'POST', body: JSON.stringify(payload) });
       } catch (err) {
-        console.error("Failed to report error:", err);
+        
       }
     },
   };
@@ -103,9 +103,6 @@ class ErrorBoundaryInner extends React.Component<
     if (this.props.onError) {
       this.props.onError(error, errorInfo);
     }
-
-    // Log to console
-    console.error("ErrorBoundary caught:", error, errorInfo);
   }
 
   private reportError = async (error: Error, errorInfo: React.ErrorInfo) => {
@@ -117,7 +114,7 @@ class ErrorBoundaryInner extends React.Component<
         url: typeof window !== "undefined" ? window.location.href : "",
       });
     } catch (err) {
-      console.error("Error reporting failed:", err);
+      
     }
   };
 
@@ -145,7 +142,7 @@ class ErrorBoundaryInner extends React.Component<
         isRetrying: false,
       });
     } catch (err) {
-      console.error("Retry failed:", err);
+      
       this.setState({ isRetrying: false });
     }
   };
@@ -283,7 +280,7 @@ function ApiErrorDisplay() {
       clearError();
       setRetryCount(0);
     } catch (err) {
-      console.error("Retry failed:", err);
+      
       setRetryCount((prev) => prev + 1);
     } finally {
       setIsRetrying(false);
