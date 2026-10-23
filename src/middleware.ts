@@ -33,6 +33,20 @@ function isAuthRoute(pathname: string): boolean {
 }
 
 /**
+ * Reject open-redirect targets (#541). Only same-origin relative paths are
+ * allowed: must start with a single "/", must not be protocol-relative
+ * ("//evil.com"), and must not embed a scheme ("https://evil.com").
+ */
+function isSafeRedirectPath(redirect: string | null): redirect is string {
+  if (!redirect) return false;
+  if (!redirect.startsWith("/")) return false;
+  if (redirect.startsWith("//")) return false;
+  if (redirect.includes("://")) return false;
+  if (redirect.includes("\\")) return false;
+  return true;
+}
+
+/**
  * Decode JWT payload and check expiry (#495).
  * Uses atob() for base64 decoding — works in Edge runtime.
  * Malformed tokens are treated as expired.
@@ -71,7 +85,7 @@ export function middleware(request: NextRequest) {
     if (sessionToken && !isJwtExpired(sessionToken)) {
       const redirect = request.nextUrl.searchParams.get("redirect");
       const url = request.nextUrl.clone();
-      url.pathname = redirect || "/dashboard";
+      url.pathname = isSafeRedirectPath(redirect) ? redirect : "/dashboard";
       url.searchParams.delete("redirect");
       return NextResponse.redirect(url);
     }

@@ -137,6 +137,59 @@ describe("auth routes", () => {
   });
 });
 
+describe("open redirect protection (#541)", () => {
+  it("rejects an absolute https URL in the redirect parameter", () => {
+    const target = redirectTarget(
+      middleware(makeRequest("/connect", "jwt-abc", "?redirect=https://evil.com"))
+    );
+
+    expect(target?.pathname).toBe("/dashboard");
+    expect(target?.hostname).not.toBe("evil.com");
+  });
+
+  it("rejects an absolute http URL with a path", () => {
+    const target = redirectTarget(
+      middleware(
+        makeRequest("/connect", "jwt-abc", "?redirect=http://evil.com/phish")
+      )
+    );
+
+    expect(target?.pathname).toBe("/dashboard");
+  });
+
+  it("rejects a protocol-relative URL", () => {
+    const target = redirectTarget(
+      middleware(makeRequest("/connect", "jwt-abc", "?redirect=//evil.com"))
+    );
+
+    expect(target?.pathname).toBe("/dashboard");
+  });
+
+  it("rejects a backslash-based open redirect", () => {
+    const target = redirectTarget(
+      middleware(makeRequest("/connect", "jwt-abc", "?redirect=/%5Cevil.com"))
+    );
+
+    expect(target?.pathname).toBe("/dashboard");
+  });
+
+  it("still honours a safe relative path", () => {
+    const target = redirectTarget(
+      middleware(makeRequest("/connect", "jwt-abc", "?redirect=/courses/course-1/quiz"))
+    );
+
+    expect(target?.pathname).toBe("/courses/course-1/quiz");
+  });
+
+  it("falls back to /dashboard when redirect is empty", () => {
+    const target = redirectTarget(
+      middleware(makeRequest("/connect", "jwt-abc", "?redirect="))
+    );
+
+    expect(target?.pathname).toBe("/dashboard");
+  });
+});
+
 describe("matcher", () => {
   it("covers every protected area and both auth routes", () => {
     expect(config.matcher).toEqual(
