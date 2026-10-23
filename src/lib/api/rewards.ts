@@ -1,4 +1,4 @@
-import { apiClient } from "./client";
+import { apiClient, requireApiData } from "./client";
 import { getValidToken } from "./auth";
 import type { PaginatedResponse } from "@/types/api";
 import type { RewardClaim, TokenBalance } from "@/types/stellar";
@@ -31,7 +31,7 @@ export async function getTokenBalances(
     token,
     signal
   );
-  return response.data;
+  return requireApiData(response.data);
 }
 
 /**
@@ -69,7 +69,7 @@ export async function getRewardHistory(
     token,
     signal
   );
-  return response.data;
+  return requireApiData(response.data);
 }
 
 /**
@@ -88,7 +88,7 @@ export async function claimReward(
     token,
     signal
   );
-  return response.data;
+  return requireApiData(response.data);
 }
 
 /**
@@ -103,5 +103,5 @@ export async function getClaimables(
   const response = await apiClient.get<
     { id: string; amount: string; source: string; sourceTitle: string }[]
   >("/rewards/claimables", token, signal);
-  return response.data;
+  return requireApiData(response.data);
 }

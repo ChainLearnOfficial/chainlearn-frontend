@@ -25,6 +25,7 @@ export function useNotifications() {
     if (!token) {
       setNotifications([]);
       setLoading(false);
+      setError(null);
       return;
     }
     const controller = new AbortController();
@@ -39,7 +40,7 @@ export function useNotifications() {
       console.error("Failed to fetch notifications:", e);
       setError(e instanceof Error ? e.message : "Failed to load notifications");
     } finally {
-      setLoading(false);
+      if (!controller.signal.aborted) setLoading(false);
     }
   }, []);
 
@@ -79,7 +80,7 @@ export function useNotifications() {
   useEffect(() => {
     refetch();
     return () => abortRef.current?.abort();
-  }, [refetch]);
+  }, [refetch, jwt]);
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 

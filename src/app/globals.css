@@ -67,11 +67,13 @@
 }
 
 /* Smooth transitions for page content */
-#page-content {
+#page-content,
+#auth-content {
   animation: fadeIn 0.2s ease-out;
 }
 
-#page-content.no-animation {
+#page-content.no-animation,
+#auth-content.no-animation {
   animation: none !important;
 }
 
@@ -157,7 +159,8 @@ html, body {
       scroll-behavior: auto !important;
     }
 
-    #page-content {
+    #page-content,
+    #auth-content {
       animation: none;
     }
   }

@@ -197,6 +197,62 @@ describe("apiClient request deduplication", () => {
 });
 
 describe("apiClient response interceptors", () => {
+  it("returns null data for successful empty responses", async () => {
+    fetchMock.mockResolvedValue({
+      ok: true,
+      status: 204,
+      statusText: "No Content",
+      text: async () => "",
+    } as unknown as Response);
+
+    await expect(
+      apiClient.get("/empty-response", undefined, undefined, { bypassCache: true })
+    ).resolves.toEqual({ data: null, success: true });
+  });
+
+  it("returns null data for a successful response with a blank body", async () => {
+    fetchMock.mockResolvedValue({
+      ok: true,
+      status: 200,
+      statusText: "OK",
+      text: async () => "  \n",
+    } as unknown as Response);
+
+    await expect(
+      apiClient.get("/blank-response", undefined, undefined, { bypassCache: true })
+    ).resolves.toEqual({ data: null, success: true });
+  });
+
+  it("wraps malformed successful JSON in ApiError and notifies error interceptors", async () => {
+    fetchMock.mockResolvedValue({
+      ok: true,
+      status: 200,
+      statusText: "OK",
+      text: async () => "<html>proxy error</html>",
+    } as unknown as Response);
+
+    const loggedErrors: unknown[] = [];
+    const remove = apiClient.addResponseInterceptor({
+      onError: (error) => {
+        loggedErrors.push(error);
+      },
+    });
+
+    try {
+      await expect(
+        apiClient.get("/malformed-json", undefined, undefined, { bypassCache: true })
+      ).rejects.toMatchObject({
+        name: "ApiError",
+        status: 200,
+        message: expect.stringContaining("Invalid JSON"),
+      });
+      expect(loggedErrors).toHaveLength(1);
+      expect(loggedErrors[0]).toMatchObject({ name: "ApiError", status: 200 });
+    } finally {
+      remove();
+    }
+  });
+
   it("runs onResponse and onSuccess and can transform responses", async () => {
     fetchMock.mockResolvedValue(jsonResponse({ success: true, data: { value: 10 } }));
 
@@ -317,6 +373,9 @@ describe("apiClient retry backoff (issue #311)", () => {
     expect(payload.delayMs).toBe(1000);
 
     warnSpy.mockRestore();
+  });
+});
+
 // ── Issue #312: LRU + per-call TTL + cached-response cloning ─────────────────
 
 describe("apiClient cache behaviour (issue #312)", () => {

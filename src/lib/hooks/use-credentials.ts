@@ -101,20 +101,15 @@ export function useVerifyCredential(credentialId: string) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!credentialId) return;
+    if (!credentialId) {
+      setLoading(false);
+      setVerification(null);
+      setError(null);
+      return;
+    }
     const controller = new AbortController();
     setLoading(true);
-    verifyCredential(credentialId)
-      .then((data) => {
-        // #507 — Handle both `valid` and `isValid` property names from API
-        const valid = data.valid ?? (data as any).isValid ?? false;
-        setVerification({
-          valid,
-          metadata: data.metadata,
-          verifiedAt: data.verifiedAt,
-        });
-      })
-      .catch((err) =>
+    setError(null);
     verifyCredential(credentialId, controller.signal)
       .then(setVerification)
       .catch((err) => {
@@ -123,7 +118,9 @@ export function useVerifyCredential(credentialId: string) {
           err instanceof Error ? err.message : "Verification failed"
         );
       })
-      .finally(() => setLoading(false));
+      .finally(() => {
+        if (!controller.signal.aborted) setLoading(false);
+      });
     return () => controller.abort();
   }, [credentialId]);
 

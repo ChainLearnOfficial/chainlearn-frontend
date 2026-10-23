@@ -75,7 +75,13 @@ export default function DashboardPage() {
   const { credentials, loading: credentialsLoading, error: credentialsError } = useCredentials();
   const progress = useCourseStore((s) => s.progress);
 
-  if (!ready) return null;
+  if (!ready) {
+    return (
+      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <DashboardSkeleton />
+      </div>
+    );
+  }
 
   const isLoading =
     coursesLoading || rewardsLoading || credentialsLoading || recommendedLoading;

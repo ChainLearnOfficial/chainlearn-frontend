@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useCallback, useEffect, useState } from "react";
 import { useAuthStore } from "@/store/auth-store";
 import { getQuiz } from "@/lib/api/quizzes";
 import { isAbortError } from "@/lib/api/client";
@@ -21,14 +20,10 @@ export function useQuiz(courseId: string) {
     setFetchTick((t) => t + 1);
   }, []);
 
-  const fetchQuiz = useCallback(() => {
-    if (!courseId) return;
-    setLoading(true);
-    setError(null);
-    getQuiz(courseId, jwt ?? undefined)
   useEffect(() => {
     if (!courseId) {
       setLoading(false);
+      setError(null);
       return;
     }
     abortRef.current?.abort();
@@ -48,15 +43,10 @@ export function useQuiz(courseId: string) {
     return () => controller.abort();
   }, [courseId, jwt, fetchTick]);
 
-  useEffect(() => {
-    fetchQuiz();
-  }, [fetchQuiz]);
-
   return {
     quiz,
     loading,
     error,
     refetch,
-    refetch: fetchQuiz,
   };
 }

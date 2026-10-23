@@ -1,4 +1,4 @@
-import { apiClient } from "./client";
+import { apiClient, requireApiData } from "./client";
 import { ApiError } from "@/types/api";
 import { getValidToken } from "./auth";
 import { encodePathParam } from "./path";
@@ -22,6 +22,8 @@ export interface VerifyCredentialResult {
   verifiedAt?: string;
   error?: VerifyCredentialError;
 }
+import { getValidToken } from "./auth";
+
 /**
  * Fetch all credentials for the authenticated user.
  */
@@ -36,7 +38,7 @@ export async function getCredentials(
     token,
     signal
   );
-  return response.data;
+  return requireApiData(response.data);
 }
 
 /**
@@ -52,7 +54,7 @@ export async function getCredential(
     jwt,
     signal
   );
-  return response.data;
+  return requireApiData(response.data);
 }
 
 /**
@@ -74,7 +76,7 @@ export async function verifyCredential(
       undefined,
       signal
     );
-    return response.data;
+    return requireApiData(response.data);
   } catch (err) {
     if (err instanceof ApiError && err.status === 404) {
       return { valid: false, error: "not_found" };
@@ -99,5 +101,5 @@ export async function mintCredential(
     token,
     signal
   );
-  return response.data;
+  return requireApiData(response.data);
 }
