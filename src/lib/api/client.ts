@@ -1,6 +1,9 @@
-import { ApiError, ApiResponse } from "@/types/api";
+import { ApiError } from "@/types/api";
+import type { ApiResponse, ResponseInterceptor } from "@/types/api";
 import { useAuthStore } from "@/store/auth-store";
 import { useErrorStore } from "@/store/error-store";
+
+export type { ResponseInterceptor } from "@/types/api";
 
 /**
  * AbortController support (#315):

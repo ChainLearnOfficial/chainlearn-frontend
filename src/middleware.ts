@@ -20,6 +20,21 @@ const PROTECTED_PREFIXES = [
  */
 const AUTH_PREFIXES = ["/connect", "/onboarding"];
 
+function decodeBase64UrlJson(segment: string): unknown | null {
+  try {
+    const normalized = segment.replace(/-/g, "+").replace(/_/g, "/");
+    const padded = normalized.padEnd(
+      normalized.length + ((4 - (normalized.length % 4)) % 4),
+      "="
+    );
+    const binary = atob(padded);
+    const bytes = Uint8Array.from(binary, (character) => character.charCodeAt(0));
+    return JSON.parse(new TextDecoder().decode(bytes)) as unknown;
+  } catch {
+    return null;
+  }
+}
+
 /**
  * /courses (the listing page) is public — only sub-paths are protected.
  * This helper distinguishes "/courses" from "/courses/<id>/…".
@@ -32,43 +47,81 @@ function isAuthRoute(pathname: string): boolean {
   return AUTH_PREFIXES.some((prefix) => pathname.startsWith(prefix));
 }
 
-/**
- * Decode JWT payload and check expiry (#495).
- * Uses atob() for base64 decoding — works in Edge runtime.
- * Malformed tokens are treated as expired.
- */
-function isJwtExpired(token: string): boolean {
+/** Validate JWT structure and expiry; signature verification remains server-side. */
+function isValidSessionToken(token: string): boolean {
   try {
     const parts = token.split(".");
-    if (parts.length !== 3) return true;
-    const payload = JSON.parse(atob(parts[1]));
-    if (typeof payload.exp !== "number") return true;
-    // exp is in seconds; compare with current time in seconds
-    return payload.exp * 1000 < Date.now();
+    if (
+      parts.length !== 3 ||
+      parts.some(
+        (part) =>
+          !part || part.length % 4 === 1 || !/^[A-Za-z0-9_-]+$/.test(part)
+      )
+    ) {
+      return false;
+    }
+
+    const header = decodeBase64UrlJson(parts[0]);
+    if (
+      !header ||
+      typeof header !== "object" ||
+      typeof (header as { alg?: unknown }).alg !== "string" ||
+      (header as { alg: string }).alg.toLowerCase() === "none"
+    ) {
+      return false;
+    }
+
+    const payload = decodeBase64UrlJson(parts[1]);
+    if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
+      return false;
+    }
+    const expiry = (payload as { exp?: unknown }).exp;
+    return (
+      typeof expiry === "number" &&
+      Number.isFinite(expiry) &&
+      expiry * 1000 > Date.now()
+    );
   } catch {
-    return true; // malformed tokens are treated as expired
+    return false;
   }
+}
+
+function redirectToConnect(request: NextRequest, clearCookie = false) {
+  const url = request.nextUrl.clone();
+  url.pathname = "/connect";
+  if (isProtected(request.nextUrl.pathname)) {
+    url.searchParams.set("redirect", request.nextUrl.pathname);
+  }
+  const response = NextResponse.redirect(url);
+  if (clearCookie) response.cookies.delete("chainlearn-session");
+  return response;
 }
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const sessionToken = request.cookies.get("chainlearn-session")?.value;
+  const sessionCookie = request.cookies.get("chainlearn-session");
+  const sessionToken = sessionCookie?.value;
+  const validSession = sessionToken ? isValidSessionToken(sessionToken) : false;
+
+  if (sessionCookie && !validSession) {
+    if (pathname === "/connect") {
+      const response = NextResponse.next();
+      response.cookies.delete("chainlearn-session");
+      return response;
+    }
+    return redirectToConnect(request, true);
+  }
 
   // --- Guard protected routes ---
   if (isProtected(pathname)) {
-    if (!sessionToken || isJwtExpired(sessionToken)) {
-      const url = request.nextUrl.clone();
-      url.pathname = "/connect";
-      // Preserve the intended destination so the connect page can redirect
-      // back after a successful wallet login.
-      url.searchParams.set("redirect", pathname);
-      return NextResponse.redirect(url);
+    if (!validSession) {
+      return redirectToConnect(request);
     }
   }
 
   // --- Bounce authenticated users away from auth pages ---
   if (isAuthRoute(pathname)) {
-    if (sessionToken && !isJwtExpired(sessionToken)) {
+    if (validSession) {
       const redirect = request.nextUrl.searchParams.get("redirect");
       const url = request.nextUrl.clone();
       url.pathname = redirect || "/dashboard";

@@ -1,6 +1,13 @@
 import { describe, expect, it } from "vitest";
 
 import { config, middleware } from "./middleware";
+import { makeJwt } from "@/tests/helpers/jwt";
+
+const ORIGIN = "https://chainlearn.test";
+const VALID_SESSION = makeJwt({
+  sub: "GABC123",
+  exp: Math.floor(Date.now() / 1000) + 3600,
+});
 
 /**
  * Route protection at the Edge.
@@ -9,8 +16,6 @@ import { config, middleware } from "./middleware";
  * redirect happens before any protected markup is sent, so there is no frame in
  * which a signed-out visitor can see dashboard content.
  */
-
-const ORIGIN = "https://chainlearn.test";
 
 /**
  * Minimal NextRequest stand-in — middleware only reads nextUrl and cookies.
@@ -32,7 +37,7 @@ function makeRequest(pathname: string, sessionToken?: string, search = "") {
     url: url.toString(),
     cookies: {
       get: (name: string) =>
-        name === "chainlearn-session" && sessionToken
+        name === "chainlearn-session" && sessionToken !== undefined
           ? { name, value: sessionToken }
           : undefined,
     },
@@ -66,8 +71,10 @@ describe("protected routes", () => {
     expect(target?.pathname).toBe("/connect");
   });
 
-  it.each(PROTECTED)("allows %s with a session", (pathname) => {
-    expect(redirectTarget(middleware(makeRequest(pathname, "jwt-abc")))).toBeNull();
+  it.each(PROTECTED)("allows %s with a valid session", (pathname) => {
+    expect(
+      redirectTarget(middleware(makeRequest(pathname, VALID_SESSION)))
+    ).toBeNull();
   });
 
   it("preserves the intended destination so login can return there", () => {
@@ -81,10 +88,34 @@ describe("protected routes", () => {
   it("redirects rather than rendering, so no protected markup is sent", () => {
     const response = middleware(makeRequest("/dashboard"));
 
-    // A 3xx means the body was never produced — that is what removes the flash.
     expect(response.status).toBeGreaterThanOrEqual(300);
     expect(response.status).toBeLessThan(400);
   });
+
+  it("rejects an expired JWT and clears the session cookie", () => {
+    const expired = makeJwt({ sub: "GABC123", exp: 1 });
+    const response = middleware(makeRequest("/dashboard", expired));
+
+    expect(redirectTarget(response)?.pathname).toBe("/connect");
+    expect(response.cookies.get("chainlearn-session")?.value).toBe("");
+  });
+
+  it.each([
+    "",
+    "not-a-jwt",
+    "a.b.c",
+    "..",
+    "eyJhbGciOiJub25lIn0.e30.c2ln",
+    "eyJhbGciOiJIUzI1NiJ9.eyJleHAiOjE5MDAwMDAwMDB9.a",
+  ])(
+    "rejects malformed session token %s and clears the cookie",
+    (token) => {
+      const response = middleware(makeRequest("/dashboard", token));
+
+      expect(redirectTarget(response)?.pathname).toBe("/connect");
+      expect(response.cookies.get("chainlearn-session")?.value).toBe("");
+    }
+  );
 });
 
 describe("public routes", () => {
@@ -93,11 +124,12 @@ describe("public routes", () => {
   });
 
   it.each(PUBLIC)("leaves %s accessible when signed in", (pathname) => {
-    expect(redirectTarget(middleware(makeRequest(pathname, "jwt-abc")))).toBeNull();
+    expect(
+      redirectTarget(middleware(makeRequest(pathname, VALID_SESSION)))
+    ).toBeNull();
   });
 
   it("treats the /courses listing as public but its detail pages as protected", () => {
-    // The prefix check must distinguish "/courses" from "/courses/<id>".
     expect(redirectTarget(middleware(makeRequest("/courses")))).toBeNull();
     expect(redirectTarget(middleware(makeRequest("/courses/abc")))?.pathname).toBe(
       "/connect"
@@ -111,24 +143,23 @@ describe("public routes", () => {
 
 describe("auth routes", () => {
   it("bounces a signed-in visitor away from /connect", () => {
-    expect(redirectTarget(middleware(makeRequest("/connect", "jwt-abc")))?.pathname).toBe(
-      "/dashboard"
-    );
+    expect(
+      redirectTarget(middleware(makeRequest("/connect", VALID_SESSION)))?.pathname
+    ).toBe("/dashboard");
   });
 
   it("bounces a signed-in visitor away from /onboarding", () => {
     expect(
-      redirectTarget(middleware(makeRequest("/onboarding", "jwt-abc")))?.pathname
+      redirectTarget(middleware(makeRequest("/onboarding", VALID_SESSION)))?.pathname
     ).toBe("/dashboard");
   });
 
   it("honours the redirect parameter after signing in", () => {
     const target = redirectTarget(
-      middleware(makeRequest("/connect", "jwt-abc", "?redirect=/rewards"))
+      middleware(makeRequest("/connect", VALID_SESSION, "?redirect=/rewards"))
     );
 
     expect(target?.pathname).toBe("/rewards");
-    // The parameter is consumed, not carried into the destination.
     expect(target?.searchParams.get("redirect")).toBeNull();
   });
 
@@ -152,8 +183,6 @@ describe("matcher", () => {
   });
 
   it("does not run on public routes", () => {
-    // Scoping the matcher is what keeps Edge cold-start cost off the marketing
-    // pages and the public verification view.
     for (const pattern of config.matcher) {
       expect(pattern).not.toBe("/");
       expect(pattern).not.toMatch(/^\/verify/);
@@ -164,9 +193,6 @@ describe("matcher", () => {
 
 describe("edge runtime compatibility", () => {
   it("runs without Node built-ins available", () => {
-    // The middleware must not reach for anything outside the Edge API surface;
-    // a stray Node import would fail at deploy, not in a unit test, so this
-    // asserts the request path stays on Web APIs only.
     expect(() => middleware(makeRequest("/dashboard"))).not.toThrow();
     expect(() => middleware(makeRequest("/dashboard", "jwt"))).not.toThrow();
   });

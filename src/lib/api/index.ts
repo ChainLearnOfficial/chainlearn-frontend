@@ -71,5 +71,6 @@ export {
   isAbortError,
   createLoggingInterceptor,
   createAnalyticsInterceptor,
-  type ResponseInterceptor,
 } from "./client";
+
+export type { ResponseInterceptor } from "@/types/api";

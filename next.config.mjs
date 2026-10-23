@@ -7,8 +7,8 @@ const withBundleAnalyzer = bundleAnalyzer({
 
 /**
  * CSP sources for Freighter wallet messaging and Stellar network/CDN resources.
- * Freighter communicates via window.postMessage; chrome-extension: covers
- * residual extension fetches. Horizon + Soroban RPC cover on-chain calls.
+ * Wallet extension origins are explicitly scoped. Horizon + Soroban RPC cover
+ * on-chain calls.
  */
 function resolveApiOrigin() {
   try {
@@ -23,6 +23,11 @@ function resolveApiOrigin() {
 
 const isDev = process.env.NODE_ENV !== "production";
 const apiOrigin = resolveApiOrigin();
+const walletExtensionOrigins = [
+  "chrome-extension://bcacfldlkkdogcmkkibnjlakofdplcbk",
+  "chrome-extension://ldiagbjmlmjiieclmdkagofdjcgodjle",
+  "chrome-extension://hgmoaheomcjnaheggkfafnjilfcefbmo",
+];
 
 const ContentSecurityPolicy = [
   "default-src 'self'",
@@ -45,9 +50,9 @@ const ContentSecurityPolicy = [
     "https://*.stellar.gateway.fm",
     "https://stellar.expert",
     "https://*.stellar.expert",
-    "chrome-extension:",
+    ...walletExtensionOrigins,
   ].join(" "),
-  "frame-src 'self' chrome-extension:",
+  ["frame-src 'self'", ...walletExtensionOrigins].join(" "),
   "frame-ancestors 'none'",
   "base-uri 'self'",
   "form-action 'self'",

@@ -27,8 +27,9 @@ export interface RequestConfig extends Omit<RequestInit, 'body'> {
 }
 
 export interface ResponseInterceptor {
-  onSuccess?: <T>(response: T) => T | Promise<T>;
-  onError?: (error: unknown) => never | Promise<never>;
+  onResponse?: (response: Response) => Response | Promise<Response>;
+  onSuccess?: <T>(data: ApiResponse<T>) => ApiResponse<T> | Promise<ApiResponse<T>>;
+  onError?: (error: unknown) => void | Promise<void>;
 }
 
 export interface UserSession {

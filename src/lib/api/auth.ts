@@ -193,7 +193,7 @@ export async function revokeSession(
   const validToken = await getValidToken();
   const token = validToken || jwt;
   const response = await apiClient.delete<{ success: boolean }>(
-    `/auth/sessions/${sessionId}`,
+    `/auth/sessions/${encodePathParam(sessionId, "sessionId")}`,
     token,
     signal
   );

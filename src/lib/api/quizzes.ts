@@ -35,7 +35,7 @@ export async function getQuiz(
   signal?: AbortSignal
 ): Promise<Quiz> {
   const response = await apiClient.get<Quiz>(
-    `/courses/${courseId}/quiz`,
+    `/courses/${encodePathParam(courseId, "courseId")}/quiz`,
     jwt,
     signal
   );
@@ -98,7 +98,7 @@ export async function submitQuiz(
   const validToken = await getValidToken();
   const token = validToken || jwt;
   const response = await apiClient.post<QuizAttempt>(
-    `/quizzes/${submission.quizId}/submit`,
+    `/quizzes/${encodePathParam(submission.quizId, "quizId")}/submit`,
     submission,
     token,
     signal
@@ -125,7 +125,7 @@ export async function getQuizAttempts(
   const validToken = await getValidToken();
   const token = validToken || jwt;
   const response = await apiClient.get<QuizAttempt[]>(
-    `/quizzes/${quizId}/attempts`,
+    `/quizzes/${encodePathParam(quizId, "quizId")}/attempts`,
     token,
     signal
   );

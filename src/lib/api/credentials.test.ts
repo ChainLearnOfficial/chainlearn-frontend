@@ -100,6 +100,25 @@ describe("verifyCredential", () => {
     expect(url).toMatch(/\/credentials\/verify\/cred-abc$/);
   });
 
+  it("encodes credential IDs as one path segment", async () => {
+    fetchMock.mockResolvedValueOnce(
+      jsonResponse({ data: { valid: false }, success: true })
+    );
+
+    await verifyCredential("cred/id?x#fragment");
+
+    expect(String(fetchMock.mock.calls[0][0])).toContain(
+      "/credentials/verify/cred%2Fid%3Fx%23fragment"
+    );
+  });
+
+  it("rejects a blank credential ID before making a request", async () => {
+    await expect(verifyCredential("  ")).rejects.toThrow(
+      "credentialId must be a non-empty path identifier"
+    );
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
   it("returns { valid: false, error: 'not_found' } on 404 without throwing", async () => {
     fetchMock.mockResolvedValueOnce(
       jsonResponse({ message: "Credential not found" }, 404)
