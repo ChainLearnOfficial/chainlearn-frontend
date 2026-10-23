@@ -135,31 +135,13 @@ export function useAuth() {
     setWalletError(null);
 
     try {
-      const { address, providerId } = await connectStellarWallet(networkRef.current);
-      // Check Freighter is installed
-      const installed = await isFreighterInstalled();
-      if (!installed) {
-        const walletErr: WalletError = {
-          type: "not_installed",
-          message: "Freighter wallet extension is not installed",
-          resolution:
-            "Install Freighter from freighter.app and refresh this page.",
-        };
-        setWalletError(walletErr);
-        walletErrorSetInThisCall = true;
-        setError(walletErr.message);
-        throw new Error(walletErr.message);
-      }
-
-      // Connect to Freighter
       setConnectionStage("connect");
-      const address = await connectFreighter();
+      const { address, providerId } = await connectStellarWallet(networkRef.current);
 
       // Get challenge from backend
       const challenge = await getChallenge(address);
 
       // Sign the backend challenge with the selected wallet.
-      // Sign challenge with Freighter
       setConnectionStage("sign");
       const passphrase = getNetworkPassphrase(networkRef.current);
       const signedChallenge = await signChallenge(challenge, passphrase, providerId);
