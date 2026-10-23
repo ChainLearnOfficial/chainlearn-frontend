@@ -178,9 +178,12 @@ export function useCourses() {
     try {
       const data = await loadEnrollments(jwt, controller.signal);
       setEnrollments(data);
+      setError(null);
     } catch (err) {
       if (isAbortError(err)) return;
-      console.error("Failed to fetch enrollments:", err);
+      setError(
+        err instanceof Error ? err.message : "Failed to fetch enrollments"
+      );
     }
   }, [jwt, setEnrollments]);
 
