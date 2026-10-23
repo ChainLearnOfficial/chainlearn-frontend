@@ -235,7 +235,7 @@ export async function getCourseModules(
   signal?: AbortSignal
 ): Promise<Module[]> {
   const course = await getCourse(courseId, jwt, signal);
-  return [...course.modules].sort((a, b) => a.order - b.order);
+  return [...(course.modules ?? [])].sort((a, b) => a.order - b.order);
 }
 
 /**

@@ -160,7 +160,7 @@ async function executeRefresh(refreshTokenStr: string): Promise<string | null> {
           .getState()
           .setError("Session expired. Please reconnect your wallet.");
       }
-      return useAuthStore.getState().jwt;
+      return null;
     } finally {
       inFlightRefreshPromise = null;
     }
