@@ -705,3 +705,8 @@ export function createAnalyticsInterceptor(
 }
 
 export const apiClient = new ApiClient(BASE_URL);
+
+export { withRetry, computeBackoff } from "./retry";
+export type { RetryOptions } from "./retry";
+export { LRUCache } from "./cache";
+export { dedupGet, clearDedupCache } from "./dedup";
