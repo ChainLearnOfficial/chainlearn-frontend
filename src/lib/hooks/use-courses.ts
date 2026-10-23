@@ -121,6 +121,60 @@ function invalidateEnrollmentsCache(jwt?: string | null) {
   enrollmentsCache.clear();
 }
 
+/**
+ * Enrollment state only — no courses request. Use this when a screen already
+ * gets courses from another source (e.g. useInfiniteCourses) and only needs
+ * the enrolled badges (#517).
+ */
+export function useEnrollments() {
+  const jwt = useAuthStore((s) => s.jwt);
+  const { enrollments, setEnrollments, enroll: addEnrollment } = useCourseStore();
+  const [error, setError] = useState<string | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
+
+  const fetchEnrollments = useCallback(async () => {
+    if (!jwt) return;
+
+    const cached = getCachedEnrollments(jwt);
+    if (cached) {
+      setEnrollments(cached);
+      return;
+    }
+
+    const controller = new AbortController();
+    abortRef.current = controller;
+
+    try {
+      const data = await loadEnrollments(jwt, controller.signal);
+      setEnrollments(data);
+      setError(null);
+    } catch (err) {
+      if (isAbortError(err)) return;
+      setError(
+        err instanceof Error ? err.message : "Failed to fetch enrollments"
+      );
+    }
+  }, [jwt, setEnrollments]);
+
+  const enroll = useCallback(
+    async (courseId: string) => {
+      if (!jwt) throw new Error("Not authenticated");
+      const enrollment = await enrollInCourse(courseId, jwt);
+      addEnrollment(enrollment);
+      invalidateEnrollmentsCache(jwt);
+      return enrollment;
+    },
+    [jwt, addEnrollment]
+  );
+
+  useEffect(() => {
+    fetchEnrollments();
+    return () => abortRef.current?.abort();
+  }, [fetchEnrollments]);
+
+  return { enrollments, enroll, fetchEnrollments, error };
+}
+
 export function useCourses() {
   const jwt = useAuthStore((s) => s.jwt);
   const { enrollments, setEnrollments, enroll: addEnrollment } = useCourseStore();
