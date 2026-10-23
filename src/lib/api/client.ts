@@ -77,6 +77,23 @@ type CacheEntry = {
   expiresAt: number;
 };
 
+/**
+ * Fast non-cryptographic digest of a JWT for cache keying (#542).
+ * Two independent FNV-1a streams yield a 64-bit hex digest so the raw
+ * token never appears in heap-dumpable cache key strings, while cache
+ * hit/miss behaviour stays deterministic per token.
+ */
+export function hashJwtForCacheKey(jwt: string): string {
+  let h1 = 0x811c9dc5;
+  let h2 = 0x01000193;
+  for (let i = 0; i < jwt.length; i++) {
+    const c = jwt.charCodeAt(i);
+    h1 = Math.imul(h1 ^ c, 0x01000193);
+    h2 = Math.imul(h2 ^ c, 0x85ebca6b);
+  }
+  return `${(h1 >>> 0).toString(16)}${(h2 >>> 0).toString(16)}`;
+}
+
 const responseCache = new Map<string, CacheEntry>();
 
 /**
@@ -377,7 +394,7 @@ class ApiClient {
   }
 
   private cacheKey(url: string, jwt?: string): string {
-    return jwt ? `${url}|${jwt}` : url;
+    return jwt ? `${url}|${hashJwtForCacheKey(jwt)}` : url;
   }
 
   /**

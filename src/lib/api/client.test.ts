@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { apiClient, isAbortError } from "./client";
+import { apiClient, hashJwtForCacheKey, isAbortError } from "./client";
 import { useErrorStore } from "@/store/error-store";
 
 // zustand's persist middleware writes on every set(); jsdom's localStorage is
@@ -444,6 +444,41 @@ describe("apiClient cache behaviour (issue #312)", () => {
     fetchMock.mockResolvedValueOnce(jsonResponse({ data: 1 }));
     await apiClient.get("/lru/1");
     expect(fetchMock).toHaveBeenCalledTimes(102);
+  });
+});
+
+// ── Issue #542: JWT must not appear in cache keys ────────────────────────────
+
+describe("apiClient cache keys (issue #542)", () => {
+  const sampleJwt =
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c2VyLTEif0.signature";
+
+  it("does not embed the raw JWT in the hashed cache key component", () => {
+    const hashed = hashJwtForCacheKey(sampleJwt);
+
+    expect(hashed).not.toContain(sampleJwt);
+    expect(hashed).not.toContain("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9");
+    expect(hashed).not.toContain("signature");
+  });
+
+  it("hashes deterministically so cache hit/miss behaviour is unchanged", () => {
+    expect(hashJwtForCacheKey(sampleJwt)).toBe(hashJwtForCacheKey(sampleJwt));
+  });
+
+  it("distinguishes different tokens", () => {
+    expect(hashJwtForCacheKey("token-a")).not.toBe(hashJwtForCacheKey("token-b"));
+  });
+
+  it("serves a cache hit for the same token and a miss for a different one", async () => {
+    fetchMock.mockResolvedValueOnce(jsonResponse({ data: "user-1" }));
+    await apiClient.get("/cache-jwt", "jwt-user-1");
+    await apiClient.get("/cache-jwt", "jwt-user-1");
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+
+    fetchMock.mockResolvedValueOnce(jsonResponse({ data: "user-2" }));
+    const other = await apiClient.get("/cache-jwt", "jwt-user-2");
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(other).toEqual({ data: "user-2" });
   });
 });
 
