@@ -12,21 +12,22 @@ import {
 import { isAbortError } from "@/lib/api/client";
 import type { CredentialNFT } from "@/types/stellar";
 
-export function useCredentials() {
+export function useCredentials(options?: { enabled?: boolean }) {
+  const enabled = options?.enabled ?? true;
   const jwt = useAuthStore((s) => s.jwt);
   const [credentials, setCredentials] = useState<CredentialNFT[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [fetched, setFetched] = useState(false);
+  const loading = enabled && !fetched;
   const [error, setError] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
 
   const fetchCredentials = useCallback(async () => {
     if (!jwt) {
-      setLoading(false);
+      setFetched(true);
       return;
     }
     const controller = new AbortController();
     abortRef.current = controller;
-    setLoading(true);
     setError(null);
     try {
       const data = await getCredentials(jwt, controller.signal);
@@ -36,7 +37,7 @@ export function useCredentials() {
       const message = err instanceof Error ? err.message : "Failed to fetch credentials";
       setError(message);
     } finally {
-      setLoading(false);
+      setFetched(true);
     }
   }, [jwt]);
 
@@ -58,9 +59,11 @@ export function useCredentials() {
   );
 
   useEffect(() => {
+    if (!enabled) return;
+    if (fetched) return;
     fetchCredentials();
     return () => abortRef.current?.abort();
-  }, [fetchCredentials]);
+  }, [fetchCredentials, enabled, fetched]);
 
   return { credentials, loading, error, mint, refetch: fetchCredentials };
 }

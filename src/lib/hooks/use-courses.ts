@@ -121,15 +121,71 @@ function invalidateEnrollmentsCache(jwt?: string | null) {
   enrollmentsCache.clear();
 }
 
-export function useCourses() {
+/**
+ * Enrollment state only — no courses request. Use this when a screen already
+ * gets courses from another source (e.g. useInfiniteCourses) and only needs
+ * the enrolled badges (#517).
+ */
+export function useEnrollments() {
+  const jwt = useAuthStore((s) => s.jwt);
+  const { enrollments, setEnrollments, enroll: addEnrollment } = useCourseStore();
+  const [error, setError] = useState<string | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
+
+  const fetchEnrollments = useCallback(async () => {
+    if (!jwt) return;
+
+    const cached = getCachedEnrollments(jwt);
+    if (cached) {
+      setEnrollments(cached);
+      return;
+    }
+
+    const controller = new AbortController();
+    abortRef.current = controller;
+
+    try {
+      const data = await loadEnrollments(jwt, controller.signal);
+      setEnrollments(data);
+      setError(null);
+    } catch (err) {
+      if (isAbortError(err)) return;
+      setError(
+        err instanceof Error ? err.message : "Failed to fetch enrollments"
+      );
+    }
+  }, [jwt, setEnrollments]);
+
+  const enroll = useCallback(
+    async (courseId: string) => {
+      if (!jwt) throw new Error("Not authenticated");
+      const enrollment = await enrollInCourse(courseId, jwt);
+      addEnrollment(enrollment);
+      invalidateEnrollmentsCache(jwt);
+      return enrollment;
+    },
+    [jwt, addEnrollment]
+  );
+
+  useEffect(() => {
+    fetchEnrollments();
+    return () => abortRef.current?.abort();
+  }, [fetchEnrollments]);
+
+  return { enrollments, enroll, fetchEnrollments, error };
+}
+
+export function useCourses(options?: { enabled?: boolean }) {
+  const enabled = options?.enabled ?? true;
   const jwt = useAuthStore((s) => s.jwt);
   const { enrollments, setEnrollments, enroll: addEnrollment } = useCourseStore();
   const [courses, setCourses] = useState<Course[]>(() => {
     return getCachedCourses(coursesCacheKey()) ?? [];
   });
-  const [loading, setLoading] = useState(() => {
-    return getCachedCourses(coursesCacheKey()) === null;
+  const [fetched, setFetched] = useState(() => {
+    return getCachedCourses(coursesCacheKey()) !== null;
   });
+  const loading = enabled && !fetched;
   const [error, setError] = useState<string | null>(null);
   const coursesAbortRef = useRef<AbortController | null>(null);
   const enrollmentsAbortRef = useRef<AbortController | null>(null);
@@ -140,7 +196,7 @@ export function useCourses() {
       const cached = getCachedCourses(key);
       if (cached) {
         setCourses(cached);
-        setLoading(false);
+        setFetched(true);
         setError(null);
         return;
       }
@@ -148,16 +204,15 @@ export function useCourses() {
       const controller = new AbortController();
       coursesAbortRef.current = controller;
 
-      setLoading(true);
       setError(null);
       try {
         const data = await loadCourses(params, controller.signal);
         setCourses(data);
+        setFetched(true);
       } catch (err) {
         if (isAbortError(err)) return;
+        setFetched(true);
         setError(err instanceof Error ? err.message : "Failed to fetch courses");
-      } finally {
-        setLoading(false);
       }
     },
     []
@@ -200,14 +255,16 @@ export function useCourses() {
   );
 
   useEffect(() => {
+    if (!enabled) return;
     fetchCourses();
     return () => coursesAbortRef.current?.abort();
-  }, [fetchCourses]);
+  }, [fetchCourses, enabled]);
 
   useEffect(() => {
+    if (!enabled) return;
     fetchEnrollments();
     return () => enrollmentsAbortRef.current?.abort();
-  }, [fetchEnrollments]);
+  }, [fetchEnrollments, enabled]);
 
   return {
     courses,
@@ -390,15 +447,19 @@ export function useModule(courseId: string, moduleId: string) {
   return { module, loading, error, complete };
 }
 
-export function useRecommendedCourses() {
+export function useRecommendedCourses(options?: { enabled?: boolean }) {
+  const enabled = options?.enabled ?? true;
   const jwt = useAuthStore((s) => s.jwt);
   const [recommended, setRecommended] = useState<RecommendedCourse[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [fetched, setFetched] = useState(false);
+  const loading = enabled && !fetched;
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!enabled) return;
+    if (fetched) return;
     if (!jwt) {
-      setLoading(false);
+      setFetched(true);
       return;
     }
     const controller = new AbortController();
@@ -410,9 +471,9 @@ export function useRecommendedCourses() {
         const message = err instanceof Error ? err.message : "Failed to load recommendations";
         setError(message);
       })
-      .finally(() => setLoading(false));
+      .finally(() => setFetched(true));
     return () => controller.abort();
-  }, [jwt]);
+  }, [jwt, enabled, fetched]);
 
   return { recommended, loading, error };
 }

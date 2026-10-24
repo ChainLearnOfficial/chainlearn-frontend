@@ -1,8 +1,12 @@
 "use client";
 
-import { Component, type ReactNode } from "react";
+import { Component, useState, type ReactNode } from "react";
 import { useRequireAuth } from "@/lib/hooks/use-require-auth";
-import { useCourses, useRecommendedCourses } from "@/lib/hooks/use-courses";
+import {
+  useCourses,
+  useEnrollments,
+  useRecommendedCourses,
+} from "@/lib/hooks/use-courses";
 import { useRewards } from "@/lib/hooks/use-rewards";
 import { useCredentials } from "@/lib/hooks/use-credentials";
 import { Card, CardContent } from "@/components/ui/card";
@@ -11,7 +15,12 @@ import { CourseProgressCard } from "@/components/course/course-progress-card";
 import { BalanceDisplay } from "@/components/wallet/balance-display";
 import { RewardHistory } from "@/components/rewards/reward-history";
 import { CredentialCard } from "@/components/credentials/credential-card";
-import { DashboardSkeleton } from "@/components/shared/loading-skeleton";
+import {
+  CourseGridSkeleton,
+  CredentialCardSkeleton,
+  DashboardSkeleton,
+  RewardsSkeleton,
+} from "@/components/shared/loading-skeleton";
 import { EmptyState } from "@/components/shared/empty-state";
 import { StatsCard } from "@/components/shared/stats-card";
 import { useCourseStore } from "@/store/course-store";
@@ -69,24 +78,31 @@ function SectionError({ label, message }: { label: string; message: string }) {
 
 export default function DashboardPage() {
   const { ready } = useRequireAuth();
-  const { courses, enrollments, loading: coursesLoading, error: coursesError } = useCourses();
-  const { recommended, loading: recommendedLoading, error: recommendedError } = useRecommendedCourses();
-  const { balances, history, loading: rewardsLoading, error: rewardsError } = useRewards();
-  const { credentials, loading: credentialsLoading, error: credentialsError } = useCredentials();
+  const [tab, setTab] = useState("overview");
+
+  const onOverview = tab === "overview";
+  const onCourses = tab === "courses";
+  const onCredentials = tab === "credentials";
+  const onRewards = tab === "rewards";
+
+  // Each section fetches only when its tab (or the overview summary) needs it.
+  // State is kept across tab switches and fetches are memoized (#519).
+  const { enrollments } = useEnrollments();
+  const { courses, loading: coursesLoading, error: coursesError } = useCourses({
+    enabled: onCourses,
+  });
+  const { recommended, loading: recommendedLoading, error: recommendedError } = useRecommendedCourses({
+    enabled: onOverview,
+  });
+  const { balances, history, loading: rewardsLoading, error: rewardsError } = useRewards({
+    enabled: onOverview || onRewards,
+  });
+  const { credentials, loading: credentialsLoading, error: credentialsError } = useCredentials({
+    enabled: onOverview || onCredentials,
+  });
   const progress = useCourseStore((s) => s.progress);
 
   if (!ready) {
-    return (
-      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <DashboardSkeleton />
-      </div>
-    );
-  }
-
-  const isLoading =
-    coursesLoading || rewardsLoading || credentialsLoading || recommendedLoading;
-
-  if (isLoading) {
     return (
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <DashboardSkeleton />
@@ -115,7 +131,7 @@ export default function DashboardPage() {
         </p>
       </div>
 
-      <Tabs defaultValue="overview" className="w-full">
+      <Tabs value={tab} onValueChange={setTab} className="w-full">
         <TabsList className="mb-8">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="courses">Courses</TabsTrigger>
@@ -157,7 +173,9 @@ export default function DashboardPage() {
               <h2 className="text-lg font-semibold text-gray-900 mb-4">
                 Recommended for You
               </h2>
-              {recommendedError ? (
+              {recommendedLoading ? (
+                <CourseGridSkeleton count={3} />
+              ) : recommendedError ? (
                 <SectionError label="Recommendations" message={recommendedError} />
               ) : recommended.length === 0 ? (
                 <Card>
@@ -187,7 +205,9 @@ export default function DashboardPage() {
                   </Button>
                 </Link>
               </div>
-              {coursesError ? (
+              {coursesLoading ? (
+                <CourseGridSkeleton count={3} />
+              ) : coursesError ? (
                 <SectionError label="Courses" message={coursesError} />
               ) : enrolledCourses.length === 0 ? (
                 <EmptyState
@@ -227,7 +247,13 @@ export default function DashboardPage() {
               <h2 className="text-lg font-semibold text-gray-900 mb-4">
                 My Credentials
               </h2>
-              {credentialsError ? (
+              {credentialsLoading ? (
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  <CredentialCardSkeleton />
+                  <CredentialCardSkeleton />
+                  <CredentialCardSkeleton />
+                </div>
+              ) : credentialsError ? (
                 <SectionError label="Credentials" message={credentialsError} />
               ) : credentials.length === 0 ? (
                 <EmptyState
@@ -248,7 +274,9 @@ export default function DashboardPage() {
 
         <TabsContent value="rewards" className="focus-visible:outline-none focus-visible:ring-0">
           <SectionErrorBoundary label="Rewards">
-            {rewardsError ? (
+            {rewardsLoading ? (
+              <RewardsSkeleton />
+            ) : rewardsError ? (
               <SectionError label="Rewards" message={rewardsError} />
             ) : (
               <>

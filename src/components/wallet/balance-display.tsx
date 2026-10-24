@@ -99,10 +99,10 @@ export function BalanceDisplay({ className, compact = false }: BalanceDisplayPro
           Token Balance
         </div>
         <Link
-          href="/transactions"
+          href="/rewards"
           className="flex items-center gap-1 text-xs text-stellar-purple hover:underline dark:text-purple-400"
         >
-          View Transactions <ExternalLink className="h-3 w-3" />
+          View Rewards <ExternalLink className="h-3 w-3" />
         </Link>
       </div>
 
