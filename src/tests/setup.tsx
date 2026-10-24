@@ -1,4 +1,10 @@
-import "@testing-library/jest-dom";
+import "@testing-library/jest-dom/vitest";
+import { cleanup } from "@testing-library/react";
+import { afterAll, afterEach, beforeAll, vi } from "vitest";
+
+afterEach(() => {
+  cleanup();
+});
 
 // Radix UI (Select) relies on APIs jsdom doesn't implement.
 if (!window.HTMLElement.prototype.hasPointerCapture) {
@@ -39,9 +45,10 @@ if (!("ResizeObserver" in window)) {
 
 // Suppress Next.js router / Link warnings in jsdom
 vi.mock("next/navigation", () => ({
-  useRouter: () => ({ push: vi.fn(), replace: vi.fn(), prefetch: vi.fn() }),
+  useRouter: () => ({ push: vi.fn(), replace: vi.fn(), back: vi.fn(), prefetch: vi.fn() }),
   usePathname: () => "/",
   useSearchParams: () => new URLSearchParams(),
+  useParams: () => ({}),
 }));
 
 vi.mock("next/link", () => ({
