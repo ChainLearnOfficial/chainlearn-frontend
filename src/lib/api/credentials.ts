@@ -22,7 +22,6 @@ export interface VerifyCredentialResult {
   verifiedAt?: string;
   error?: VerifyCredentialError;
 }
-import { getValidToken } from "./auth";
 
 /**
  * Fetch all credentials for the authenticated user.
