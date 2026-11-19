@@ -1,0 +1,101 @@
+{
+  "version": 1,
+  "updated": "2026-11-19",
+  "sources": [
+    "https://github.com/OpenSourceMalware/PolinRider (public dossier, updated 2026-04-11)",
+    "https://opensourcemalware.com/?search=%23polinrider"
+  ],
+  "note": "Indicators for the PolinRider / TasksJacker campaign and generic loader patterns. Add new variants here as they are published. Files under scripts/security/ are excluded from scanning so these literals cannot self-match.",
+  "campaigns": ["PolinRider", "TasksJacker", "Contagious Interview cluster"],
+
+  "file_artifacts": [
+    { "id": "polinrider-auto-push", "pattern": "temp_auto_push.bat", "severity": "critical", "description": "History-falsifying propagation script (amends commit, rewinds clock, force-pushes with --no-verify)" },
+    { "id": "polinrider-config-bat", "pattern": "config.bat", "severity": "critical", "description": "Hidden orchestrator referenced from .gitignore" }
+  ],
+
+  "gitignore_markers": [
+    { "id": "polinrider-gitignore-config-bat", "pattern": "^config\\.bat$", "severity": "critical", "description": ".gitignore entry hiding config.bat" }
+  ],
+
+  "payload_markers": [
+    { "id": "pr-sig-v1", "pattern": "rmcej%otb%", "severity": "critical", "description": "PolinRider v1 obfuscator signature marker" },
+    { "id": "pr-sig-v2", "pattern": "Cot%3t=shtP", "severity": "critical", "description": "PolinRider v2 obfuscator signature marker" },
+    { "id": "pr-decoder-v1", "pattern": "_$_1e42", "severity": "critical", "description": "PolinRider v1 decoder function name" },
+    { "id": "pr-decoder-v2", "pattern": "MDy", "severity": "high", "description": "PolinRider v2 decoder function name (narrow form: function MDy)" , "regex": "function\\s+MDy\\s*\\(" },
+    { "id": "pr-global-bang", "pattern": "global['!']", "severity": "critical", "description": "PolinRider v1 injection marker" },
+    { "id": "pr-global-v", "pattern": "global['_V']", "severity": "critical", "description": "PolinRider v2 injection marker" },
+    { "id": "pr-global-req", "pattern": "global['r']", "severity": "high", "description": "PolinRider global require shim" },
+    { "id": "pr-global-mod", "pattern": "global['m']", "severity": "high", "description": "PolinRider global module shim" },
+    { "id": "pr-seed-1", "pattern": "2857687", "severity": "medium", "description": "PolinRider v1 shuffle seed" },
+    { "id": "pr-seed-2", "pattern": "2667686", "severity": "medium", "description": "PolinRider v1 secondary seed" },
+    { "id": "pr-seed-3", "pattern": "1111436", "severity": "medium", "description": "PolinRider v2 shuffle seed" },
+    { "id": "pr-seed-4", "pattern": "3896884", "severity": "medium", "description": "PolinRider v2 secondary seed" },
+    { "id": "pr-xor-1", "pattern": "2[gWfGj;<:-93Z^C", "severity": "critical", "description": "PolinRider XOR key (stage 1)" },
+    { "id": "pr-xor-2", "pattern": "m6:tTh^D)cBz?NM]", "severity": "critical", "description": "PolinRider XOR key (stage 2)" },
+    { "id": "pr-staking-uuid", "pattern": "e9b53a7c-2342-4b15-b02d-bd8b8f6a03f9", "severity": "critical", "description": "StakingGame weaponized take-home template UUID" },
+    { "id": "pr-batch-propagation", "pattern": "LAST_COMMIT_DATE", "severity": "high", "regex": "LAST_COMMIT_(DATE|TIME|TEXT)", "description": "Propagation .bat fingerprint (timestamp-rewind commit amend)" }
+  ],
+
+  "c2_hosts": [
+    { "id": "pr-c2-1", "pattern": "260120.vercel.app", "severity": "critical", "description": "PolinRider/TasksJacker HTTP C2" },
+    { "id": "pr-c2-2", "pattern": "default-configuration.vercel.app", "severity": "critical", "description": "TasksJacker C2 (most-used)" },
+    { "id": "pr-c2-3", "pattern": "vscode-settings-bootstrap.vercel.app", "severity": "critical", "description": "TasksJacker C2" },
+    { "id": "pr-c2-4", "pattern": "vscode-settings-config.vercel.app", "severity": "critical", "description": "TasksJacker C2" },
+    { "id": "pr-c2-5", "pattern": "vscode-bootstrapper.vercel.app", "severity": "critical", "description": "TasksJacker C2" },
+    { "id": "pr-c2-6", "pattern": "vscode-load-config.vercel.app", "severity": "critical", "description": "TasksJacker C2" }
+  ],
+
+  "c2_addresses": [
+    { "id": "pr-tron-1", "pattern": "TMfKQEd7TJJa5xNZJZ2Lep838vrzrs7mAP", "severity": "critical", "description": "PolinRider TRON dead-drop address (primary)" },
+    { "id": "pr-tron-2", "pattern": "TXfxHUet9pJVU1BgVkBAbrES4YUc1nGzcG", "severity": "critical", "description": "PolinRider TRON dead-drop address (secondary)" },
+    { "id": "pr-aptos-1", "pattern": "0xbe037400670fbf1c32364f762975908dc43eeb38759263e7dfcdabc76380811e", "severity": "critical", "description": "PolinRider Aptos fallback C2 tx hash" },
+    { "id": "pr-aptos-2", "pattern": "0x3f0e5781d0855fb460661ac63257376db1941b2bb522499e4757ecb3ebd5dce3", "severity": "critical", "description": "PolinRider Aptos fallback C2 tx hash" }
+  ],
+
+  "malicious_packages": [
+    { "id": "pr-npm-1", "pattern": "tailwindcss-style-animate", "severity": "critical", "description": "PolinRider npm dropper (ShoeVista template)" },
+    { "id": "pr-npm-2", "pattern": "tailwind-mainanimation", "severity": "critical", "description": "PolinRider npm dropper" },
+    { "id": "pr-npm-3", "pattern": "tailwind-autoanimation", "severity": "critical", "description": "PolinRider npm dropper" },
+    { "id": "pr-npm-4", "pattern": "tailwind-animationbased", "severity": "critical", "description": "PolinRider npm dropper" },
+    { "id": "pr-npm-5", "pattern": "tailwindcss-typography-style", "severity": "critical", "description": "PolinRider npm dropper" },
+    { "id": "pr-npm-6", "pattern": "tailwindcss-style-modify", "severity": "critical", "description": "PolinRider npm dropper" },
+    { "id": "pr-npm-7", "pattern": "tailwindcss-animate-style", "severity": "critical", "description": "PolinRider npm dropper" }
+  ],
+
+  "target_config_files": [
+    "postcss.config.mjs", "postcss.config.js", "postcss.config.cjs",
+    "tailwind.config.js", "tailwind.config.mjs", "tailwind.config.ts",
+    "eslint.config.mjs", "eslint.config.js",
+    "next.config.mjs", "next.config.js", "next.config.ts",
+    "babel.config.js", "jest.config.js", "jest.config.mjs",
+    "vite.config.js", "vite.config.mjs", "vite.config.ts",
+    "webpack.config.js", "gridsome.config.js", "vue.config.js",
+    "truffle.js", "astro.config.mjs", "App.js", "app.js", "index.js"
+  ],
+
+  "generic_patterns": [
+    { "id": "gen-curl-bash", "regex": "(curl|wget)[^\\n]{0,200}\\|\\s*(bash|sh|zsh)\\b", "severity": "high", "description": "Download-and-execute pipe (loader pattern)" },
+    { "id": "gen-b64-shell", "regex": "base64\\s+(-d|--decode)[^\\n]{0,60}\\|\\s*(bash|sh)\\b", "severity": "high", "description": "Base64-decode-and-execute" },
+    { "id": "gen-ps-enc", "regex": "powershell[^\\n]{0,80}\\s-(enc|encodedcommand|e)\\s", "severity": "high", "description": "PowerShell encoded command (dropper)" },
+    { "id": "gen-certutil", "regex": "certutil[^\\n]{0,60}(-decode|-decodehex)", "severity": "high", "description": "certutil decode (dropper)" },
+    { "id": "gen-eval-decode", "regex": "eval\\s*\\(", "severity": "high", "requires_any": ["fromCharCode", "atob\\s*\\(", "unescape\\s*\\(", "String\\.fromCodePoint"], "description": "eval combined with a decoding primitive" },
+    { "id": "gen-detached-spawn", "regex": "detached\\s*:\\s*true", "severity": "high", "requires_any": ["child_process", "spawn\\s*\\(", "exec\\s*\\("], "description": "Detached child process (persistence)" },
+    { "id": "gen-env-spread", "regex": "(JSON\\.stringify\\(\\s*process\\.env|Object\\.entries\\(\\s*process\\.env|\\.\\.\\.process\\.env)", "severity": "high", "description": "Bulk environment-variable capture (stealer)" },
+    { "id": "gen-node-e", "regex": "node\\s+-e\\s+[\"'][^\"']{200,}", "severity": "medium", "description": "Large inline node -e payload" },
+    { "id": "gen-raw-ip-url", "regex": "https?://\\d{1,3}(\\.\\d{1,3}){3}[:/]", "severity": "medium", "description": "Hard-coded raw-IP URL (possible C2)" },
+    { "id": "gen-bat-force-push", "regex": "push\\s+-(u[f]?|f|-force)\\b", "severity": "high", "requires_any": ["--no-verify", "commit\\s+--amend"], "description": "Force-push combined with hook bypass in a script" },
+    { "id": "gen-no-verify-amend", "regex": "commit\\s+--amend[^\\n]{0,60}--no-verify", "severity": "high", "description": "History-rewriting amend with hook bypass" }
+  ],
+
+  "vscode_tasks_markers": [
+    { "id": "gen-tasks-folderopen", "regex": "runOn\"?\\s*:\\s*\"?folderOpen", "severity": "critical", "description": "VS Code task auto-executing on folder open" },
+    { "id": "gen-tasks-curl-bash", "regex": "(curl|wget)[^\\n]{0,200}\\|\\s*(bash|sh)\\b", "severity": "critical", "description": "tasks.json download-and-execute" },
+    { "id": "gen-tasks-settings-url", "regex": "\\.vercel\\.app/settings/(mac|linux|win)", "severity": "critical", "description": "TasksJacker bootstrap URL shape" }
+  ],
+
+  "binary_text_markers": [
+    { "id": "gen-fake-font", "regex": "global\\[['\\\"]?[!rV_m]", "severity": "critical", "description": "JS payload hidden inside a font/image asset" },
+    { "id": "pr-sig-v1", "pattern": "rmcej%otb%", "severity": "critical", "description": "Payload marker inside a binary asset" },
+    { "id": "pr-sig-v2", "pattern": "Cot%3t=shtP", "severity": "critical", "description": "Payload marker inside a binary asset" }
+  ]
+}
