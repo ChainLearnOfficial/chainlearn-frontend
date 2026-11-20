@@ -36,6 +36,23 @@ Write clear, concise commit messages:
 - Keep the subject line under 72 characters
 - Reference related issues in the commit body when applicable
 
+## Commit Signing
+
+Signed commits are encouraged for maintainers. Supply-chain attacks
+(PolinRider) rewrite commit authorship and timestamps to cover their tracks,
+so verified signatures protect history integrity.
+
+```bash
+git config commit.gpgsign true
+git config gpg.format ssh
+git config user.signingkey ~/.ssh/id_ed25519.pub
+git config --add gpg.ssh.allowedSignersFile ~/.config/git/allowed_signers
+```
+
+Or enable "Sign commits" in your GitHub profile settings. GitHub marks
+verified commits with a badge; PRs from forked contributors should be
+double-checked for the "Verified" status.
+
 ## Testing Requirements
 
 Before submitting a PR, ensure the following pass:

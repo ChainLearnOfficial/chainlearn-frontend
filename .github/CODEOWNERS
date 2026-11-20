@@ -1,0 +1,9 @@
+# Code owners — required reviewers for security-sensitive paths.
+# Branch protection requires review from Code Owners on main.
+
+/.github/            @DeFiVC
+/.github/workflows/  @DeFiVC
+/package.json        @DeFiVC
+/package-lock.json   @DeFiVC
+/scripts/security/   @DeFiVC
+/SECURITY.md         @DeFiVC
