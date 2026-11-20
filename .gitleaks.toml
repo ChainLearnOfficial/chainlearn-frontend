@@ -1,0 +1,11 @@
+# Gitleaks configuration.
+#
+# Allowlisted paths contain synthetic test fixtures (mock Stellar wallet
+# addresses in unit tests) that match the generic-api-key rule. Keep this
+# allowlist surgical — real credentials must never land here.
+
+[allowlist]
+  paths = [
+    '''src/tests/layout/header\.test\.tsx''',
+    '''src/tests/wallet/connect-button\.test\.tsx''',
+  ]
