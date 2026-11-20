@@ -45,6 +45,12 @@ No CI can guarantee protection from "every type" of malware. Residual risk:
   because unsigned-but-untampered packages still exist in the ecosystem. Flip
   it to blocking in `.github/workflows/malware-protection.yml` once it passes
   cleanly on this dependency tree.
+- **`npm audit` is advisory, not blocking.** The tree carries pre-existing
+  advisory debt (a `next` 14 → 16 critical upgrade and related major bumps —
+  tracked as a separate issue). The step still runs on every PR and emits a
+  warning annotation; flip it to blocking once `npm audit --audit-level=high`
+  is clean. The *malware* gates (malicious packages, lifecycle scripts,
+  off-registry resolutions, signatures) remain fully blocking.
 
 ### Maintainer checklist (do these once)
 
